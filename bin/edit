@@ -1,0 +1,46 @@
+#!/bin/sh
+
+set -e
+
+d="$(cd $(dirname $0)/.. && pwd)"
+PATH="$d/libexec:$PATH"
+
+if test -z "$1"; then
+  if test -z "$TEA_PANTRY_PATH"; then
+    echo "error: TEA_PANTRY_PATH is not set" >&2
+    exit 1
+  fi
+  for x in $(echo "$TEA_PANTRY_PATH" | tr ':' '\n'); do
+    PKGS="$(GIT_DIR="$x"/.git peek.sh --print-paths) $PKGS"
+  done
+else
+  #TODO search TEA_PANTRY_PATH and implicit pantry path
+  echo "unimplemented" >&2
+  exit 1
+fi
+
+if test -z "$EDITOR"; then
+  if command -v code 2>/dev/null; then
+    EDITOR=code
+  elif command -v vim 2>/dev/null; then
+    EDITOR=vim
+  elif command -v vi 2>/dev/null; then
+    EDITOR=vi
+  elif command -v emacs 2>/dev/null; then
+    EDITOR=emacs
+  else
+    echo "error: \`\$EDITOR\` is not set" >&2
+    exit 1
+  fi
+elif test $EDITOR = code_wait; then
+  # this is for mxcl who generally prefers his editor to wait
+  # but not in this case. #perks-of-making-the-thing
+  EDITOR=code
+fi
+
+if test -z "$PKGS"; then
+  echo "error: no new packages in \`\$TEA_PANTRY_PATH\`" >&2
+  exit 1
+else
+  exec $EDITOR $PKGS
+fi

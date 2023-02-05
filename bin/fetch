@@ -1,0 +1,23 @@
+#!/bin/sh
+
+set -e
+
+d="$(cd $(dirname $0)/.. && pwd)"
+PATH="$d/libexec:$PATH"
+
+if test -z "$1"; then
+  if test -z "$TEA_PANTRY_PATH"; then
+    echo "error: TEA_PANTRY_PATH is not set" >&2
+    exit 1
+  fi
+  for x in $(echo "$TEA_PANTRY_PATH" | tr ':' '\n'); do
+    PKGS="$(GIT_DIR="$x"/.git peek.sh) $PKGS"
+  done
+else
+  PKGS="$1"
+fi
+
+for PKG in $PKGS; do
+  #TODO allow specifying the destination
+  fetch.ts $PKG
+done
