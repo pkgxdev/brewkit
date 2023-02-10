@@ -44,7 +44,9 @@ const env = await useShellEnv({ installations: [...deps, self] })
 
 if (!yml.test) throw "no `test` node in package.yml"
 
-env['PATH'].push("$PATH")
+if (env['PATH']) {
+  env['PATH'].push("$PATH")
+}
 
 let text = undent`
   #!/usr/bin/env bash
