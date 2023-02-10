@@ -15,7 +15,7 @@ jobs:
 
       - name: prefetch deno deps
         # this makes the output from the build step more legible
-        run: deno cache libexec/build.ts
+        run: deno cache libexec/*.ts
 
       - run: bin/build zlib.net
         env:
