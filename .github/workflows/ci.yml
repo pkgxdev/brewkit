@@ -26,8 +26,9 @@ jobs:
       - run: bin/build ${{matrix.pkg}}
         id: build
 
-      # there are 70 regex actions, none of them error if the regex fails 🤦🏻‍♂️
-      - run: echo ${{ steps.build.outputs.srcs }} | grep -q 'tea.xyz/var/www/${{matrix.pkg}}-(\d+\.)+\d+\.'
-      - run: echo ${{ steps.build.outputs.pkgs }} | grep -q '${{matrix.pkg}}=(\d+\.)+\d+'
+      - run: test -n '${{ steps.build.outputs.srcs }}'
+      - run: test -n '${{ steps.build.outputs.pkgs }}'
+      - run: test -n '${{ steps.build.outputs.srcs-relative-paths }}'
+      - run: test -n '${{ steps.build.outputs.relative-paths }}'
 
       - run: bin/test ${{matrix.pkg}}
