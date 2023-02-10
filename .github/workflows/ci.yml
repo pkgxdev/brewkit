@@ -1,0 +1,9 @@
+on:
+  pull_request:
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: teaxyz/setup@v0
+      - run: bin/build zlib.net
