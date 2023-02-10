@@ -2,6 +2,10 @@
 
 set -e
 
+if test -n "$RUNNER_DEBUG" -a -n "$GITHUB_ACTIONS" -o -n "$VERBOSE"; then
+  set -x
+fi
+
 d="$(cd $(dirname $0)/.. && pwd)"
 PATH="$d/libexec:$PATH"
 
