@@ -68,6 +68,7 @@ for PKG in $PKGS; do
   link.ts "$PREFIX" $PKG
 
   if test -n "$GITHUB_ACTIONS"; then
+    GH_PKGS="$PKG $GH_PKGS"
     GH_RELATIVE_PATHS="$GH_RELATIVE_PATHS ${PREFIX#$TEA_PREFIX/}"
 
     if test -f "$ZIP"; then
@@ -80,7 +81,7 @@ for PKG in $PKGS; do
 done
 
 if test -n "$GITHUB_ACTIONS"; then
-  echo "pkgs=$PKGS" >> $GITHUB_OUTPUT
+  echo "pkgs=$GH_PKGS" >> $GITHUB_OUTPUT
   echo "relative-paths=$GH_RELATIVE_PATHS" >> $GITHUB_OUTPUT
   echo "srcs=$GH_SRCS" >> $GITHUB_OUTPUT
   echo "srcs-relative-paths=$GH_SRCS_RELATIVE_PATHS" >> $GITHUB_OUTPUT
