@@ -7,9 +7,9 @@ jobs:
       GITHUB_TOKEN: ${{ github.token }}
     strategy:
       matrix:
-        pkg:
+        pkgs:
           - zlib.net
-          - openssl.org
+          - openssl.org curl.se/ca-certs
     steps:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
@@ -23,7 +23,7 @@ jobs:
         # this makes the output from the build step more legible
         run: deno cache libexec/*.ts
 
-      - run: bin/build ${{matrix.pkg}}
+      - run: bin/build ${{matrix.pkgs}}
         id: build
 
       - run: test -n '${{ steps.build.outputs.srcs }}'
@@ -31,4 +31,4 @@ jobs:
       - run: test -n '${{ steps.build.outputs.srcs-relative-paths }}'
       - run: test -n '${{ steps.build.outputs.relative-paths }}'
 
-      - run: bin/test ${{matrix.pkg}}
+      - run: bin/test ${{matrix.pkgs}}

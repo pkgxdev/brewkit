@@ -33,7 +33,9 @@ for PKG in $PKGS; do
   PREFIX="$(query.ts $PKG --prefix)"
   SRCDIR="$(query.ts $PKG --srcdir)"
 
-  fetch.ts $PKG -o "$ZIP"
+  if test -n "$ZIP"; then
+    fetch.ts $PKG -o "$ZIP"
+  fi
 
   if test -f "$ZIP"; then
     extract.ts "$ZIP" --pkg $PKG --output-dir "$SRCDIR"
