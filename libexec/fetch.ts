@@ -16,7 +16,7 @@ import { usePantry, useDownload, useOffLicense, useCache } from "hooks"
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { parse } from "utils/pkg.ts"
 import { Stowage} from "types"
-import { print } from "utils"
+import { print, panic } from "utils"
 import Path from "path"
 
 const { download } = useDownload()
@@ -41,9 +41,10 @@ if (!url) {
 }
 
 const zipfile = await (async () => {
+  const stowage: Stowage = { pkg, type: 'src', extname: url.path().extname() }
+
   const dst = (() => {
     if (flags.outputDir) {
-      const stowage: Stowage = { pkg, type: 'src', extname: url.path().extname() }
       const filename = useCache().path(stowage).basename()
       return Path.cwd().join(flags.outputDir, filename)
     } else {
