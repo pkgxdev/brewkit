@@ -1,0 +1,22 @@
+on:
+  pull_request:
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: teaxyz/setup@v0
+
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.HOME }}/.cache/deno
+          key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
+
+      - name: prefetch deno deps
+        # this makes the output from the build step more legible
+        run: deno --prefetch libexec/build.ts
+
+      - run: bin/build zlib.net
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
