@@ -74,8 +74,8 @@ for PKG in $PKGS; do
 done
 
 if test -n "$GITHUB_ACTIONS"; then
-  echo "pkgs=$PKGS" >> GITHUB_OUTPUT
-  echo "relative-paths=$GH_RELATIVE_PATHS" >> GITHUB_OUTPUT
-  echo "srcs=$GH_SRCS" >> GITHUB_OUTPUT
-  echo "srcs-relative-paths=$GH_SRCS_RELATIVE_PATHS" >> GITHUB_OUTPUT
+  echo "pkgs=$PKGS" >> $GITHUB_OUTPUT
+  echo "relative-paths=$GH_RELATIVE_PATHS" >> $GITHUB_OUTPUT
+  echo "srcs=$GH_SRCS" >> $GITHUB_OUTPUT
+  echo "srcs-relative-paths=$GH_SRCS_RELATIVE_PATHS" >> $GITHUB_OUTPUT
 fi
