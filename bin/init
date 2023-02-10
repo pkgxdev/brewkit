@@ -1,0 +1,37 @@
+#!/bin/bash
+
+set -eo pipefail
+
+if test -z "$TEA_PANTRY_PATH"; then
+  echo "error: TEA_PANTRY_PATH is not set" >&2
+  exit 1
+fi
+
+d="$(cd $(dirname $0)/.. && pwd)"
+PATH="$d/libexec:$PATH"
+
+BLEND="$1"
+if test -z "$BLEND"; then
+  BLEND="wip/$(tea sample-blend.rb)"
+fi
+WHERE="$(echo "$TEA_PANTRY_PATH" | cut -d: -f1)"
+
+mkdir -p "$WHERE/projects/$BLEND"
+cp "$d/share/TEMPLATE.pkg.yml" "$WHERE/projects/$BLEND/package.yml"
+
+if test "$WHERE" = "$PWD"; then
+  PRETTY="./projects/$BLEND/package.yml"
+else
+  PRETTY="$WHERE/projects/$BLEND"
+fi
+
+tea gum format <<EOF
+# created \`$PRETTY\`
+
+Now type \`xc edit\` to open the yaml in your \`\$EDITOR\`
+
+the package will need renaming before we can merge it.
+we typically name packages after their homepage.
+
+if you aren’t sure about the name you can submit and we’ll assist.
+EOF
