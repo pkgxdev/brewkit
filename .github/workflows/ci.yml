@@ -3,20 +3,26 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    strategy:
+      matrix:
+        pkg:
+          - zlib.net
+          - openssl.org
     steps:
       - uses: actions/checkout@v3
-
       - uses: teaxyz/setup@v0
 
       - uses: actions/cache@v2
         with:
           path: ${{ env.HOME }}/.cache/deno
-          key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
+          key: deno-get-platform-${{ hashFiles('deno.jsonc')}}
 
       - name: prefetch deno deps
         # this makes the output from the build step more legible
         run: deno cache libexec/*.ts
 
-      - run: bin/build zlib.net
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      - run: bin/build ${{matrix.pkg}}
+
+      - run: bin/test ${{matrix.pkg}}
