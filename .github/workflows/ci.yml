@@ -24,5 +24,16 @@ jobs:
         run: deno cache libexec/*.ts
 
       - run: bin/build ${{matrix.pkg}}
+        id: build
+
+      - uses: FidelusAleksander/gh-action-regex@v0.2.0
+        with:
+          regex: tea.xyz/var/www/${{matrix.pkg}}-(\d+\.)+\d+\.
+          text: ${{ steps.build.outputs.srcs }}
+
+      - uses: FidelusAleksander/gh-action-regex@v0.2.0
+        with:
+          regex: foo
+          text: ${{ steps.build.outputs.pkgs }}
 
       - run: bin/test ${{matrix.pkg}}
