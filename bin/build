@@ -29,7 +29,7 @@ fi
 
 # should one of these depend on the other:
 # ensure they are build in the correct order
-PKGS="$(sort.ts $PKGS)"
+PKGS="$(sort.ts $PKGS -d' ')"
 
 for PKG in $PKGS; do
   PKG="$(resolve.ts $PKG)"
