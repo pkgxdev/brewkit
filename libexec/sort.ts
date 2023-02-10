@@ -13,12 +13,13 @@ import { parse, str } from "utils/pkg.ts"
 import { usePantry } from "hooks"
 import { hydrate } from "prefab"
 
-const { flags: { d: separator }, unknown: args } = parseFlags(Deno.args, {
+const { flags: { delimiter: separator }, unknown: args } = parseFlags(Deno.args, {
   flags: [{
-    name: "d",
-    default: "\n"
-  }, {
-    name: "test"
+    name: "delimiter",
+    aliases: ["d"],
+    type: "string",
+    default: "\n",
+    required: false
   }],
 })
 
