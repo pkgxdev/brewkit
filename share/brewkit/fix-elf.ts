@@ -166,6 +166,6 @@ function transform(input: string, installation: Installation) {
     return input
   } else {
     //FIXME not very robust lol
-    return input.replace(/v(\d+)\.\d+\.\d+/, 'v$1')
+    return input.replace(/v(\d+)\.(\d+\.)+\d+[a-z]?/, 'v$1')
   }
 }
