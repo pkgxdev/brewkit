@@ -1,0 +1,39 @@
+#!/bin/sh
+
+set -e
+
+d="$(cd $(dirname $0)/.. && pwd)"
+PATH="$d/libexec:$PATH"
+
+if test -z "$1"; then
+  if test -z "$TEA_PANTRY_PATH"; then
+    echo "error: TEA_PANTRY_PATH is not set" >&2
+    exit 1
+  fi
+  for x in $(echo "$TEA_PANTRY_PATH" | tr ':' '\n'); do
+    if test -d "$x"/.git; then
+      PKGS="$(GIT_DIR="$x"/.git peek.sh) $PKGS"
+    fi
+  done
+else
+  PKGS="$1"
+fi
+
+for PKG in $PKGS; do
+  PKG="$(resolve.ts $PKG --cellar)"
+  DEPS="$(deps.ts $PKG --test)"
+  DEPS="$(install.ts $DEPS)"
+  DSTDIR="$(query.ts $PKG --testdir)"
+
+  mkdir -p "$DSTDIR"
+
+  stage-test.ts $PKG --deps "$DEPS" --dstdir "$DSTDIR"
+
+  if command -v bash 2>/dev/null; then
+    BASH=bash
+  else
+    BASH="tea bash"
+  fi
+
+  $BASH -e "$DSTDIR"/xyz.tea.test.sh
+done

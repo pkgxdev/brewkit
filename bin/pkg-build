@@ -1,0 +1,88 @@
+#!/bin/bash
+
+set -e
+
+if test -n "$RUNNER_DEBUG" -a -n "$GITHUB_ACTIONS" -o -n "$VERBOSE"; then
+  set -x
+fi
+
+d="$(cd $(dirname $0)/.. && pwd)"
+PATH="$d/libexec:$PATH"
+
+if test -z "$1"; then
+  if test -z "$TEA_PANTRY_PATH"; then
+    echo "error: TEA_PANTRY_PATH is not set" >&2
+    exit 1
+  fi
+  for x in $(echo "$TEA_PANTRY_PATH" | tr ':' '\n'); do
+    if test -d "$x"/.git; then
+      PKGS="$(GIT_DIR="$x"/.git peek.sh) $PKGS"
+    fi
+  done
+else
+  PKGS="$@"
+fi
+
+if test -z "$GITHUB_TOKEN"; then
+  export GITHUB_TOKEN=$(tea gh auth token)
+fi
+
+# should one of these depend on the other:
+# ensure they are build in the correct order
+PKGS="$(sort.ts $PKGS --delimiter ' ')"
+
+for PKG in $PKGS; do
+  PKG="$(resolve.ts $PKG)"
+  ZIP="$(query.ts $PKG --src)"
+  PREFIX="$(query.ts $PKG --prefix)"
+  SRCDIR="$(query.ts $PKG --srcdir)"
+
+  if test -n "$ZIP"; then
+    fetch.ts $PKG -o "$ZIP"
+  fi
+
+  if test -f "$ZIP"; then
+    extract.ts "$ZIP" --pkg $PKG --output-dir "$SRCDIR"
+  else
+    mkdir -p "$SRCDIR"
+  fi
+
+  DEPS=$(deps.ts $PKG --build)  # eg. nodejs.org^4
+  DEPS=$(install.ts $DEPS)      # eg. ~/.tea/nodejs.org/v4.3.2
+
+  mkdir -p "$SRCDIR"
+  BUILD_SCRIPT="$(stage.ts $PKG --srcdir "$SRCDIR" --prefix "$PREFIX" --deps "$DEPS")"
+
+  if command -v bash 2>/dev/null; then
+    BASH=bash
+  else
+    BASH="tea bash"
+  fi
+
+  $BASH -e "$BUILD_SCRIPT"
+
+  PATH="$d/share/brewkit:$PATH" fixup.ts "$PREFIX" --deps "$DEPS"
+
+  find "$PREFIX" -type f -name \*.la -delete
+
+  link.ts "$PREFIX" $PKG
+
+  if test -n "$GITHUB_ACTIONS"; then
+    GH_PKGS="$PKG $GH_PKGS"
+    GH_RELATIVE_PATHS="$GH_RELATIVE_PATHS ${PREFIX#$TEA_PREFIX/}"
+
+    if test -f "$ZIP"; then
+      GH_SRCS="$GH_SRCS ${ZIP#$TEA_PREFIX/}"
+      GH_SRCS_RELATIVE_PATHS="$GH_SRCS_RELATIVE_PATHS ${ZIP#$TEA_PREFIX/}"
+    else
+      GH_SRCS="$GH_SRCS ~"
+    fi
+  fi
+done
+
+if test -n "$GITHUB_ACTIONS"; then
+  echo "pkgs=$GH_PKGS" >> $GITHUB_OUTPUT
+  echo "relative-paths=$GH_RELATIVE_PATHS" >> $GITHUB_OUTPUT
+  echo "srcs=$GH_SRCS" >> $GITHUB_OUTPUT
+  echo "srcs-relative-paths=$GH_SRCS_RELATIVE_PATHS" >> $GITHUB_OUTPUT
+fi
