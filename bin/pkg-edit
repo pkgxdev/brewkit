@@ -16,9 +16,15 @@ if test -z "$1"; then
     fi
   done
 else
-  #TODO search TEA_PANTRY_PATH and implicit pantry path
-  echo "unimplemented" >&2
-  exit 1
+  for x in $(echo "$TEA_PANTRY_PATH" | tr ':' '\n'); do
+    if test -f "$x/projects/$1/package.yml"; then
+      PKGS="$x/projects/$1/package.yml $PKGS"
+    fi
+  done
+  if test -z "$PKGS"; then
+    echo "error: \`$1\` not found in \`\$TEA_PANTRY_PATH\`" >&2
+    exit 1
+  fi
 fi
 
 if test -z "$EDITOR"; then
