@@ -8,7 +8,7 @@ PROJECT_NAME=$(basename "$(dirname "$PREFIX")")
 VERSION=$(basename "$PREFIX")
 PYTHON_VERSION=$(python --version | cut -d' ' -f2)
 PYTHON_VERSION_MAJ=$(echo $PYTHON_VERSION | cut -d. -f1)
-PYTHON_VERSION_MIN=$(echo $PYTHON_VERSION | cut -d. -f1,2)
+PYTHON_VERSION_MIN=$(echo $PYTHON_VERSION | cut -d. -f2)
 
 python -m venv $PREFIX/libexec
 
@@ -39,7 +39,7 @@ cat <<EOF >>activate
 
 sed -i.bak \\
   -e "s|$TEA_PREFIX/python.org/v$PYTHON_VERSION|\$TEA_PREFIX/python.org/v$PYTHON_VERSION_MAJ|" \\
-  -e 's|bin/python$PYTHON_VERSION_MAJ.$PYTHON_VERSION_MIN|bin/python|' \\
+  -e 's|bin/python$PYTHON_VERSION_MAJ\\.$PYTHON_VERSION_MIN|bin/python|' \\
   -e "s|$PREFIX/libexec|\$TEA_PREFIX/$PROJECT_NAME/$VERSION/libexec|" \\
   \$VIRTUAL_ENV/pyvenv.cfg
 rm \$VIRTUAL_ENV/pyvenv.cfg.bak
