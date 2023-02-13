@@ -11,8 +11,9 @@ if test -z "$1"; then
     exit 1
   fi
   for x in $(echo "$TEA_PANTRY_PATH" | tr ':' '\n'); do
-    if test -d "$x"/.git; then
-      PKGS="$(GIT_DIR="$x"/.git peek.sh --print-paths) $PKGS"
+    if test -z "$PKGS" -a -d "$x"/.git; then
+      #^^^^^^^^^^^^^^^ stop at first match
+      PKGS="$(GIT_DIR="$x"/.git peek.sh --print-paths)"
     fi
   done
 else
