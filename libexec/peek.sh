@@ -9,7 +9,8 @@
 
 set -e
 
-FOO="$(git diff --name-only @{u} --diff-filter=A) $(git ls-files . --exclude-standard --others)"
+# sadly we seemingly need to reference origin/main
+FOO="$(git diff --name-only origin/main --diff-filter=A) $(git ls-files . --exclude-standard --others)"
 
 for x in $FOO; do
   BAR=$(echo "$x" | sed -n 's#projects/\(.*\)/package\.yml$#\1#p')
