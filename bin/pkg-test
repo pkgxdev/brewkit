@@ -2,7 +2,7 @@
 
 set -e
 
-d="$(cd $(dirname $0)/.. && pwd)"
+d="$(cd "$(dirname "$0")"/.. && pwd)"
 PATH="$d/libexec:$PATH"
 
 if test -z "$1"; then
@@ -20,14 +20,16 @@ else
 fi
 
 for PKG in $PKGS; do
-  PKG="$(resolve.ts $PKG --cellar)"
-  DEPS="$(deps.ts $PKG --test)"
+  PKG="$(resolve.ts "$PKG" --cellar)"
+  DEPS="$(deps.ts "$PKG" --test)"
+  # We intend to split on spaces, so disable the shellcheck warning.
+  # shellcheck disable=2086
   DEPS="$(install.ts $DEPS)"
-  DSTDIR="$(query.ts $PKG --testdir)"
+  DSTDIR="$(query.ts "$PKG" --testdir)"
 
   mkdir -p "$DSTDIR"
 
-  stage-test.ts $PKG --deps "$DEPS" --dstdir "$DSTDIR"
+  stage-test.ts "$PKG" --deps "$DEPS" --dstdir "$DSTDIR"
 
   if command -v bash 2>/dev/null; then
     BASH=bash

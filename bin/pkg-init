@@ -7,7 +7,7 @@ if test -z "$TEA_PANTRY_PATH"; then
   exit 1
 fi
 
-d="$(cd $(dirname $0)/.. && pwd)"
+d="$(cd "$(dirname "$0")"/.. && pwd)"
 PATH="$d/libexec:$PATH"
 
 BLEND="$1"

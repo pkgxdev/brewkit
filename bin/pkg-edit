@@ -2,7 +2,7 @@
 
 set -e
 
-d="$(cd $(dirname $0)/.. && pwd)"
+d="$(cd "$(dirname "$0")"/.. && pwd)"
 PATH="$d/libexec:$PATH"
 
 if test -z "$1"; then
@@ -30,26 +30,28 @@ fi
 
 if test -z "$EDITOR"; then
   if command -v code 2>/dev/null; then
-    EDITOR=code
+    EDITOR="code"
   elif command -v vim 2>/dev/null; then
-    EDITOR=vim
+    EDITOR="vim"
   elif command -v vi 2>/dev/null; then
-    EDITOR=vi
+    EDITOR="vi"
   elif command -v emacs 2>/dev/null; then
-    EDITOR=emacs
+    EDITOR="emacs"
   else
     echo "error: \`\$EDITOR\` is not set" >&2
     exit 1
   fi
-elif test $EDITOR = code_wait; then
+elif test "$EDITOR" = code_wait; then
   # this is for mxcl who generally prefers his editor to wait
   # but not in this case. #perks-of-making-the-thing
-  EDITOR=code
+  EDITOR="code"
 fi
 
 if test -z "$PKGS"; then
   echo "error: no new packages in \`\$TEA_PANTRY_PATH\`" >&2
   exit 1
 else
+  # We intend to split on spaces, so disable the shellcheck warning.
+  # shellcheck disable=2086
   exec $EDITOR $PKGS
 fi
