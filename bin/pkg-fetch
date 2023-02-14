@@ -20,6 +20,17 @@ else
 fi
 
 for PKG in $PKGS; do
-  #TODO allow specifying the destination
-  fetch.ts $PKG
+  PKG="$(resolve.ts $PKG)"
+  ZIP="$(query.ts $PKG --src)"
+  SRCDIR="$(query.ts $PKG --srcdir)"
+
+  if test -n "$ZIP"; then
+    fetch.ts $PKG -o "$ZIP"
+  fi
+
+  if test -f "$ZIP"; then
+    extract.ts "$ZIP" --pkg $PKG --output-dir "$SRCDIR"
+  fi
+
+  echo "$SRCDIR"
 done
