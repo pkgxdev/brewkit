@@ -1,6 +1,13 @@
 #!/bin/sh
 
-set -e
+#---
+# dependencies:
+#   gnu.org/coreutils: '*'
+#---
+
+#TODO no need to make a sub-dir, just make what we got the v-env
+
+set -ex
 
 CMD_NAME=$(basename "$1")
 PREFIX="$(dirname "$(dirname "$1")")"
@@ -10,41 +17,42 @@ PYTHON_VERSION=$(python --version | cut -d' ' -f2)
 PYTHON_VERSION_MAJ=$(echo $PYTHON_VERSION | cut -d. -f1)
 PYTHON_VERSION_MIN=$(echo $PYTHON_VERSION | cut -d. -f2)
 
-python -m venv $PREFIX/libexec
+python -m venv "$PREFIX"
 
-cd "$PREFIX"
+cd "$PREFIX"/bin
 
-libexec/bin/pip install -v --no-binary :all: --ignore-installed $CMD_NAME
-mkdir bin
+./pip install $CMD_NAME
 
-cat <<EOF >bin/$CMD_NAME
-#!/usr/bin/env bash
-self="\${BASH_SOURCE[0]}"
-LIBEXEC="\$(cd "\$(dirname "\$self")"/../libexec/bin && pwd)"
-source "\$LIBEXEC/activate"
-exec "\$LIBEXEC"/$CMD_NAME "\$@"
-EOF
-chmod +x bin/$CMD_NAME
-
-cd libexec/bin
-fix-shebangs.ts *
-
-rm Activate.ps1 activate.csh activate.fish
-
-sed -i.bak 's|VIRTUAL_ENV=".*"|VIRTUAL_ENV="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. \&\& pwd)"|' activate
-rm activate.bak
-
-# FIXME a lot: this "updates" the `venv` on each run for relocatability
-cat <<EOF >>activate
-
-sed -i.bak \\
-  -e "s|$TEA_PREFIX/python.org/v$PYTHON_VERSION|\$TEA_PREFIX/python.org/v$PYTHON_VERSION_MAJ|" \\
-  -e 's|bin/python$PYTHON_VERSION_MAJ\\.$PYTHON_VERSION_MIN|bin/python|' \\
-  -e "s|$PREFIX/libexec|\$TEA_PREFIX/$PROJECT_NAME/$VERSION/libexec|" \\
-  \$VIRTUAL_ENV/pyvenv.cfg
-rm \$VIRTUAL_ENV/pyvenv.cfg.bak
-EOF
-
-for x in python*; do
-  ln -sf ../../../../python.org/v$PYTHON_VERSION_MAJ/bin/$x $x
+for x in *; do
+  if test $x != $CMD_NAME -a $x != python; then
+    rm $x
+  fi
 done
+
+mkdir ../libexec
+mv $CMD_NAME ../libexec/${CMD_NAME}
+
+# python virtual-envs are not relocatable
+# our only working choice is to rewrite these files and symlinks every time
+# because we promise that tea is relocatable *at any time*
+
+cat <<EOF > $CMD_NAME
+#!/bin/sh
+
+export VIRTUAL_ENV="\$(cd "\$(dirname "\$0")"/.. && pwd)"
+
+cat <<EOSH > \$VIRTUAL_ENV/pyvenv.cfg
+home = \$TEA_PREFIX/python.org/v$PYTHON_VERSION_MAJ/bin
+include-system-site-packages = false
+executable = \$TEA_PREFIX/python.org/v$PYTHON_VERSION_MAJ/bin/python
+EOSH
+
+sed -i.bak "1s|.*|#!\$VIRTUAL_ENV/bin/python|" "\$VIRTUAL_ENV"/libexec/$CMD_NAME
+
+ln -sf "\$TEA_PREFIX"/python.org/v$PYTHON_VERSION_MAJ/bin/python "\$VIRTUAL_ENV"/bin/python
+
+exec "\$VIRTUAL_ENV"/libexec/$CMD_NAME "\$@"
+
+EOF
+
+chmod +x $CMD_NAME
