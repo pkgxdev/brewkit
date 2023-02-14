@@ -11,7 +11,7 @@ args:
 ---*/
 
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { useCellar, useFlags } from "hooks"
+import { useCellar, useFlags, usePrefix } from "hooks"
 import { str } from "utils/pkg.ts"
 import { run, host } from "utils"
 import Path from "path"
@@ -36,7 +36,10 @@ case 'darwin':
       'fix-machos.rb',
       pkg_prefix.string,
       ...['bin', 'lib', 'libexec'].compact(x => pkg_prefix.join(x).isDirectory())
-    ]
+    ],
+    env: {
+      GEM_HOME: usePrefix().join('gem').string
+    }
   })
   break
 case 'linux': {
