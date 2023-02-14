@@ -26,7 +26,7 @@ if test "$arg" = "-L"; then
       --volume /root/.tea/tea.xyz/var/pantry \
       --volume /root/.tea/tea.xyz/var/pantries \
       --volume "$SRCROOT"/projects:/pantry/projects \
-      --env GITHUB_TOKEN=$GITHUB_TOKEN \
+      --env GITHUB_TOKEN="$GITHUB_TOKEN" \
       --env TEA_PANTRY_PATH=/pantry \
       ghcr.io/teaxyz/infuser \
       tea +tea.xyz/brewkit "$@"
@@ -38,7 +38,7 @@ if test "$arg" = "-L"; then
       --volume "$TEA_PREFIX/tea.xyz/var/www":/root/.tea/tea.xyz/var/www \
       --volume /root/.tea/tea.xyz/var/pantries \
       --volume /root/.tea/tea.xyz/var/pantry \
-      --env GITHUB_TOKEN=$GITHUB_TOKEN \
+      --env GITHUB_TOKEN="$GITHUB_TOKEN" \
       ghcr.io/teaxyz/infuser \
       tea +tea.xyz/brewkit "$@"
   fi

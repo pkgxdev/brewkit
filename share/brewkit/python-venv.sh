@@ -11,32 +11,29 @@ set -ex
 
 CMD_NAME=$(basename "$1")
 PREFIX="$(dirname "$(dirname "$1")")"
-PROJECT_NAME=$(basename "$(dirname "$PREFIX")")
-VERSION=$(basename "$PREFIX")
 PYTHON_VERSION=$(python --version | cut -d' ' -f2)
-PYTHON_VERSION_MAJ=$(echo $PYTHON_VERSION | cut -d. -f1)
-PYTHON_VERSION_MIN=$(echo $PYTHON_VERSION | cut -d. -f2)
+PYTHON_VERSION_MAJ=$(echo "$PYTHON_VERSION" | cut -d. -f1)
 
 python -m venv "$PREFIX"
 
 cd "$PREFIX"/bin
 
-./pip install $CMD_NAME
+./pip install "$CMD_NAME"
 
 for x in *; do
-  if test $x != $CMD_NAME -a $x != python; then
-    rm $x
+  if test "$x" != "$CMD_NAME" -a "$x" != python; then
+    rm "$x"
   fi
 done
 
 mkdir ../libexec
-mv $CMD_NAME ../libexec/${CMD_NAME}
+mv "$CMD_NAME" ../libexec/"$CMD_NAME"
 
 # python virtual-envs are not relocatable
 # our only working choice is to rewrite these files and symlinks every time
 # because we promise that tea is relocatable *at any time*
 
-cat <<EOF > $CMD_NAME
+cat <<EOF > "$CMD_NAME"
 #!/bin/sh
 
 export VIRTUAL_ENV="\$(cd "\$(dirname "\$0")"/.. && pwd)"
@@ -55,4 +52,4 @@ exec "\$VIRTUAL_ENV"/libexec/$CMD_NAME "\$@"
 
 EOF
 
-chmod +x $CMD_NAME
+chmod +x "$CMD_NAME"

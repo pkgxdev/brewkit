@@ -2,7 +2,7 @@
 
 set -e
 
-d="$(cd $(dirname $0)/.. && pwd)"
+d="$(cd "$(dirname "$0")"/.. && pwd)"
 PATH="$d/libexec:$PATH"
 
 if test -z "$1"; then

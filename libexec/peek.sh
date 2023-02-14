@@ -11,7 +11,7 @@ set -e
 
 # sadly we seemingly need to reference origin/main
 DIVERGENCE_SHA="$(git merge-base HEAD origin/main)"
-CHANGED_FILES="$(git diff --name-only $DIVERGENCE_SHA)"
+CHANGED_FILES="$(git diff --name-only "$DIVERGENCE_SHA")"
 
 for CHANGED_FILE in $CHANGED_FILES; do
   PROJECT=$(echo "$CHANGED_FILE" | sed -n 's#projects/\(.*\)/package\.yml$#\1#p')
