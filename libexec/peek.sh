@@ -10,16 +10,17 @@
 set -e
 
 # sadly we seemingly need to reference origin/main
-FOO="$(git diff --name-only origin/main --diff-filter=A) $(git ls-files . --exclude-standard --others)"
+DIVERGENCE_SHA="$(git merge-base HEAD origin/main)"
+CHANGED_FILES="$(git diff --name-only $DIVERGENCE_SHA)"
 
-for x in $FOO; do
-  BAR=$(echo "$x" | sed -n 's#projects/\(.*\)/package\.yml$#\1#p')
-  if test -z "$BAR"
+for CHANGED_FILE in $CHANGED_FILES; do
+  PROJECT=$(echo "$CHANGED_FILE" | sed -n 's#projects/\(.*\)/package\.yml$#\1#p')
+  if test -z "$PROJECT"
   then
     true # noop
   elif test "$1" = "--print-paths"; then
-    echo "$x"
+    echo "$CHANGED_FILE"
   else
-    echo "$BAR"
+    echo "$PROJECT"
   fi
 done
