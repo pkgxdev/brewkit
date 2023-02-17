@@ -28,7 +28,7 @@ fi
 tea gum format <<EOF
 # created \`$PRETTY\`
 
-Now type \`xc edit\` to open the yaml in your \`\$EDITOR\`
+Now type \`pkg edit\` to open the yaml in your \`\$EDITOR\`
 
 the package will need renaming before we can merge it.
 we typically name packages after their homepage.
