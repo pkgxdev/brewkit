@@ -9,8 +9,8 @@
 
 set -e
 
-if ! d=$(git rev-parse --show-toplevel 2>/dev/null); then
-  echo "tea.xyz/brewkit: error: cwd is not a git repo" >&2
+if ! d="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+  echo "tea.xyz/brewkit: error: cwd is not inside a git repo" >&2
   exit 1
 fi
 
@@ -21,7 +21,7 @@ fi
 
 # sadly we seemingly need to reference origin/main
 DIVERGENCE_SHA="$(git merge-base HEAD origin/main)"
-CHANGED_FILES="$(git diff --name-only "$DIVERGENCE_SHA")"
+CHANGED_FILES="$(git diff --name-only "$DIVERGENCE_SHA") $(git status --untracked-files)"
 
 for CHANGED_FILE in $CHANGED_FILES; do
   PROJECT=$(echo "$CHANGED_FILE" | sed -n 's#projects/\(.*\)/package\.yml$#\1#p')
