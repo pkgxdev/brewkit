@@ -9,6 +9,16 @@
 
 set -e
 
+if ! d=$(git rev-parse --show-toplevel 2>/dev/null); then
+  echo "tea.xyz/brewkit: error: cwd is not a git repo" >&2
+  exit 1
+fi
+
+if ! test -d "$d"/projects; then
+  echo "tea.xyz/brewkit: error: cwd is not a pantry" >&2
+  exit 2
+fi
+
 # sadly we seemingly need to reference origin/main
 DIVERGENCE_SHA="$(git merge-base HEAD origin/main)"
 CHANGED_FILES="$(git diff --name-only "$DIVERGENCE_SHA")"
