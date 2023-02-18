@@ -12,7 +12,7 @@ PATH="$d/libexec:$PATH"
 
 BLEND="$1"
 if test -z "$BLEND"; then
-  BLEND="wip/$(tea sample-blend.rb)"
+  BLEND="wip/$(tea $d/libexec/sample-blend.rb)"
 fi
 WHERE="$(echo "$TEA_PANTRY_PATH" | cut -d: -f1)"
 
