@@ -55,7 +55,8 @@ let text = undent`
   set -o pipefail
   set -x
 
-  export TEA_PREFIX=${usePrefix()}
+  export TEA_PREFIX="${usePrefix()}"
+  export HOME="${dstdir}"
 
   ${expand(env)}
 
