@@ -27,6 +27,9 @@ for PKG in $PKGS; do
   DEPS="$(install.ts $DEPS)"
   DSTDIR="$(query.ts "$PKG" --testdir)"
 
+  if test -d "$DSTDIR"; then
+    rm -rf "$DSTDIR"
+  fi
   mkdir -p "$DSTDIR"
 
   stage-test.ts "$PKG" --deps "$DEPS" --dstdir "$DSTDIR"
