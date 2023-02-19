@@ -22,7 +22,8 @@ const { flags, unknown } = parseFlags(Deno.args, {
   flags: [{
     name: "deps",
     type: "string",
-    required: true
+    required: true,
+    optionalValue: true
   }],
 })
 
@@ -43,7 +44,7 @@ case 'darwin':
   })
   break
 case 'linux': {
-  const raw = flags.deps as string
+  const raw = flags.deps == true ? '' : flags.deps as string
   const installs = await Promise.all(raw.split(/\s+/).map(path => cellar.resolve(new Path(path))))
   const deps = installs.map(({ pkg }) => str(pkg))
   await run({
