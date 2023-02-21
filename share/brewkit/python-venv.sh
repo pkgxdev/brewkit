@@ -11,6 +11,7 @@ set -ex
 
 CMD_NAME=$(basename "$1")
 PREFIX="$(dirname "$(dirname "$1")")"
+VERSION="$(basename "$PREFIX")"
 PYTHON_VERSION=$(python --version | cut -d' ' -f2)
 PYTHON_VERSION_MAJ=$(echo "$PYTHON_VERSION" | cut -d. -f1)
 
@@ -18,7 +19,7 @@ python -m venv "$PREFIX"
 
 cd "$PREFIX"/bin
 
-./pip install "$CMD_NAME"
+./pip install "$CMD_NAME==$VERSION"
 
 for x in *; do
   if test "$x" != "$CMD_NAME" -a "$x" != python; then
