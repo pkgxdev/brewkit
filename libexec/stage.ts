@@ -54,9 +54,8 @@ const pkg = await pantry.resolve(parse(pkgname))
 const env = await useShellEnv({ installations: deps })
 if (host().platform == 'darwin') env['MACOSX_DEPLOYMENT_TARGET'] = ['11.0']
 
-if (env['PATH']) {
-  env['PATH'].push("$PATH")
-}
+env['PATH'] ??= []
+env['PATH'].push("/usr/bin:/bin")
 
 /// assemble build script
 const pantry_sh = await pantry.getScript(pkg, 'build', deps)
