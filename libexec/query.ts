@@ -5,7 +5,8 @@ args:
   - deno
   - run
   - --allow-read
-  - --allow-env=TEA_PREFIX,TEA_PANTRY_PATH
+  - --allow-net
+  - --allow-env=TEA_PREFIX,TEA_PANTRY_PATH,GITHUB_TOKEN
 ---*/
 
 import { Package, PackageRequirement, Stowage } from "types"
@@ -14,7 +15,7 @@ import { parseFlags } from "cliffy/flags/mod.ts"
 import { parse, str } from "utils/pkg.ts"
 import { panic, print } from "utils"
 
-const { flags: { prefix, srcdir, src, testdir }, unknown: [pkgname] } = parseFlags(Deno.args, {
+const { flags: { prefix, srcdir, src, testdir, versions }, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
     name: "prefix",
     standalone: true
@@ -27,10 +28,20 @@ const { flags: { prefix, srcdir, src, testdir }, unknown: [pkgname] } = parseFla
   }, {
     name: "testdir",
     standalone: true
+  }, {
+    name: "versions",
+    standalone: true
   }]
 })
 
 let pkg: PackageRequirement | Package = parse(pkgname)
+
+if (versions) {
+  const versions = await usePantry().getVersions(pkg)
+  await print(`${versions.sort().join("\n")}\n`)
+  Deno.exit(0)
+}
+
 const version = pkg.constraint.single() ?? panic()
 pkg = {project: pkg.project, version }
 
