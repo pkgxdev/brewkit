@@ -68,3 +68,32 @@ lsrpath() {
 
 This should be added to a `pkg doctor` type thing I reckon. eg.
 `pkg doctor zlib.net -Q:rpath`.
+
+
+&nbsp;
+
+
+# Tasks
+
+## Bump
+
+Inputs: TAG_NAME
+
+```sh
+if ! git diff-index --quiet HEAD --; then
+  echo "error: dirty working tree" >&2
+  exit 1
+fi
+
+if [ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]; then
+  echo "error: requires main branch" >&2
+  exit 1
+fi
+
+if [[ "$TAG_NAME" != v* ]]; then
+  TAG_NAME="v$TAG_NAME"
+fi
+
+git push origin main
+tea gh release create "$TAG_NAME"
+```
