@@ -5,21 +5,24 @@ args:
   - deno
   - run
   - --allow-net
+  - --allow-run=curl
   - --allow-read
   - --allow-write={{ tea.prefix }}
   - --allow-env
+  - --unstable
+dependencies:
+  curl.se: '*'
 ---*/
 
 //TODO verify the sha
 
-import { usePantry, useDownload, useOffLicense, useCache } from "hooks"
+import { usePantry, useOffLicense, useCache } from "hooks"
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { parse } from "utils/pkg.ts"
 import { Stowage} from "types"
 import { print, panic } from "utils"
 import Path from "path"
 
-const { download } = useDownload()
 const pantry = usePantry()
 
 const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
@@ -63,3 +66,17 @@ const zipfile = await (async () => {
 })()
 
 await print(`${zipfile}\n`)
+
+async function download({ dst, src }: { dst: Path, src: URL }) {
+  // using cURL as deno’s fetch fails for certain sourceforge URLs
+  // seemingly due to SSL certificate issues. cURL basically always works ¯\_(ツ)_/¯
+  const proc = new Deno.Command("curl", {
+    args: ["-fLo", dst.string, src.toString()]
+  })
+  const status = await proc.spawn().status
+  if (!status.success) {
+    console.error({ dst, src })
+    throw new Error()
+  }
+  return dst
+}
