@@ -50,7 +50,7 @@ include-system-site-packages = false
 executable = \$TEA_PYTHON
 EOSH
 
-find "\$VIRTUAL_ENV"/bin -depth 1 -type f | xargs \\
+find "\$VIRTUAL_ENV"/bin -maxdepth 1 -type f | xargs \\
   sed -i.bak "1s|.*|#!\$VIRTUAL_ENV/bin/python|"
 
 rm "\$VIRTUAL_ENV"/bin/*.bak
