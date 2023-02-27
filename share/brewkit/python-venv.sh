@@ -39,18 +39,21 @@ cat <<EOF > ../bin/"$CMD_NAME"
 
 export VIRTUAL_ENV="\$(cd "\$(dirname "\$0")"/.. && pwd)/venv"
 
+TEA_PYTHON="\$(which python)"
+TEA_PYHOME="\$(dirname "\$TEA_PYTHON")"
+
 cat <<EOSH > \$VIRTUAL_ENV/pyvenv.cfg
-home = \$TEA_PREFIX/python.org/v$PYTHON_VERSION_MAJ/bin
+home = \$TEA_PYHOME
 include-system-site-packages = false
-executable = \$TEA_PREFIX/python.org/v$PYTHON_VERSION_MAJ/bin/python
+executable = \$TEA_PYTHON
 EOSH
 
-find "\$VIRTUAL_ENV"/bin -depth 1 -type f | xargs \
+find "\$VIRTUAL_ENV"/bin -depth 1 -type f | xargs \\
   sed -i.bak "1s|.*|#!\$VIRTUAL_ENV/bin/python|"
 
 rm "\$VIRTUAL_ENV"/bin/*.bak
 
-ln -sf "\$TEA_PREFIX"/python.org/v$PYTHON_VERSION_MAJ/bin/python "\$VIRTUAL_ENV"/bin/python
+ln -sf "\$TEA_PYTHON" "\$VIRTUAL_ENV"/bin/python
 
 exec "\$VIRTUAL_ENV"/bin/$CMD_NAME "\$@"
 
