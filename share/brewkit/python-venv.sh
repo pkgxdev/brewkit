@@ -21,6 +21,8 @@ python -m venv "$VIRTUAL_ENV"
 # setup tools requires a git version typically
 cd "$SRCROOT"
 git init
+git config user.name 'tea[bot]'
+git config user.email 'bot@tea.xyz'
 git commit -mnil --allow-empty
 git tag -a "$VERSION" -m "Version $VERSION"
 
