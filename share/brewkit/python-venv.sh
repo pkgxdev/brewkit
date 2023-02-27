@@ -1,11 +1,10 @@
-#!/bin/sh
+#!/usr/bin/env -S tea sh
 
 #---
 # dependencies:
-#   gnu.org/coreutils: '*'
+#   git-scm.org: ^2
+#   # ^^ required to set version tag used by setup tools
 #---
-
-#TODO no need to make a sub-dir, just make what we got the v-env
 
 set -ex
 
@@ -15,29 +14,30 @@ VERSION="$(basename "$PREFIX")"
 PYTHON_VERSION=$(python --version | cut -d' ' -f2)
 PYTHON_VERSION_MAJ=$(echo "$PYTHON_VERSION" | cut -d. -f1)
 
-python -m venv "$PREFIX"
+export VIRTUAL_ENV="$PREFIX"/venv
 
-cd "$PREFIX"/bin
+python -m venv "$VIRTUAL_ENV"
 
-./pip install "$CMD_NAME==$VERSION"
+# setup tools requires a git version typically
+cd "$SRCROOT"
+git init
+git commit -mnil --allow-empty
+git tag -a "$VERSION" -m "Version $VERSION"
 
-for x in *; do
-  if test "$x" != "$CMD_NAME" -a "$x" != python; then
-    rm "$x"
-  fi
-done
-
-mkdir ../libexec
-mv "$CMD_NAME" ../libexec/"$CMD_NAME"
+cd "$VIRTUAL_ENV"
+bin/pip install "$SRCROOT" --verbose
 
 # python virtual-envs are not relocatable
 # our only working choice is to rewrite these files and symlinks every time
 # because we promise that tea is relocatable *at any time*
 
-cat <<EOF > "$CMD_NAME"
+mkdir -p ../bin
+
+#FIXME requiring sed is a bit lame
+cat <<EOF > ../bin/"$CMD_NAME"
 #!/bin/sh
 
-export VIRTUAL_ENV="\$(cd "\$(dirname "\$0")"/.. && pwd)"
+export VIRTUAL_ENV="\$(cd "\$(dirname "\$0")"/.. && pwd)/venv"
 
 cat <<EOSH > \$VIRTUAL_ENV/pyvenv.cfg
 home = \$TEA_PREFIX/python.org/v$PYTHON_VERSION_MAJ/bin
@@ -45,12 +45,15 @@ include-system-site-packages = false
 executable = \$TEA_PREFIX/python.org/v$PYTHON_VERSION_MAJ/bin/python
 EOSH
 
-sed -i.bak "1s|.*|#!\$VIRTUAL_ENV/bin/python|" "\$VIRTUAL_ENV"/libexec/$CMD_NAME
+find "\$VIRTUAL_ENV"/bin -depth 1 -type f | xargs \
+  sed -i.bak "1s|.*|#!\$VIRTUAL_ENV/bin/python|"
+
+rm "\$VIRTUAL_ENV"/bin/*.bak
 
 ln -sf "\$TEA_PREFIX"/python.org/v$PYTHON_VERSION_MAJ/bin/python "\$VIRTUAL_ENV"/bin/python
 
-exec "\$VIRTUAL_ENV"/libexec/$CMD_NAME "\$@"
+exec "\$VIRTUAL_ENV"/bin/$CMD_NAME "\$@"
 
 EOF
 
-chmod +x "$CMD_NAME"
+chmod +x ../bin/"$CMD_NAME"
