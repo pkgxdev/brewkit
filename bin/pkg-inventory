@@ -1,0 +1,4 @@
+#!/bin/sh
+
+d="$(cd "$(dirname "$0")/.." && pwd)"
+exec "$d"/libexec/inventory.ts "$@"
