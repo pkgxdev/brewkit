@@ -22,7 +22,6 @@ fi
 for PKG in $PKGS; do
   PKG="$(resolve.ts "$PKG" --cellar)"
   DEPS="$(deps.ts "$PKG" --test)"
-  # We intend to split on spaces, so disable the shellcheck warning.
   # shellcheck disable=2086
   DEPS="$(install.ts $DEPS)"
   DSTDIR="$(query.ts "$PKG" --testdir)"

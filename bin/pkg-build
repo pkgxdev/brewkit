@@ -28,12 +28,9 @@ if test -z "$GITHUB_TOKEN"; then
   export GITHUB_TOKEN
 fi
 
-# should one of these depend on the other:
-# ensure they are build in the correct order
-
-# split on spaces
 # shellcheck disable=SC2086
 PKGS="$(sort.ts $PKGS --delimiter ' ')"
+# ^^ ensures that pkgs build topologically
 
 for PKG in $PKGS; do
   PKG="$(resolve.ts "$PKG")"
@@ -53,8 +50,7 @@ for PKG in $PKGS; do
 
   DEPS=$(deps.ts "$PKG" --build)  # eg. nodejs.org^4
 
-# split on spaces
-# shellcheck disable=SC2086
+  # shellcheck disable=SC2086
   DEPS=$(install.ts $DEPS)      # eg. ~/.tea/nodejs.org/v4.3.2
 
   mkdir -p "$SRCDIR"

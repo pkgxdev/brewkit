@@ -25,15 +25,20 @@ const { flags: { build, test }, unknown: [pkgname] } = parseFlags(Deno.args, {
 const pkg = parse(pkgname)
 const pantry = usePantry()
 
-const rv = await hydrate([pkg], async (pkg, dry) => {
+/// when building we don’t incorporate the target into the hydration graph
+/// because we don’t want it yet: we”re about to build it
+
+const dry = build
+  ? (({ runtime, build }) => [...runtime, ...build])(await pantry.getDeps(pkg))
+  : [pkg]
+
+const { pkgs: wet } = await hydrate(dry, async (pkg, dry) => {
   const deps = await pantry.getDeps(pkg)
-  if (dry && build) {
-    return [...deps.build, ...deps.runtime]
-  } else if (dry && test) {
-    return [...deps.test, ...deps.runtime]
+  if (dry && test) {
+    return [...deps.runtime, ...deps.test]
   } else {
     return deps.runtime
   }
 })
 
-console.log(rv.wet.map(str).join("\n"))
+console.log(wet.map(str).join("\n"))
