@@ -25,15 +25,15 @@ const { flags: { build, test }, unknown: [pkgname] } = parseFlags(Deno.args, {
 const pkg = parse(pkgname)
 const pantry = usePantry()
 
-const rv = await hydrate([pkg], async (pkg, dry) => {
-  const deps = await pantry.getDeps(pkg)
-  if (dry && build) {
-    return [...deps.build, ...deps.runtime]
-  } else if (dry && test) {
-    return [...deps.test, ...deps.runtime]
-  } else {
-    return deps.runtime
-  }
-})
+/// we don’t hydrate([pkg]) because that means [pkg] is incorporated into the graph
+/// which (surprisignly) we don’t want, eg. if we're building go, it requires itself
+/// but we don’t want the build graph to include that specific version of go since
+/// we haven't yet built it.
 
-console.log(rv.wet.map(str).join("\n"))
+const { runtime: dry, ...deps } = await pantry.getDeps(pkg)
+if (build) dry.push(...deps.build)
+if (test) dry.push(...deps.test)
+
+const { pkgs: wet } = await hydrate(dry)
+
+console.log(wet.map(str).join("\n"))
