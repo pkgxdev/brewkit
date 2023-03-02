@@ -50,6 +50,11 @@ build:
     ./configure $ARGS
     make --jobs {{ hw.concurrency }} install
   # it’s extremely common for packages to require the above
+  env:
+    # add any environment variables here
+    ARGS:
+      - --prefix="{{prefix}}"
+
 
 provides:
   - bin/foo
