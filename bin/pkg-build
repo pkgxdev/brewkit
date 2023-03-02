@@ -77,8 +77,6 @@ for PKG in $PKGS; do
     if test -f "$ZIP"; then
       GH_SRCS="$GH_SRCS ${ZIP#"$TEA_PREFIX"/}"
       GH_SRCS_RELATIVE_PATHS="$GH_SRCS_RELATIVE_PATHS ${ZIP#"$TEA_PREFIX"/}"
-    else
-      GH_SRCS="$GH_SRCS ~"
     fi
   fi
 done
