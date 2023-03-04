@@ -8,8 +8,8 @@ BrewKit is build infrastructure for tea.
 tea +tea.xyz/brewkit pkg build zlib.net
 ```
 
-If you are inside a pantry and tea magic is installed you can omit the `tea`
-preamable and package names, BrewKit will figure out what packages you are
+If you are inside a pantry and tea magic is installed, you can omit the `tea`
+preamble and package names; BrewKit will figure out what packages you are
 editing and build them.
 
 ```sh
@@ -17,7 +17,7 @@ $ pkg build
 tea.xyz/brewkit: building zlib.net
 ```
 
-You can build for Linux (via Docker) using `-L`, eg:
+You can build for Linux (via Docker) using `-L`, e.g.:
 
 ```sh
 pkg -L build
@@ -25,7 +25,7 @@ pkg -L build
 
 ## Without Magic
 
-If you don’t have tea’s magic installed you need to explicitly add brewkit to
+If you don’t have tea’s magic installed you need to explicitly add `brewkit` to
 the environment:
 
 ```sh
@@ -34,7 +34,7 @@ tea +tea.xyz/brewkit pkg build
 
 ## Outside a Pantry Checkout
 
-Outside a pantry checkout you need to both ask `tea` to add brewkit to the
+Outside a pantry checkout, you need to both ask `tea` to add `brewkit` to the
 environment and specify which package to operate on. Outside a pantry checkout
 we operate against your tea installation (which defaults to `~/.tea`).
 
@@ -66,12 +66,10 @@ lsrpath() {
 }
 ```
 
-This should be added to a `pkg doctor` type thing I reckon. eg.
+This should be added to a `pkg doctor` type thing I reckon. E.g.
 `pkg doctor zlib.net -Q:rpath`.
 
-
 &nbsp;
-
 
 # Tasks
 
