@@ -12,7 +12,6 @@ args:
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { usePantry, useCellar } from "hooks"
 import { parse, str } from "utils/pkg.ts"
-import { panic } from "utils"
 
 const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
@@ -28,4 +27,5 @@ if (!flags.cellar) {
   if (!entry) {
     throw new Error(`${pkgname} not installed in $TEA_PREFIX`)
   }
+  console.log(str(entry.pkg))
 }
