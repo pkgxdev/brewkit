@@ -11,11 +11,11 @@
 # this is the source tarball. Swap the version out for {{version}} or we won’t
 # be able to upgrade the package when it updates!
 distributable:
-   url: https://example.com/v{{version}}.tar.gz
-   # this obscure option dictates how many components are removed from the
-   # extracted tarball. It only works with tarballs. You almost always want
-   # `1`. If after extraction the src-directory is funky try `0` or `2`.
-   strip-components: 1
+  url: https://example.com/v{{version}}.tar.gz
+  # this obscure option dictates how many components are removed from the
+  # extracted tarball. It only works with tarballs. You almost always want
+  # `1`. If after extraction the src-directory is funky try `0` or `2`.
+  strip-components: 1
 
 # if there’s a github then we can parse the versions
 versions:
