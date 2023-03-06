@@ -24,6 +24,8 @@ if (!flags.cellar) {
   const pkg = await usePantry().resolve(parse(pkgname))
   console.log(str(pkg))
 } else {
-  const { pkg } = await useCellar().has(parse(pkgname)) ?? panic()
-  console.log(str(pkg))
+  const entry = await useCellar().has(parse(pkgname))
+  if (!entry) {
+    throw new Error(`${pkgname} not installed in $TEA_PREFIX`)
+  }
 }
