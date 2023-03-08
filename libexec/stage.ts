@@ -59,8 +59,12 @@ const text = undent`
   set -x
   cd "${srcdir}"
 
+  export HOME="${srcdir}/xyz.tea.home"
   export SRCROOT="${srcdir}"
+  export PREFIX=${flags.prefix}
   ${expand(env)}
+
+  mkdir "$HOME"
 
   export PATH=${brewkit}:"$PATH"
 
