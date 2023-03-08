@@ -1,13 +1,4 @@
-#!/usr/bin/env -S tea -E
-
-/*---
-args:
-  - deno
-  - run
-  - --allow-read
-  - --allow-write
-  - --allow-env
----*/
+#!/usr/bin/env -S deno run --allow-read --allow-write --allow-env
 
 import { usePantry, usePrefix, useCellar } from "hooks"
 import useShellEnv, { expand } from "hooks/useShellEnv.ts"

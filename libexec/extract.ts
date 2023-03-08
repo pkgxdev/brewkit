@@ -11,7 +11,7 @@ args:
   - --allow-net
   - --allow-read
   - --allow-run=tar,unzip
-  - --allow-write={{tea.prefix}}
+  - --allow-write
   - --allow-env=TEA_PREFIX,TEA_PANTRY_PATH,GITHUB_TOKEN
 ---*/
 

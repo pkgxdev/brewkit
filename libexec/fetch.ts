@@ -7,7 +7,7 @@ args:
   - --allow-net
   - --allow-run=curl
   - --allow-read
-  - --allow-write={{ tea.prefix }}
+  - --allow-write
   - --allow-env
   - --unstable
 dependencies:
@@ -16,7 +16,7 @@ dependencies:
 
 //TODO verify the sha
 
-import { usePantry, useOffLicense, useCache } from "hooks"
+import { usePantry, useOffLicense, useCache, useDownload } from "hooks"
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { parse } from "utils/pkg.ts"
 import { Stowage} from "types"
@@ -68,15 +68,20 @@ const zipfile = await (async () => {
 await print(`${zipfile}\n`)
 
 async function download({ dst, src }: { dst: Path, src: URL }) {
-  // using cURL as deno’s fetch fails for certain sourceforge URLs
-  // seemingly due to SSL certificate issues. cURL basically always works ¯\_(ツ)_/¯
-  const proc = new Deno.Command("curl", {
-    args: ["--fail", "--location", "--output", dst.string, src.toString()]
-  })
-  const status = await proc.spawn().status
-  if (!status.success) {
-    console.error({ dst, src })
-    throw new Error(`cURL failed to download ${src}`)
+  if (Deno.env.get("GITHUB_ACTIONS")) {
+    // using cURL as deno’s fetch fails for certain sourceforge URLs
+    // seemingly due to SSL certificate issues. cURL basically always works ¯\_(ツ)_/¯
+    const proc = new Deno.Command("curl", {
+      args: ["--fail", "--location", "--output", dst.string, src.toString()]
+    })
+    const status = await proc.spawn().status
+    if (!status.success) {
+      console.error({ dst, src })
+      throw new Error(`cURL failed to download ${src}`)
+    }
+    return dst
+  } else {
+    // locally using our download function as it knows how to cache properly
+    useDownload().download({ dst, src })
   }
-  return dst
 }

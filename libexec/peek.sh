@@ -1,15 +1,14 @@
 #!/bin/sh
 
-#TODO we should ensure we are invoked via tea (to get git)
-
-#---
-# dependencies:
-#   git-scm.org: ^2
-#---
-
 set -e
 
-if ! d="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+if ! command -v git 2>/dev/null; then
+  GIT="tea git"
+else
+  GIT=git
+fi
+
+if ! d="$($GIT rev-parse --show-toplevel 2>/dev/null)"; then
   echo "tea.xyz/brewkit: error: cwd is not inside a git repo" >&2
   exit 1
 fi
@@ -20,8 +19,8 @@ if ! test -d "$d"/projects; then
 fi
 
 # sadly we seemingly need to reference origin/main
-DIVERGENCE_SHA="$(git merge-base HEAD origin/main)"
-CHANGED_FILES="$(git diff --name-only "$DIVERGENCE_SHA") $(git status --untracked-files)"
+DIVERGENCE_SHA="$($GIT merge-base HEAD origin/main)"
+CHANGED_FILES="$($GIT diff --name-only "$DIVERGENCE_SHA") $($GIT status --untracked-files)"
 
 for CHANGED_FILE in $CHANGED_FILES; do
   PROJECT=$(echo "$CHANGED_FILE" | sed -n 's#projects/\(.*\)/package\.yml$#\1#p')

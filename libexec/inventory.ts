@@ -1,4 +1,4 @@
-#!/usr/bin/env -S tea -E deno run --allow-net --allow-env --allow-read
+#!/usr/bin/env -S deno run --allow-net --allow-env --allow-read
 
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { useInventory } from "hooks"

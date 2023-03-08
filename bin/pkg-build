@@ -23,6 +23,10 @@ else
   PKGS="$*"
 fi
 
+if test -n "$TEA_DOCKER"; then
+  exec "$d"/bin/pkg-docker build "$PKGS"
+fi
+
 if test -z "$GITHUB_TOKEN"; then
   GITHUB_TOKEN=$(tea gh auth token)
   export GITHUB_TOKEN

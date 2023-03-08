@@ -1,14 +1,4 @@
-#!/usr/bin/env -S tea -E
-
-/*---
-args:
-  - deno
-  - run
-  - --allow-read
-  - --allow-write
-  - --allow-env=TEA_PREFIX,TEA_PANTRY_PATH
-  - --allow-run=/bin/ln
----*/
+#!/usr/bin/env -S deno run --allow-read --allow-write --allow-env=TEA_PREFIX,TEA_PANTRY_PATH --allow-run=/bin/ln
 
 import { PackageRequirement, Package } from "types"
 import { parse } from "utils/pkg.ts"

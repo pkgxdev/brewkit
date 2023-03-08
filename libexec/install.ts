@@ -1,16 +1,4 @@
-#!/usr/bin/env -S tea -E
-
-/*---
-args:
-  - deno
-  - run
-  - --allow-read
-  - --allow-write={{tea.prefix}}
-  - --allow-run=tar,/bin/ln
-  - --allow-net
-  - --allow-env
-  - --unstable
----*/
+#!/usr/bin/env -S deno run --allow-read --allow-write --allow-run=tar,/bin/ln --allow-net --allow-env --unstable
 
 import { useCellar, useInventory } from "hooks"
 import { parse, str } from "utils/pkg.ts"

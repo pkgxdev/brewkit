@@ -1,14 +1,4 @@
-#!/usr/bin/env -S tea -E
-
-/*---
-args:
-  - deno
-  - run
-  - --allow-run
-  - --allow-read
-  - --allow-write={{tea.prefix}}
-  - --allow-env
----*/
+#!/usr/bin/env -S deno run --allow-run --allow-read --allow-write --allow-env
 
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { useCellar, useFlags, usePrefix } from "hooks"

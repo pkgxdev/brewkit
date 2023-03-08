@@ -1,0 +1,42 @@
+#!/bin/sh
+
+set -e
+
+d="$(cd "$(dirname "$0")/.." && pwd)"
+
+arg0="$1"
+shift
+
+if test -z "$TEA_PREFIX"; then
+  echo "tea.xyz/brewkit: error: TEA_PREFIX unset" >&2
+  exit 1
+fi
+
+if test -z "$GITHUB_TOKEN"; then
+  GITHUB_TOKEN=$(tea gh auth token)
+fi
+
+if test $arg0 = docker; then
+  echo "tea.xyz/brewkit: error: invalid usage" >&2
+  exit 1
+fi
+
+if test -n "$TEA_PANTRY_PATH"; then
+  ADDARGS="--volume ""$TEA_PANTRY_PATH"":/pantry --env TEA_PANTRY_PATH=/pantry"
+  if test -n "$SRCROOT"; then
+    ADDARGS="$ADDARGS"" --env SRCROOT=/pantry"
+  fi
+fi
+
+docker run \
+  --name tea \
+  --rm \
+  --volume "$TEA_PREFIX/tea.xyz/brewkit/mnt":/root \
+  --volume "$TEA_PREFIX/tea.xyz/var/www":/root/.tea/tea.xyz/var/www \
+  --volume /root/.tea/tea.xyz/var/pantry \
+  --volume /root/.tea/tea.xyz/var/pantries \
+  --volume "$d":/brewkit \
+  --env GITHUB_TOKEN="$GITHUB_TOKEN" \
+  $ADDARGS \
+  teaxyz/cli \
+  tea +deno.land /brewkit/bin/pkg-"$arg0" "$@"
