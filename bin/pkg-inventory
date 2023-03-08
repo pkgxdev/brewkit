@@ -1,4 +1,5 @@
 #!/bin/sh
 
 d="$(cd "$(dirname "$0")/.." && pwd)"
-exec "$d"/libexec/inventory.ts "$@"
+PKGS="$("$d"/libexec/find.ts "$@")"
+exec "$d"/libexec/inventory.ts "$PKGS"

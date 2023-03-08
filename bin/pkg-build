@@ -20,7 +20,7 @@ if test -z "$1"; then
     fi
   done
 else
-  PKGS="$*"
+  PKGS="$(find.ts "$@")"
 fi
 
 if test -z "$GITHUB_TOKEN"; then

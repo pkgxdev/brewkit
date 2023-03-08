@@ -16,14 +16,14 @@ if test -z "$1"; then
       PKGS="$(GIT_DIR="$x"/.git peek.sh --print-paths)"
     fi
   done
-elif ! PKGS="$(find.ts $1)"; then
+elif ! PKGS="$(find.ts --full-path "$@")"; then
   echo "error: \`$1\` not found in \`\$TEA_PANTRY_PATH\`" >&2
   exit 1
 fi
 
 if test -z "$EDITOR"; then
   if command -v code 2>/dev/null; then
-    EDITOR="code"
+    EDITOR="code $SRCROOT"   # add the project directory as well for convenience
   elif command -v vim 2>/dev/null; then
     EDITOR="vim"
   elif command -v vi 2>/dev/null; then

@@ -1,19 +1,28 @@
 #!/usr/bin/env -S deno run --allow-read --allow-env
 
+import { parseFlags } from "cliffy/flags/mod.ts"
 import { usePantry } from "hooks"
 
+const { flags: { fullPath }, unknown } = parseFlags(Deno.args, {
+  flags: [{
+    name: "full-path"
+  }]
+})
+
 const pantry = usePantry()
-const arg = Deno.args[0]
 
-for await (const entry of pantry.ls()) {
-  if (entry.project === arg) {
-    console.log(entry.path.string)
-    Deno.exit(0)
+for (const arg of unknown) {
+  let found = false
+  for await (const entry of pantry.ls()) {
+    if (entry.project === arg || (await pantry.getProvides(entry)).includes(arg)) {
+      if (fullPath) {
+        console.log(entry.path.string)
+      } else {
+        console.log(entry.project)
+      }
+      found = true
+      break
+    }
   }
-  if ((await pantry.getProvides(entry)).includes(arg)) {
-    console.log(entry.path.string)
-    Deno.exit(0)
-  }
+  if (!found) Deno.exit(1)
 }
-
-Deno.exit(1)
