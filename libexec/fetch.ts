@@ -71,12 +71,12 @@ async function download({ dst, src }: { dst: Path, src: URL }) {
   // using cURL as deno’s fetch fails for certain sourceforge URLs
   // seemingly due to SSL certificate issues. cURL basically always works ¯\_(ツ)_/¯
   const proc = new Deno.Command("curl", {
-    args: ["-fLo", dst.string, src.toString()]
+    args: ["--fail", "--location", "--output", dst.string, src.toString()]
   })
   const status = await proc.spawn().status
   if (!status.success) {
     console.error({ dst, src })
-    throw new Error()
+    throw new Error(`cURL failed to download ${src}`)
   }
   return dst
 }

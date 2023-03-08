@@ -16,16 +16,9 @@ if test -z "$1"; then
       PKGS="$(GIT_DIR="$x"/.git peek.sh --print-paths)"
     fi
   done
-else
-  for x in $(echo "$TEA_PANTRY_PATH" | tr ':' '\n'); do
-    if test -f "$x/projects/$1/package.yml"; then
-      PKGS="$x/projects/$1/package.yml $PKGS"
-    fi
-  done
-  if test -z "$PKGS"; then
-    echo "error: \`$1\` not found in \`\$TEA_PANTRY_PATH\`" >&2
-    exit 1
-  fi
+elif ! PKGS="$(find.ts $1)"; then
+  echo "error: \`$1\` not found in \`\$TEA_PANTRY_PATH\`" >&2
+  exit 1
 fi
 
 if test -z "$EDITOR"; then
