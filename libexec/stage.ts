@@ -2,7 +2,7 @@
 
 import useShellEnv, { expand } from "hooks/useShellEnv.ts"
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { usePantry, useCellar } from "hooks"
+import { usePantry, useCellar, usePrefix } from "hooks"
 import { host, print, undent } from "utils"
 import { parse } from "utils/pkg.ts"
 import Path from "path"
@@ -45,7 +45,7 @@ const env = await useShellEnv({ installations: deps })
 if (host().platform == 'darwin') env['MACOSX_DEPLOYMENT_TARGET'] = ['11.0']
 
 env['PATH'] ??= []
-env['PATH'].push("/usr/bin:/bin")
+env['PATH'].push("/usr/bin", "/bin", usePrefix().join('tea.xyz/v*/bin').string)
 
 /// assemble build script
 const pantry_sh = await pantry.getScript(pkg, 'build', deps)
