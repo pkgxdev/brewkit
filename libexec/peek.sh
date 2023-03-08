@@ -2,7 +2,7 @@
 
 set -e
 
-if ! command -v git 2>/dev/null; then
+if ! command -v git >/dev/null; then
   GIT="tea git"
 else
   GIT=git

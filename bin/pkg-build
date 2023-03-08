@@ -60,7 +60,7 @@ for PKG in $PKGS; do
   mkdir -p "$SRCDIR"
   BUILD_SCRIPT="$(stage.ts "$PKG" --srcdir "$SRCDIR" --prefix "$PREFIX" --deps "$DEPS")"
 
-  if command -v bash 2>/dev/null; then
+  if command -v bash >/dev/null; then
     BASH=bash
   else
     BASH="tea bash"
