@@ -56,12 +56,12 @@ const zipfile = await (async () => {
   })()
 
   try {
-    // first try our mirror
+    // first try the original location
+    return await download({ dst, src: url })
+  } catch {
+    // then try our mirror
     const src = useOffLicense('s3').url(stowage)
     return await download({ dst, src })
-  } catch {
-    // oh well, try original location then
-    return await download({ dst, src: url })
   }
 })()
 
