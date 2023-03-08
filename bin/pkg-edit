@@ -22,13 +22,13 @@ elif ! PKGS="$(find.ts $1)"; then
 fi
 
 if test -z "$EDITOR"; then
-  if command -v code 2>/dev/null; then
+  if command -v code >/dev/null; then
     EDITOR="code"
-  elif command -v vim 2>/dev/null; then
+  elif command -v vim >/dev/null; then
     EDITOR="vim"
-  elif command -v vi 2>/dev/null; then
+  elif command -v vi >/dev/null; then
     EDITOR="vi"
-  elif command -v emacs 2>/dev/null; then
+  elif command -v emacs >/dev/null; then
     EDITOR="emacs"
   else
     echo "error: \`\$EDITOR\` is not set" >&2

@@ -1,19 +1,11 @@
-#!/usr/bin/env -S tea -E
-
-/*---
-args:
-  - deno
-  - run
-  - --allow-read
-  - --allow-net
-  - --allow-env=TEA_PREFIX,TEA_PANTRY_PATH,GITHUB_TOKEN
----*/
+#!/usr/bin/env -S deno run --allow-read --allow-env=TEA_PREFIX,TEA_PANTRY_PATH,SRCROOT,GITHUB_TOKEN --allow-write
 
 import { Package, PackageRequirement, Stowage } from "types"
 import { usePantry, useCache, useCellar } from "hooks"
 import { parseFlags } from "cliffy/flags/mod.ts"
+import { flatmap, panic, print, host } from "utils"
 import { parse, str } from "utils/pkg.ts"
-import { panic, print } from "utils"
+import Path from "path"
 
 const { flags: { prefix, srcdir, src, testdir, versions }, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
@@ -38,7 +30,7 @@ let pkg: PackageRequirement | Package = parse(pkgname)
 
 if (versions) {
   const versions = await usePantry().getVersions(pkg)
-  await print(`${versions.sort().join("\n")}\n`)
+  await print(versions.sort().join("\n"))
   Deno.exit(0)
 }
 
@@ -47,22 +39,41 @@ pkg = {project: pkg.project, version }
 
 if (src) {
   const { url } = await usePantry().getDistributable(pkg) ?? {}
-  if (url) {
-    const stowage: Stowage = { pkg, type: 'src', extname: url.path().extname() }
-    await print(`${useCache().path(stowage)}\n`)
-  } else {
+  if (!url) {
     console.error("warn: pkg has no srcs: ", str(pkg))
-    // NOT AN ERROR EXIT CODE THO
+    Deno.exit(0)  // NOT AN ERROR EXIT CODE THO
+  }
+  const stowage: Stowage = { pkg, type: 'src', extname: url.path().extname() }
+  const path = flatmap(Deno.env.get("SRCROOT"), x => new Path(x))
+  const cache_path = useCache().path(stowage)
+  if (path?.join("projects").isDirectory()) {
+    await print(`${path.join("srcs", cache_path.basename())}`)
+  } else {
+    await print(cache_path.string)
   }
 } else if (prefix) {
   const path = useCellar().keg(pkg)
-  await print(`${path}\n`)
+  await print(path.string)
 } else if (srcdir) {
-  const path = useCellar().shelf(pkg.project).join(`src-v${pkg.version}`)
-  await print(`${path}\n`)
+  let path = flatmap(Deno.env.get("SRCROOT"), x => new Path(x))
+  if (path?.join("projects").isDirectory()) {
+    const project = pkg.project.replaceAll("/", "∕")
+    const platform = host().platform
+    path = path.join("builds").join(`${project}-${pkg.version}+${platform}`)
+  } else {
+    path = new Path(Deno.makeTempDirSync())
+  }
+  await print(path.string)
 } else if (testdir) {
-  const path = useCellar().shelf(pkg.project).join(`test-v${pkg.version}`)
-  await print(`${path}\n`)
+  let path = flatmap(Deno.env.get("SRCROOT"), x => new Path(x))
+  if (path?.join("projects").isDirectory()) {
+    const project = pkg.project.replaceAll("/", "∕")
+    const platform = host().platform
+    path = path.join("testbeds").join(`${project}-${pkg.version}+${platform}`)
+  } else {
+    path = new Path(Deno.makeTempDirSync())
+  }
+  await print(path.string)
 } else {
   Deno.exit(1)
 }

@@ -1,13 +1,4 @@
-#!/usr/bin/env -S tea -E
-
-/*---
-args:
-  - deno
-  - run
-  - --allow-read
-  - --allow-net
-  - --allow-env=GITHUB_TOKEN,TEA_PANTRY_PATH,TEA_PREFIX
----*/
+#!/usr/bin/env -S deno run --allow-read --allow-net --allow-env=GITHUB_TOKEN,TEA_PANTRY_PATH,TEA_PREFIX
 
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { usePantry, useCellar } from "hooks"

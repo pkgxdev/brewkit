@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+
 # thank you ChatGPT
 # PRs welcome!
 

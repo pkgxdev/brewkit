@@ -1,14 +1,4 @@
-#!/usr/bin/env -S tea -E
-
-/*---
-args:
-  - deno
-  - run
-  - --allow-net
-  - --allow-read
-  - --allow-env=GITHUB_TOKEN,TEA_PREFIX,TEA_PANTRY_PATH
-  - --allow-write={{tea.prefix}}
----*/
+#!/usr/bin/env -S deno run --allow-net --allow-read --allow-env=GITHUB_TOKEN,TEA_PREFIX,TEA_PANTRY_PATH --allow-write
 
 import useShellEnv, { expand } from "hooks/useShellEnv.ts"
 import { parseFlags } from "cliffy/flags/mod.ts"
@@ -54,9 +44,8 @@ const pkg = await pantry.resolve(parse(pkgname))
 const env = await useShellEnv({ installations: deps })
 if (host().platform == 'darwin') env['MACOSX_DEPLOYMENT_TARGET'] = ['11.0']
 
-if (env['PATH']) {
-  env['PATH'].push("$PATH")
-}
+env['PATH'] ??= []
+env['PATH'].push("/usr/bin:/bin")
 
 /// assemble build script
 const pantry_sh = await pantry.getScript(pkg, 'build', deps)

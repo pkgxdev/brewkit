@@ -10,9 +10,13 @@ fi
 d="$(cd "$(dirname "$0")"/.. && pwd)"
 PATH="$d/libexec:$PATH"
 
+if ! command -v ruby >/dev/null; then
+  RUBY=tea
+fi
+
 BLEND="$1"
 if test -z "$BLEND"; then
-  BLEND="wip/$(tea $d/libexec/sample-blend.rb)"
+  BLEND="wip/$($RUBY $d/libexec/sample-blend.rb)"
 fi
 WHERE="$(echo "$TEA_PANTRY_PATH" | cut -d: -f1)"
 

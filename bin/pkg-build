@@ -23,6 +23,10 @@ else
   PKGS="$*"
 fi
 
+if test -n "$TEA_DOCKER"; then
+  exec "$d"/bin/pkg-docker build "$PKGS"
+fi
+
 if test -z "$GITHUB_TOKEN"; then
   GITHUB_TOKEN=$(tea gh auth token)
   export GITHUB_TOKEN
@@ -56,7 +60,7 @@ for PKG in $PKGS; do
   mkdir -p "$SRCDIR"
   BUILD_SCRIPT="$(stage.ts "$PKG" --srcdir "$SRCDIR" --prefix "$PREFIX" --deps "$DEPS")"
 
-  if command -v bash 2>/dev/null; then
+  if command -v bash >/dev/null; then
     BASH=bash
   else
     BASH="tea bash"

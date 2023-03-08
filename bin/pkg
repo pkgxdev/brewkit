@@ -6,46 +6,15 @@ arg="$1"
 shift
 
 if test "$arg" = "-L"; then
+  export TEA_DOCKER=1
 
-  if test -z "$TEA_PREFIX"; then
-    echo "tea.xyz/brewkit: error: TEA_PREFIX unset" >&2
-    exit 1
-  fi
+  arg="$1"
+  shift
+fi
 
-  if test -z "$GITHUB_TOKEN"; then
-    GITHUB_TOKEN=$(tea gh auth token)
-  fi
-
-  if test -n "$SRCROOT"; then
-    docker run \
-      --name tea \
-      --rm \
-      --volume "$SRCROOT/tea.linux/home":/root \
-      --volume "$SRCROOT/tea.linux":/root/.tea \
-      --volume "$TEA_PREFIX/tea.xyz/var/www":/root/.tea/tea.xyz/var/www \
-      --volume /root/.tea/tea.xyz/var/pantry \
-      --volume /root/.tea/tea.xyz/var/pantries \
-      --volume "$SRCROOT"/projects:/pantry/projects \
-      --env GITHUB_TOKEN="$GITHUB_TOKEN" \
-      --env TEA_PANTRY_PATH=/pantry \
-      ghcr.io/teaxyz/infuser \
-      tea +tea.xyz/brewkit "$@"
-  else
-    docker run \
-      --name tea \
-      --rm \
-      --volume "$TEA_PREFIX/tea.xyz/brewkit/mnt":/root \
-      --volume "$TEA_PREFIX/tea.xyz/var/www":/root/.tea/tea.xyz/var/www \
-      --volume /root/.tea/tea.xyz/var/pantries \
-      --volume /root/.tea/tea.xyz/var/pantry \
-      --env GITHUB_TOKEN="$GITHUB_TOKEN" \
-      ghcr.io/teaxyz/infuser \
-      tea +tea.xyz/brewkit "$@"
-  fi
-elif test -n "$arg"; then
+if test -n "$arg"; then
   d="$(cd "$(dirname "$0")" && pwd)"
-  export PATH="$d:$PATH"
-  exec pkg-"$arg" "$@"
+  exec "$d"/pkg-"$arg" "$@"
 else
   echo "tea.xyz/brewkit: error: invalid usage" >&2
   exit 1

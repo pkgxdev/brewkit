@@ -1,13 +1,4 @@
-#!/usr/bin/env -S tea -E
-
-/*---
-args:
-  - deno
-  - run
-  - --allow-read
-  - --allow-write
-  - --allow-env
----*/
+#!/usr/bin/env -S deno run --allow-read --allow-write --allow-env
 
 import { usePantry, usePrefix, useCellar } from "hooks"
 import useShellEnv, { expand } from "hooks/useShellEnv.ts"
@@ -44,9 +35,8 @@ const env = await useShellEnv({ installations: [...deps, self] })
 
 if (!yml.test) throw "no `test` node in package.yml"
 
-if (env['PATH']) {
-  env['PATH'].push("$PATH")
-}
+env['PATH'] ??= []
+env['PATH'].push("/usr/bin:/bin")
 
 let text = undent`
   #!/usr/bin/env bash
