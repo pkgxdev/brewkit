@@ -12,6 +12,8 @@ jobs:
           - zlib.net
           - openssl.org^1.1 curl.se/ca-certs
           - pipenv.pypa.io
+    container:
+      image: debian:buster-slim
     steps:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
@@ -43,4 +45,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
-      - run: deno check libexec/*.ts
+      - run: deno check **/*.ts
