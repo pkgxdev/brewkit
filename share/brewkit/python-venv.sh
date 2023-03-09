@@ -16,7 +16,7 @@ export VIRTUAL_ENV="$PREFIX"/venv
 
 python -m venv "$VIRTUAL_ENV"
 
-function git {
+git() {
   tea git "$@"
 }
 
