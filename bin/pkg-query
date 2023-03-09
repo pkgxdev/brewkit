@@ -1,1 +1,4 @@
-../libexec/query.ts
+#!/bin/sh
+
+d="$(cd "$(dirname "$0")/.." && pwd)"
+exec "$d"/libexec/query.ts "$@"

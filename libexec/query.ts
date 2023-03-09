@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run --allow-read --allow-env=TEA_PREFIX,TEA_PANTRY_PATH,SRCROOT,GITHUB_TOKEN --allow-write
+#!/usr/bin/env -S deno run --allow-read --allow-env=TEA_PREFIX,TEA_PANTRY_PATH,SRCROOT,GITHUB_TOKEN --allow-write --allow-net
 
 import { Package, PackageRequirement, Stowage } from "types"
 import { usePantry, useCache, useCellar } from "hooks"
