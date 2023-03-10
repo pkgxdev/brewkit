@@ -24,7 +24,7 @@ runs:
 
     - uses: teaxyz/setup@v0
 
-    - uses: teaxyz/brewkit/.github/actions/cache@move-actions
+    - uses: teaxyz/brewkit/.github/actions/cache@main
       with:
         cache-name: stage
 

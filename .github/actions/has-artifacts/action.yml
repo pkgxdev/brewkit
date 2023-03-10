@@ -33,7 +33,7 @@ runs:
       with:
         srcroot: null
 
-    - uses: teaxyz/brewkit/.github/actions/cache@move-actions
+    - uses: teaxyz/brewkit/.github/actions/cache@main
       with:
         cache-name: has-artifacts
 
