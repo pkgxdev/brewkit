@@ -64,7 +64,7 @@ const text = undent`
   export PREFIX=${flags.prefix}
   ${expand(env)}
 
-  mkdir "$HOME"
+  mkdir -p "$HOME"
 
   export PATH=${brewkit}:"$PATH"
 
