@@ -1,4 +1,4 @@
-#!/usr/bin/env -S tea sh
+#!/usr/bin/env -S tea
 
 #---
 # dependencies:
@@ -15,10 +15,6 @@ VERSION="$(basename "$PREFIX")"
 export VIRTUAL_ENV="$PREFIX"/venv
 
 python -m venv "$VIRTUAL_ENV"
-
-git() {
-  tea git "$@"
-}
 
 # setup tools requires a git version typically
 cd "$SRCROOT"

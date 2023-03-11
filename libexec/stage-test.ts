@@ -31,7 +31,9 @@ const deps = await (() => {
 })()
 const dstdir = new Path(flags.dstdir)
 const yml = await pantry.getYAML(pkg).parse()
-const env = await useShellEnv({ installations: [...deps, self] })
+const installations = [...deps]
+if (deps.find(x => x.pkg.project == self.pkg.project) === undefined) installations.push(self)
+const env = await useShellEnv({ installations })
 
 if (!yml.test) throw "no `test` node in package.yml"
 
