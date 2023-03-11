@@ -2,7 +2,8 @@
 
 import useShellEnv, { expand } from "hooks/useShellEnv.ts"
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { usePantry, useCellar, usePrefix } from "hooks"
+import { useCellar, usePrefix } from "hooks"
+import usePantry from "../lib/usePantry.ts"
 import { host, print, undent } from "utils"
 import { parse } from "utils/pkg.ts"
 import Path from "path"

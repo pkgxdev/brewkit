@@ -1,4 +1,4 @@
-name: tea/pantry/has-artifacts
+name: tea/brewkit/has-artifacts
 description: Determines if PR artifacts exist for a given SHA
 
 inputs:

@@ -16,11 +16,12 @@ dependencies:
 
 //TODO verify the sha
 
-import { usePantry, useOffLicense, useCache, useDownload } from "hooks"
+import { useOffLicense, useCache, useDownload } from "hooks"
 import { parseFlags } from "cliffy/flags/mod.ts"
+import usePantry from "../lib/usePantry.ts"
+import { print, panic } from "utils"
 import { parse } from "utils/pkg.ts"
 import { Stowage} from "types"
-import { print, panic } from "utils"
 import Path from "path"
 
 const pantry = usePantry()

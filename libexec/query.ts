@@ -1,9 +1,10 @@
 #!/usr/bin/env -S deno run --allow-read --allow-env=TEA_PREFIX,TEA_PANTRY_PATH,SRCROOT,GITHUB_TOKEN --allow-write --allow-net
 
 import { Package, PackageRequirement, Stowage } from "types"
-import { usePantry, useCache, useCellar } from "hooks"
-import { parseFlags } from "cliffy/flags/mod.ts"
 import { flatmap, panic, print, host } from "utils"
+import { parseFlags } from "cliffy/flags/mod.ts"
+import { useCache, useCellar } from "hooks"
+import usePantry from "../lib/usePantry.ts"
 import { parse, str } from "utils/pkg.ts"
 import Path from "path"
 

@@ -1,4 +1,4 @@
-name: tea/pantry/get-platform
+name: tea/brewkit/get-platform
 description: Outputs the platform spec we need for builds
 
 inputs:

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S tea
+#!/usr/bin/env tea
 
 #---
 # dependencies:

@@ -1,8 +1,9 @@
 #!/usr/bin/env -S deno run --allow-read --allow-net --allow-env=GITHUB_TOKEN,TEA_PANTRY_PATH,TEA_PREFIX
 
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { usePantry, useCellar } from "hooks"
+import usePantry from "../lib/usePantry.ts"
 import { parse, str } from "utils/pkg.ts"
+import { useCellar } from "hooks"
 
 const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
