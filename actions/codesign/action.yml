@@ -56,6 +56,10 @@ runs:
           -not -name '*.pyc' \
           -not -name '*.txt' \
           -not -name '*.h' | \
+          -not -name '*.c' | \
+          -not -name '*.s' | \
+          -not -name '*.def' | \
+          -not -name '*.zig' | \
           /usr/bin/sed -e 's/ /\\ /g' >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
@@ -69,6 +73,10 @@ runs:
           -not -name '*.pyc' \
           -not -name '*.txt' \
           -not -name '*.h' \
+          -not -name '*.c' | \
+          -not -name '*.s' | \
+          -not -name '*.def' | \
+          -not -name '*.zig' | \
           -not -name tea | \
           /usr/bin/sed -e 's/ /\\ /g' >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
