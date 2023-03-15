@@ -1,4 +1,4 @@
-name: tea/pantry/stage-build-artifacts
+name: tea/brewkit/stage-build-artifacts
 description: internal tea.xyz specific at this time
 
 inputs:

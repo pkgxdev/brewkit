@@ -18,7 +18,8 @@ args:
 //TODO verify the sha
 //TODO only allow writes to Deno.args[1]
 
-import { usePantry, useSourceUnarchiver } from "hooks"
+import usePantry from "../lib/usePantry.ts"
+import useSourceUnarchiver from "../lib/useSourceUnarchiver.ts"
 import { Package, PackageRequirement } from "types"
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { parse } from "utils/pkg.ts"

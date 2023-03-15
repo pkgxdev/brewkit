@@ -1,8 +1,7 @@
 # this is a basic template for packages we strongly recommend looking at the
 # contents of both:
 #
-# * https://github.com/teaxyz/pantry.core
-# * https://github.com/teaxyz/pantry.extra
+# * https://github.com/teaxyz/pantry
 #
 # as a learning guide and reference. For example, if you are package a `go`
 # project, then browse the listings and find a go package.

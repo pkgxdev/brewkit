@@ -1,8 +1,8 @@
 #!/usr/bin/env -S deno run --allow-read --allow-env=TEA_PREFIX,TEA_PANTRY_PATH
 
 import { parseFlags } from "cliffy/flags/mod.ts"
+import usePantry from "../lib/usePantry.ts"
 import { parse, str } from "utils/pkg.ts"
-import { usePantry } from "hooks"
 import { hydrate } from "prefab"
 
 const { flags: { delimiter: separator }, unknown: args } = parseFlags(Deno.args, {

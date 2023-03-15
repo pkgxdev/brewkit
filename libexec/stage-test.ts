@@ -1,6 +1,7 @@
 #!/usr/bin/env -S deno run --allow-read --allow-write --allow-env
 
-import { usePantry, usePrefix, useCellar } from "hooks"
+import { usePrefix, useCellar } from "hooks"
+import usePantry from "../lib/usePantry.ts"
 import useShellEnv, { expand } from "hooks/useShellEnv.ts"
 import { undent, pkg as pkgutils, panic } from "utils"
 import { parseFlags } from "cliffy/flags/mod.ts"

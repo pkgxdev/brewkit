@@ -1,5 +1,5 @@
-name: Apple Codesigning
-description: Codesigns macOS binaries
+name: tea/brewkit/codesign
+description: Codesigns macOS binaries using Apple tools
 
 inputs:
   p12-file-base64:

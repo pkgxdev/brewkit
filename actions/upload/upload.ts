@@ -19,7 +19,7 @@ import { basename, dirname } from "deno/path/mod.ts"
 import { retry } from "deno/async/retry.ts"
 import { decode as base64Decode } from "deno/encoding/base64.ts"
 import Path from "path"
-import { set_output } from "../../libexec/utils/gha.ts"
+import { set_output } from "../utils/gha.ts"
 import { sha256 } from "../bottle/bottle.ts"
 
 //------------------------------------------------------------------------- funcs

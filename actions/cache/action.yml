@@ -1,4 +1,4 @@
-name: tea.xyz/pantry/actions/cache
+name: tea/brewkit/actions/cache
 description: cache deno deps
 
 inputs:

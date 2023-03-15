@@ -1,4 +1,4 @@
-name: +tea.xyz/brewkit
+name: tea/brewkit/setup
 description: sets up tea, tea.xyz/brewkit & caching
 
 # inputs and outputs are `teaxyz/setup` passthrough
