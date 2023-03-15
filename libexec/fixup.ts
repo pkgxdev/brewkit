@@ -33,6 +33,7 @@ case 'darwin':
     }
   })
   break
+
 case 'linux': {
   const raw = flags.deps == true ? '' : flags.deps as string
   const installs = await Promise.all(raw.split(/\s+/).map(path => cellar.resolve(new Path(path))))
@@ -50,14 +51,18 @@ case 'linux': {
 //NOTE currently we only support pc files in lib/pkgconfig
 // we aim to standardize on this but will relent if a package is found
 // that uses share and other tools that build against it only accept that
-for await (const [path, { isFile }] of pkg_prefix.join("lib/pkgconfig").isDirectory()?.ls() ?? []) {
-  if (isFile && path.extname() == ".pc") {
-    const orig = await path.read()
-    const relative_path = pkg_prefix.relative({ to: path.parent() })
-    const text = orig.replace(pkg_prefix.string, `\${pcfiledir}/${relative_path}`)
-    if (orig !== text) {
-      console.verbose({ fixing: path })
-      path.write({text, force: true})
+for (const part of ["share", "lib"]) {
+  const d = pkg_prefix.join(part, "pkgconfig").isDirectory()
+  if (!d) continue
+  for await (const [path, { isFile }] of d.ls()) {
+    if (isFile && path.extname() == ".pc") {
+      const orig = await path.read()
+      const relative_path = pkg_prefix.relative({ to: path.parent() })
+      const text = orig.replace(pkg_prefix.string, `\${pcfiledir}/${relative_path}`)
+      if (orig !== text) {
+        console.verbose({ fixing: path })
+        path.write({text, force: true})
+      }
     }
   }
 }
