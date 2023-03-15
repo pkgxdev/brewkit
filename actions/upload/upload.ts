@@ -12,7 +12,7 @@ args:
 
 import { S3, S3Bucket } from "s3"
 import { pkg as pkgutils } from "utils"
-import { useCache, useFlags, useOffLicense, usePrefix } from "hooks"
+import { useFlags, useOffLicense, usePrefix } from "hooks"
 import { Package, PackageRequirement } from "types"
 import SemVer, * as semver from "semver"
 import { basename, dirname } from "deno/path/mod.ts"
@@ -21,6 +21,7 @@ import { decode as base64Decode } from "deno/encoding/base64.ts"
 import Path from "path"
 import { set_output } from "../utils/gha.ts"
 import { sha256 } from "../bottle/bottle.ts"
+import useCache from "../../lib/useCache.ts"
 
 //------------------------------------------------------------------------- funcs
 function args_get(key: string): string[] {
