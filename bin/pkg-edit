@@ -43,8 +43,11 @@ fi
 if test -z "$PKGS"; then
   echo "error: no new packages in \`\$TEA_PANTRY_PATH\`" >&2
   exit 1
+elif test "$EDITOR" = code; then
+  # shellcheck disable=2086
+  exec $EDITOR $TEA_PANTRY_PATH $PKGS
+  # ^^ be more useful
 else
-  # We intend to split on spaces, so disable the shellcheck warning.
   # shellcheck disable=2086
   exec $EDITOR $PKGS
 fi
