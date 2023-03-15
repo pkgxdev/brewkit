@@ -46,4 +46,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
-      - run: deno check **/*.ts
+      - run: deno check $(find . -name '*.ts')
