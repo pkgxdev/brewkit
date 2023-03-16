@@ -38,6 +38,7 @@ cat <<EOF > ../bin/"$CMD_NAME"
 #!/bin/sh
 
 export VIRTUAL_ENV="\$(cd "\$(dirname "\$0")"/.. && pwd)/venv"
+export ARG0="\$(basename "\$0")"
 
 TEA_PYTHON="\$(which python)"
 TEA_PYHOME="\$(dirname "\$TEA_PYTHON")"
@@ -55,7 +56,7 @@ rm "\$VIRTUAL_ENV"/bin/*.bak
 
 ln -sf "\$TEA_PYTHON" "\$VIRTUAL_ENV"/bin/python
 
-exec "\$VIRTUAL_ENV"/bin/$CMD_NAME "\$@"
+exec "\$VIRTUAL_ENV"/bin/\$ARG0 "\$@"
 
 EOF
 
