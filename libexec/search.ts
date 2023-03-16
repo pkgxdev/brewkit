@@ -16,14 +16,14 @@ for await (const pkg of pantry.ls()) {
   let output = false
   const bins: string[] = []
   for (const bin of await pantry.getProvides(pkg)) {
-    if (bin.startsWith(query)) {
+    if (bin.includes(query)) {
       output = true
       bins.push(bin)
     }
   }
   if (output) {
     print(`${pkg.project}: ${bins.join(', ')}`)
-  } else if (pkg.project.startsWith(query)) {
+  } else if (pkg.project.includes(query)) {
     print(pkg.project.trim())
     output = true
   }
