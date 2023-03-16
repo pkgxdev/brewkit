@@ -43,5 +43,10 @@ for PKG in $PKGS; do
     BASH="tea bash"
   fi
 
+  if test -n "$GITHUB_ACTIONS"; then
+    # shellcheck disable=SC2064
+    trap "rm -rf '$DSTDIR'" EXIT
+  fi
+
   $BASH -e "$DSTDIR"/xyz.tea.test.sh
 done
