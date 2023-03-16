@@ -43,9 +43,13 @@ for PKG in $PKGS; do
     BASH="tea bash"
   fi
 
-  if test -n "$GITHUB_ACTIONS"; then
-    # shellcheck disable=SC2064
-    trap "rm -rf '$DSTDIR'" EXIT
+  if test -n "$GITHUB_ENV"; then
+    EXISTING=$(grep ^TEST_TMPDIR= "$GITHUB_ENV" || true)
+    if test -z "$EXISTING"; then
+      echo "TEST_TMPDIR=$DSTDIR" >> "$GITHUB_ENV"
+    else
+      echo "$EXISTING:$DSTDIR" >> "$GITHUB_ENV"
+    fi
   fi
 
   $BASH -e "$DSTDIR"/xyz.tea.test.sh

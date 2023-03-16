@@ -42,9 +42,13 @@ for PKG in $PKGS; do
   PREFIX="$(query.ts "$PKG" --prefix)"
   SRCDIR="$(query.ts "$PKG" --srcdir)"
 
-  if test -n "$GITHUB_ACTIONS"; then
-    # shellcheck disable=SC2064
-    trap "test -d '$SRCDIR' && rm -rf '$SRCDIR'" EXIT
+  if test -n "$GITHUB_ENV"; then
+    EXISTING=$(grep ^BUILD_TMPDIR= "$GITHUB_ENV" || true)
+    if test -z "$EXISTING"; then
+      echo "BUILD_TMPDIR=$SRCDIR" >> "$GITHUB_ENV"
+    else
+      echo "$EXISTING:$SRCDIR" >> "$GITHUB_ENV"
+    fi
   fi
 
   if test -n "$ZIP"; then
