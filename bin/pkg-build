@@ -78,7 +78,7 @@ for PKG in $PKGS; do
   link.ts "$PREFIX" "$PKG"
 
   if test -n "$GITHUB_ACTIONS"; then
-    GH_PKGS="$PKG $GH_PKGS"
+    GH_PKGS="$GH_PKGS $PKG"
     GH_RELATIVE_PATHS="$GH_RELATIVE_PATHS ${PREFIX#"$TEA_PREFIX"/}"
 
     if test -f "$ZIP"; then
