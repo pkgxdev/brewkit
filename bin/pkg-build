@@ -42,6 +42,11 @@ for PKG in $PKGS; do
   PREFIX="$(query.ts "$PKG" --prefix)"
   SRCDIR="$(query.ts "$PKG" --srcdir)"
 
+  if test -n "$GITHUB_ACTIONS"; then
+    # shellcheck disable=SC2064
+    trap "test -d '$SRCDIR' && rm -rf '$SRCDIR'" EXIT
+  fi
+
   if test -n "$ZIP"; then
     fetch.ts "$PKG" -o "$ZIP"
   fi
