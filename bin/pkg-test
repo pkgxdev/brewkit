@@ -44,4 +44,6 @@ for PKG in $PKGS; do
   fi
 
   $BASH -e "$DSTDIR"/xyz.tea.test.sh
+
+  audit.ts "$PKG"
 done

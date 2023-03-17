@@ -52,7 +52,7 @@ env['PATH'].push("/usr/bin", "/bin", usePrefix().join('tea.xyz/v*/bin').string)
 const pantry_sh = await pantry.getScript(pkg, 'build', deps)
 const brewkit = new URL(import.meta.url).path().parent().parent().join("share/brewkit")
 
-let text = undent`
+const text = undent`
   #!/bin/bash
 
   set -e
@@ -70,14 +70,7 @@ let text = undent`
   export PATH=${brewkit}:"$PATH"
 
   ${pantry_sh}
-
   `
-
-// Since getProvides() strips the bin/sbin prefix, we have to check both
-for await (const bin of await pantry.getProvides(pkg)) {
-  text += `(test -f "$PREFIX/bin/${bin}" || test -f "$PREFIX/sbin/${bin}") || `
-  text += `(echo "expected ${bin} (from \\\`provides:\\\`) in $PREFIX/bin or $PREFIX/sbin" && exit 1)\n`
-}
 
 /// write out build script
 const sh = srcdir.join("xyz.tea.build.sh").write({ text, force: true })
