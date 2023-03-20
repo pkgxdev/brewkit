@@ -80,6 +80,7 @@ class Fixer
   end
 
   def write
+    puts "fix-macho: writing #{@file.filename}"
     stat = File.stat(@file.filename)
     if not stat.writable?
       File.chmod(0644, @file.filename)
@@ -151,7 +152,7 @@ class Fixer
     def fix_tea_prefix s
       s = Pathname.new(s).relative_path_from(Pathname.new($tea_prefix))
       s = s.sub(%r{/v(\d+)\.(\d+\.)+\d+[a-z]?/}, '/v\1/')
-      s = s.sub(%r{/(\.\d+)+\.dylib$}, '/.dylib')
+      s = s.sub(%r{(\.\d+)+\.dylib$}, '.dylib')
       s = "@rpath/#{s}"
       return s
     end
