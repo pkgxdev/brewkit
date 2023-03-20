@@ -22,7 +22,7 @@ git init
 git config user.name 'tea[bot]'
 git config user.email 'bot@tea.xyz'
 git commit -mnil --allow-empty
-git tag -a "$VERSION" -m "Version $VERSION"
+git tag -a "$VERSION" -m "Version $VERSION" --force
 
 cd "$VIRTUAL_ENV"
 bin/pip install "$SRCROOT" --verbose
