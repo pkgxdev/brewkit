@@ -20,7 +20,9 @@ fi
 
 # sadly we seemingly need to reference origin/main
 DIVERGENCE_SHA="$($GIT merge-base HEAD origin/main)"
-CHANGED_FILES="$($GIT diff --name-only "$DIVERGENCE_SHA") $($GIT status --untracked-files)"
+CHANGED_FILES="$($GIT diff --name-only "$DIVERGENCE_SHA") $($GIT status --untracked-files --porcelain)"
+
+OUTPUT=""
 
 for CHANGED_FILE in $CHANGED_FILES; do
   PROJECT=$(echo "$CHANGED_FILE" | sed -n 's#projects/\(.*\)/package\.yml$#\1#p')
@@ -28,8 +30,10 @@ for CHANGED_FILE in $CHANGED_FILES; do
   then
     true # noop
   elif test "$1" = "--print-paths"; then
-    echo "$CHANGED_FILE"
+    OUTPUT="$OUTPUT\n$CHANGED_FILE"
   else
-    echo "$PROJECT"
+    OUTPUT="$OUTPUT\n$PROJECT"
   fi
 done
+
+echo $(echo $OUTPUT | sort | uniq)
