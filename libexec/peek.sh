@@ -36,4 +36,5 @@ for CHANGED_FILE in $CHANGED_FILES; do
   fi
 done
 
+# shellcheck disable=SC2046
 echo $(echo $OUTPUT | sort | uniq)
