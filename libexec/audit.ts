@@ -19,7 +19,7 @@ for(const pkg of pkgnames.map(parse)) {
   for (const provide of await pantry.getProvides(pkg)) {
     const name = moustaches.apply(provide, versionMap)
     const bin = path.join('bin', name)
-    const sbin = path.join('bin', name)
+    const sbin = path.join('sbin', name)
     if (!bin.isExecutableFile() && !sbin.isExecutableFile()) missing.push([pkg.project, name])
   }
 }
