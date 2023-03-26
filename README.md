@@ -75,7 +75,7 @@ This should be added to a `pkg doctor` type thing I reckon. E.g.
 
 ## Bump
 
-Inputs: TAG_NAME
+Inputs: PRIORITY
 
 ```sh
 if ! git diff-index --quiet HEAD --; then
@@ -88,10 +88,9 @@ if [ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]; then
   exit 1
 fi
 
-if [[ "$TAG_NAME" != v* ]]; then
-  TAG_NAME="v$TAG_NAME"
-fi
+V=$(git describe --tags --abbrev=0 --match "v[0-9]*.[0-9]*.[0-9]*")
+V=$(tea semverator bump $V $PRIORITY)
 
 git push origin main
-tea gh release create "$TAG_NAME"
+tea gh release create "v$V"
 ```
