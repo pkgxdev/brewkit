@@ -1,27 +1,26 @@
 #!/usr/bin/env -S deno run --allow-env --allow-read
 
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { useCellar, usePantry } from "hooks"
+import { useCellar, usePantry, useMoustaches } from "hooks"
 import { parse } from "utils/pkg.ts"
 
 const { unknown: pkgnames } = parseFlags(Deno.args)
 
 const pantry = usePantry()
 const cellar = useCellar()
+const moustaches = useMoustaches()
 
 const missing = []
 
 for(const pkg of pkgnames.map(parse)) {
-  const { path } = await cellar.resolve(pkg)
-  for (const provide of await pantry.getProvides(pkg)) {
-    if (/({{\s*version\.(marketing|major)\s*}})/.test(provide)) {
-      // make these pass but we *should* test them properly lol
-      continue
-    }
+  const { path, pkg: { version } } = await cellar.resolve(pkg)
+  const versionMap = moustaches.tokenize.version(version)
 
-    const bin = path.join('bin', provide)
-    const sbin = path.join('bin', provide)
-    if (!bin.isExecutableFile() && !sbin.isExecutableFile()) missing.push([pkg.project, provide])
+  for (const provide of await pantry.getProvides(pkg)) {
+    const name = moustaches.apply(provide, versionMap)
+    const bin = path.join('bin', name)
+    const sbin = path.join('bin', name)
+    if (!bin.isExecutableFile() && !sbin.isExecutableFile()) missing.push([pkg.project, name])
   }
 }
 
