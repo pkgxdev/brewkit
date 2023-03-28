@@ -1,5 +1,5 @@
-import { GET2, undent, validate_arr, validate_str } from "utils"
-import { isArray } from "is_what"
+import { undent, validate_arr, validate_str } from "utils"
+import { isArray, isString } from "is_what"
 
 //TODO pagination
 
@@ -17,6 +17,23 @@ interface GHRelease {
 export default function useGitHubAPI() {
   return { getVersions }
 }
+
+
+async function GET2<T>(url: URL | string, headers?: Headers): Promise<[T, Response]> {
+  if (isString(url)) url = new URL(url)
+  if (url.host == "api.github.com") {
+    const token = Deno.env.get("GITHUB_TOKEN")
+    if (token) {
+      headers ??= new Headers()
+      headers.append("Authorization", `bearer ${token}`)
+    }
+  }
+  const rsp = await fetch(url, { headers })
+  if (!rsp.ok) throw new Error(`http: ${url}`)
+  const json = await rsp.json()
+  return [json as T, rsp]
+}
+
 
 async function *getVersions({ user, repo, type }: GetVersionsOptions): AsyncGenerator<string> {
   //TODO set `Accept: application/vnd.github+json`

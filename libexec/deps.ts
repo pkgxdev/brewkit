@@ -1,9 +1,12 @@
-#!/usr/bin/env -S deno run --allow-net --allow-read --allow-env=TEA_PREFIX,TEA_PANTRY_PATH
+#!/usr/bin/env -S deno run --allow-net --allow-read --allow-env
 
 import { parseFlags } from "cliffy/flags/mod.ts"
 import usePantry from "../lib/usePantry.ts"
 import { parse, str } from "utils/pkg.ts"
 import { hydrate } from "prefab"
+
+import tea_init from "../lib/init().ts"
+tea_init()
 
 const { flags: { build, test }, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{

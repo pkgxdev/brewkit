@@ -7,6 +7,9 @@ import { undent, pkg as pkgutils, panic } from "utils"
 import { parseFlags } from "cliffy/flags/mod.ts"
 import Path from "path"
 
+import tea_init from "../lib/init().ts"
+tea_init()
+
 const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
     name: "deps",

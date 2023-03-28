@@ -2,6 +2,9 @@
 
 import { usePantry } from "hooks"
 
+import tea_init from "../lib/init().ts"
+tea_init()
+
 const pantry = usePantry()
 const arg = Deno.args[0]
 

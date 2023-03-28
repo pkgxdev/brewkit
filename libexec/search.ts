@@ -1,10 +1,11 @@
 #!/usr/bin/env -S deno run --allow-env --allow-read --allow-net
 
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { usePantry, useInventory, useFlags } from "hooks"
+import { usePantry, useInventory } from "hooks"
 import * as semver from "semver"
+import tea_init from "../lib/init().ts"
 
-useFlags()
+tea_init()
 
 const { unknown: [query] } = parseFlags(Deno.args)
 const pantry = usePantry()

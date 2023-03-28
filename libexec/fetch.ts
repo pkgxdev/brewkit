@@ -19,10 +19,13 @@ dependencies:
 import { useOffLicense, useCache, useDownload } from "hooks"
 import { parseFlags } from "cliffy/flags/mod.ts"
 import usePantry from "../lib/usePantry.ts"
-import { print, panic } from "utils"
+import { panic } from "utils"
 import { parse } from "utils/pkg.ts"
 import { Stowage} from "types"
 import Path from "path"
+
+import tea_init from "../lib/init().ts"
+tea_init()
 
 const pantry = usePantry()
 
@@ -66,7 +69,7 @@ const zipfile = await (async () => {
   }
 })()
 
-await print(`${zipfile}\n`)
+console.log(zipfile!.string)
 
 async function download({ dst, src }: { dst: Path, src: URL }) {
   if (Deno.env.get("GITHUB_ACTIONS")) {

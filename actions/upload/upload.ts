@@ -12,7 +12,7 @@ args:
 
 import { S3, S3Bucket } from "s3"
 import { pkg as pkgutils } from "utils"
-import { useFlags, useOffLicense, usePrefix } from "hooks"
+import { useOffLicense, usePrefix } from "hooks"
 import { Package, PackageRequirement } from "types"
 import SemVer, * as semver from "semver"
 import { basename, dirname } from "deno/path/mod.ts"
@@ -84,7 +84,8 @@ async function put(key: string, body: string | Path | Uint8Array, bucket: S3Buck
 }
 
 //------------------------------------------------------------------------- main
-useFlags()
+import tea_init from "../../lib/init().ts"
+tea_init()
 
 if (Deno.args.length === 0) throw new Error("no args supplied")
 

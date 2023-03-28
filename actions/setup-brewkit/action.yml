@@ -24,8 +24,8 @@ runs:
       id: tea
       with:
         prefix: ${{ inputs.prefix }}
-        +: tea.xyz/brewkit^0.7.1
-        # prevent pantry from reassigning TEA_PREFIX etc.
+        +: tea.xyz/brewkit
+        # prevent pantry from reassigning TEA_PANTRY_PATH
         srcroot: null
 
     - uses: teaxyz/brewkit/actions/cache@v0

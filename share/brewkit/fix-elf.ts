@@ -15,8 +15,13 @@ dependencies:
 
 import { useCellar } from "hooks"
 import { PackageRequirement, Installation, Package } from "types"
-import { backticks, run, host, pkg as pkgutils } from "utils"
+import { host, pkg as pkgutils } from "utils"
+import { backticks } from "../../lib/utils.ts"
+import run from "hooks/useRun.ts"
 import Path from "path"
+
+import tea_init from "../../lib/init().ts"
+tea_init()
 
 
 if (import.meta.main) {
