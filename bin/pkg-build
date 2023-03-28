@@ -58,7 +58,7 @@ for PKG in $PKGS; do
   fi
 
   if test -f "$ZIP"; then
-    gum "# extracing $SRCDIR"
+    gum "# extracting $SRCDIR"
     extract.ts "$ZIP" --pkg "$PKG" --output-dir "$SRCDIR"
   else
     mkdir -p "$SRCDIR"
