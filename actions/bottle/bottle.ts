@@ -17,13 +17,16 @@ args:
 --- */
 
 import { Installation } from "types"
-import { useCellar, usePrefix, useFlags, useCache } from "hooks"
-import { backticks, panic, run } from "utils"
+import { useCellar, usePrefix, useCache } from "hooks"
+import { panic } from "utils"
+import run from "hooks/useRun.ts"
 import { crypto } from "deno/crypto/mod.ts"
 import { encode } from "deno/encoding/hex.ts"
 import { encode as base64Encode } from "deno/encoding/base64.ts"
 import { set_output } from "../utils/gha.ts"
 import * as ARGV from "../utils/args.ts"
+import tea_init from "../../lib/init().ts"
+import { backticks } from "../../lib/utils.ts"
 import Path from "path"
 
 const cellar = useCellar()
@@ -32,7 +35,7 @@ const cellar = useCellar()
 //-------------------------------------------------------------------------- main
 
 if (import.meta.main) {
-  useFlags()
+  tea_init()
 
   const compression = Deno.env.get("COMPRESSION") == 'xz' ? 'xz' : 'gz'
   const gpgKey = Deno.env.get("GPG_KEY_ID") ?? panic("missing GPG_KEY_ID")

@@ -1,7 +1,7 @@
 import { Unarchiver, TarballUnarchiver, ZipUnarchiver } from "./Unarchiver.ts"
 import { Verbosity } from "types"
-import { useFlags } from "hooks"
-import { run } from "utils"
+import { useConfig } from "hooks"
+import run from "hooks/useRun.ts"
 import Path from "path"
 
 //FIXME assuming strip 1 on components is going to trip people up
@@ -18,7 +18,7 @@ interface Response {
 
 export default function useSourceUnarchiver(): Response {
   const unarchive = async (opts: Options) => {
-    const { verbosity } = useFlags()
+    const { verbosity } = useConfig()
 
     let unarchiver: Unarchiver
     if (ZipUnarchiver.supports(opts.zipfile)) {

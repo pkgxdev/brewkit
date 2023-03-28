@@ -12,9 +12,10 @@ args:
 
 import Path from "path"
 import { undent } from "utils"
-import { useFlags } from "hooks"
+import tea_init from "../../lib/init().ts"
 
-useFlags()
+tea_init()
+
 
 const has_shebang = (() => {
   const encoder = new TextDecoder()

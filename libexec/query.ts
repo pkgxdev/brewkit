@@ -1,7 +1,7 @@
 #!/usr/bin/env -S deno run --allow-read --allow-env=TEA_PREFIX,TEA_PANTRY_PATH,SRCROOT,GITHUB_TOKEN --allow-write --allow-net
 
 import { Package, PackageRequirement, Stowage } from "types"
-import { flatmap, panic, print, host } from "utils"
+import { flatmap, panic, host } from "utils"
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { useCache, useCellar } from "hooks"
 import usePantry from "../lib/usePantry.ts"
@@ -31,7 +31,7 @@ let pkg: PackageRequirement | Package = parse(pkgname)
 
 if (versions) {
   const versions = await usePantry().getVersions(pkg)
-  await print(versions.sort().join("\n"))
+  console.log(versions.sort().join("\n"))
   Deno.exit(0)
 }
 
@@ -48,13 +48,13 @@ if (src) {
   const path = flatmap(Deno.env.get("SRCROOT"), x => new Path(x))
   const cache_path = useCache().path(stowage)
   if (path?.join("projects").isDirectory()) {
-    await print(`${path.join("srcs", cache_path.basename())}`)
+    await console.log(`${path.join("srcs", cache_path.basename())}`)
   } else {
-    await print(cache_path.string)
+    await console.log(cache_path.string)
   }
 } else if (prefix) {
   const path = useCellar().keg(pkg)
-  await print(path.string)
+  await console.log(path.string)
 } else if (srcdir) {
   let path = flatmap(Deno.env.get("SRCROOT"), x => new Path(x))
   if (path?.join("projects").isDirectory()) {
@@ -64,7 +64,7 @@ if (src) {
   } else {
     path = new Path(Deno.makeTempDirSync())
   }
-  await print(path.string)
+  await console.log(path.string)
 } else if (testdir) {
   let path = flatmap(Deno.env.get("SRCROOT"), x => new Path(x))
   if (path?.join("projects").isDirectory()) {
@@ -74,7 +74,7 @@ if (src) {
   } else {
     path = new Path(Deno.makeTempDirSync())
   }
-  await print(path.string)
+  await console.log(path.string)
 } else {
   Deno.exit(1)
 }

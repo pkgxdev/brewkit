@@ -4,7 +4,7 @@ import useShellEnv, { expand } from "hooks/useShellEnv.ts"
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { useCellar, usePrefix } from "hooks"
 import usePantry from "../lib/usePantry.ts"
-import { host, print, undent } from "utils"
+import { host, undent } from "utils"
 import { parse } from "utils/pkg.ts"
 import Path from "path"
 
@@ -85,4 +85,4 @@ for await (const [path, {isFile}] of pantry.getYAML(pkg).path.parent().ls()) {
 
 
 /// done
-print(`${sh}\n`)
+console.log(sh)

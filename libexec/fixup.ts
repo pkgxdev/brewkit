@@ -1,12 +1,14 @@
 #!/usr/bin/env -S deno run --allow-run --allow-read --allow-write --allow-env
 
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { useCellar, useFlags, usePrefix } from "hooks"
+import { useCellar, usePrefix } from "hooks"
+import tea_init from "../lib/init().ts"
 import { str } from "utils/pkg.ts"
-import { run, host } from "utils"
+import run from "hooks/useRun.ts"
+import { host } from "utils"
 import Path from "path"
 
-useFlags()
+tea_init()
 
 const { flags, unknown } = parseFlags(Deno.args, {
   flags: [{
