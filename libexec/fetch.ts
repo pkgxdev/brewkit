@@ -69,7 +69,7 @@ const zipfile = await (async () => {
   }
 })()
 
-console.log(zipfile!.string)
+console.log(zipfile.string)
 
 async function download({ dst, src }: { dst: Path, src: URL }) {
   if (Deno.env.get("GITHUB_ACTIONS")) {
@@ -83,9 +83,9 @@ async function download({ dst, src }: { dst: Path, src: URL }) {
       console.error({ dst, src })
       throw new Error(`cURL failed to download ${src}`)
     }
-    return dst
   } else {
     // locally using our download function as it knows how to cache properly
     useDownload().download({ dst, src })
   }
+  return dst
 }
