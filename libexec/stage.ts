@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run --allow-net --allow-read --allow-env=GITHUB_TOKEN,TEA_PREFIX,TEA_PANTRY_PATH --allow-write
+#!/usr/bin/env -S deno run --allow-net --allow-read --allow-env --allow-write
 
 import useShellEnv, { expand } from "hooks/useShellEnv.ts"
 import { parseFlags } from "cliffy/flags/mod.ts"

@@ -12,7 +12,7 @@ args:
   - --allow-read
   - --allow-run=tar,unzip
   - --allow-write
-  - --allow-env=TEA_PREFIX,TEA_PANTRY_PATH,GITHUB_TOKEN
+  - --allow-env
 ---*/
 
 //TODO verify the sha
