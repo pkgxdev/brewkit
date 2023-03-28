@@ -5,6 +5,9 @@ import usePantry from "../lib/usePantry.ts"
 import { parse, str } from "utils/pkg.ts"
 import { useCellar } from "hooks"
 
+import tea_init from "../lib/init().ts"
+tea_init()
+
 const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
     name: "cellar",

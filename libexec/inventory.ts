@@ -5,6 +5,9 @@ import { useInventory } from "hooks"
 import SemVer from "semver"
 import { parse } from "utils/pkg.ts"
 
+import tea_init from "../lib/init().ts"
+tea_init()
+
 const { unknown: pkgnames } = parseFlags(Deno.args)
 
 const rv: Record<string, SemVer[]> = {}

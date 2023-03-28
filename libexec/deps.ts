@@ -5,6 +5,9 @@ import usePantry from "../lib/usePantry.ts"
 import { parse, str } from "utils/pkg.ts"
 import { hydrate } from "prefab"
 
+import tea_init from "../lib/init().ts"
+tea_init()
+
 const { flags: { build, test }, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
     name: "build"

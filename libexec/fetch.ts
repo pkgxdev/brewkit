@@ -24,6 +24,9 @@ import { parse } from "utils/pkg.ts"
 import { Stowage} from "types"
 import Path from "path"
 
+import tea_init from "../lib/init().ts"
+tea_init()
+
 const pantry = usePantry()
 
 const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {

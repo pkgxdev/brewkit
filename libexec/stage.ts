@@ -8,6 +8,9 @@ import { host, undent } from "utils"
 import { parse } from "utils/pkg.ts"
 import Path from "path"
 
+import tea_init from "../lib/init().ts"
+tea_init()
+
 const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
     name: "srcdir",

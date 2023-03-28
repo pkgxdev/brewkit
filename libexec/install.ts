@@ -6,6 +6,9 @@ import { install, link } from "prefab"
 import { Installation } from "types"
 import { panic } from "utils"
 
+import tea_init from "../lib/init().ts"
+tea_init()
+
 const cellar = useCellar()
 const inventory = useInventory()
 

@@ -4,6 +4,9 @@ import { parseFlags } from "cliffy/flags/mod.ts"
 import { useCellar, usePantry, useMoustaches } from "hooks"
 import { parse } from "utils/pkg.ts"
 
+import tea_init from "../lib/init().ts"
+tea_init()
+
 const { unknown: pkgnames } = parseFlags(Deno.args)
 
 const pantry = usePantry()

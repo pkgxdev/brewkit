@@ -6,6 +6,9 @@ import { panic } from "utils"
 import { link } from "prefab"
 import Path from "path"
 
+import tea_init from "../lib/init().ts"
+tea_init()
+
 let pkg: Package | PackageRequirement = parse(Deno.args[1])
 pkg = { project: pkg.project, version: pkg.constraint.single() ?? panic() }
 

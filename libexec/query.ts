@@ -8,6 +8,9 @@ import usePantry from "../lib/usePantry.ts"
 import { parse, str } from "utils/pkg.ts"
 import Path from "path"
 
+import tea_init from "../lib/init().ts"
+tea_init()
+
 const { flags: { prefix, srcdir, src, testdir, versions }, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
     name: "prefix",

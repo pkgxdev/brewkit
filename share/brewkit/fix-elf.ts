@@ -20,6 +20,9 @@ import { backticks } from "../../lib/utils.ts"
 import run from "hooks/useRun.ts"
 import Path from "path"
 
+import tea_init from "../../lib/init().ts"
+tea_init()
+
 
 if (import.meta.main) {
   const cellar = useCellar()

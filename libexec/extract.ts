@@ -26,6 +26,9 @@ import { parse } from "utils/pkg.ts"
 import { panic } from "utils"
 import Path from "path"
 
+import tea_init from "../lib/init().ts"
+tea_init()
+
 const { flags: { outputDir, pkg: pkgname }, unknown } = parseFlags(Deno.args, {
   flags: [{
     name: "output-dir",
