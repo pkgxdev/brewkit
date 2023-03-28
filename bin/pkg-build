@@ -40,21 +40,31 @@ fi
 PKGS="$(sort.ts $PKGS --delimiter ' ')"
 # ^^ ensures that pkgs build topologically
 
+gum() {
+  tea gum format -- "$@"
+}
+
 for PKG in $PKGS; do
+  gum "# building $PKG"
+
   PKG="$(resolve.ts "$PKG")"
   ZIP="$(query.ts "$PKG" --src)"
   PREFIX="$(query.ts "$PKG" --prefix)"
   SRCDIR="$(query.ts "$PKG" --srcdir)"
 
   if test -n "$ZIP"; then
+    gum "# fetching $ZIP"
     fetch.ts "$PKG" -o "$ZIP"
   fi
 
   if test -f "$ZIP"; then
+    gum "# extracing $SRCDIR"
     extract.ts "$ZIP" --pkg "$PKG" --output-dir "$SRCDIR"
   else
     mkdir -p "$SRCDIR"
   fi
+
+  gum "# staging for build"
 
   DEPS=$(deps.ts "$PKG" --build)  # eg. nodejs.org^4
 
@@ -70,7 +80,11 @@ for PKG in $PKGS; do
     BASH="tea bash"
   fi
 
+  gum "# running build"
+
   $BASH -e "$BUILD_SCRIPT"
+
+  gum "# fixing up built products"
 
   DEPS="$(deps.ts "$PKG")"  # needs to be runtime deps AND include self
   # shellcheck disable=SC2086
@@ -78,6 +92,8 @@ for PKG in $PKGS; do
   PATH="$d/share/brewkit:$PATH" fixup.ts "$PREFIX" --deps "$DEPS"
 
   find "$PREFIX" -type f -name \*.la -delete
+
+  gum "# symlinking installations"
 
   link.ts "$PREFIX" "$PKG"
 

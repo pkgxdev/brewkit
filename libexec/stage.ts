@@ -68,13 +68,13 @@ const text = undent`
   mkdir -p "$HOME"
 
   export PATH=${brewkit}:"$PATH"
+  export CFLAGS="-w $CFLAGS"  # warnings are noise
 
   ${pantry_sh}
   `
 
 /// write out build script
-const sh = srcdir.join("xyz.tea.build.sh").write({ text, force: true })
-
+const sh = srcdir.join("xyz.tea.build.sh").write({ text, force: true }).chmod(0o755)
 
 /// copy in auxillary files from pantry directory
 for await (const [path, {isFile}] of pantry.getYAML(pkg).path.parent().ls()) {

@@ -31,7 +31,7 @@ case 'darwin':
       ...['bin', 'lib', 'libexec'].compact(x => pkg_prefix.join(x).isDirectory())
     ],
     env: {
-      GEM_HOME: usePrefix().join('gem').string
+      GEM_HOME: usePrefix().join('tea/local/share/ruby/gem').string
     }
   })
   break
