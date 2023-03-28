@@ -25,7 +25,17 @@ git commit -mnil --allow-empty
 git tag -a "$VERSION" -m "Version $VERSION" --force
 
 cd "$VIRTUAL_ENV"
-bin/pip install "$SRCROOT" --verbose
+
+# force tmp files to be somewhere useful for debugging purposes
+# also why we have --no-clean later
+mkdir -p $SRCROOT/xyz.tea.python.build
+
+TMPDIR=$SRCROOT/xyz.tea.python.build \
+  bin/pip install \
+    "$SRCROOT" \
+    --verbose \
+    --no-clean \
+    --require-virtualenv
 
 # python virtual-envs are not relocatable
 # our only working choice is to rewrite these files and symlinks every time
