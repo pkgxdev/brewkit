@@ -44,16 +44,17 @@ if (srcdir.string.includes(" ")) {
 // NOTE we have to in order to get `version.raw` which many pkgymls need
 const pkg = await pantry.resolve(parse(pkgname))
 
+/// assemble build script
+const pantry_sh = await pantry.getScript(pkg, 'build', deps)
+const brewkit = new URL(import.meta.url).path().parent().parent().join("share/brewkit")
+
 /// calc env
+Deno.env.set("HOME", srcdir.string)  //lol side-effects beware!
 const env = await useShellEnv({ installations: deps })
 if (host().platform == 'darwin') env['MACOSX_DEPLOYMENT_TARGET'] = ['11.0']
 
 env['PATH'] ??= []
 env['PATH'].push("/usr/bin", "/bin", usePrefix().join('tea.xyz/v*/bin').string)
-
-/// assemble build script
-const pantry_sh = await pantry.getScript(pkg, 'build', deps)
-const brewkit = new URL(import.meta.url).path().parent().parent().join("share/brewkit")
 
 const text = undent`
   #!/bin/bash
