@@ -47,29 +47,36 @@ if (!url) {
   Deno.exit(0)
 }
 
-const zipfile = await (async () => {
-  const stowage: Stowage = { pkg, type: 'src', extname: url.path().extname() }
+try {
+  const zipfile = await (async () => {
+    const stowage: Stowage = { pkg, type: 'src', extname: url.path().extname() }
 
-  const dst = (() => {
-    if (flags.outputDir) {
-      const filename = useCache().path(stowage).basename()
-      return Path.cwd().join(flags.outputDir, filename)
-    } else {
-      return Path.cwd().join(flags.o ?? panic())
+    const dst = (() => {
+      if (flags.outputDir) {
+        const filename = useCache().path(stowage).basename()
+        return Path.cwd().join(flags.outputDir, filename)
+      } else {
+        return Path.cwd().join(flags.o ?? panic())
+      }
+    })()
+
+    try {
+      // first try the original location
+      return await download({ dst, src: url })
+    } catch {
+      // then try our mirror
+      const src = useOffLicense('s3').url(stowage)
+      return await download({ dst, src })
     }
   })()
 
-  try {
-    // first try the original location
-    return await download({ dst, src: url })
-  } catch {
-    // then try our mirror
-    const src = useOffLicense('s3').url(stowage)
-    return await download({ dst, src })
-  }
-})()
-
-console.log(zipfile.string)
+  console.log(zipfile.string)
+} catch (err) {
+  console.error(err.message)
+  console.error("tea expands the full semantic version, which may mean the URL you are")
+  console.error("fetching is now incorrect. Try `version.raw`?")
+  Deno.exit(1)
+}
 
 async function download({ dst, src }: { dst: Path, src: URL }) {
   if (Deno.env.get("GITHUB_ACTIONS")) {
@@ -85,7 +92,7 @@ async function download({ dst, src }: { dst: Path, src: URL }) {
     }
   } else {
     // locally using our download function as it knows how to cache properly
-    useDownload().download({ dst, src })
+    await useDownload().download({ dst, src })
   }
   return dst
 }
