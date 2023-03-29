@@ -49,8 +49,11 @@ const pantry_sh = await pantry.getScript(pkg, 'build', deps)
 const brewkit = new URL(import.meta.url).path().parent().parent().join("share/brewkit")
 
 /// calc env
+const old_home = Deno.env.get("HOME")
 Deno.env.set("HOME", srcdir.string)  //lol side-effects beware!
 const env = await useShellEnv({ installations: deps })
+Deno.env.set("HOME", old_home!)
+
 if (host().platform == 'darwin') env['MACOSX_DEPLOYMENT_TARGET'] = ['11.0']
 
 env['PATH'] ??= []
