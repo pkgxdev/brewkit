@@ -31,7 +31,11 @@ for PKG in $PKGS; do
   DSTDIR="$(query.ts "$PKG" --testdir)"
 
   if test -d "$DSTDIR"; then
-    rm -rf "$DSTDIR"
+    for x in "$DSTDIR"/*; do
+      if test $x != "$DSTDIR"/.cargo; then
+        rm -rf "$x"
+      fi
+    done
   fi
   mkdir -p "$DSTDIR"
 
