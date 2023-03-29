@@ -92,4 +92,4 @@ for await (const [path, {isFile}] of pantry.getYAML(pkg).path.parent().ls()) {
 
 
 /// done
-console.log(sh)
+console.log(sh.string)
