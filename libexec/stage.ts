@@ -57,7 +57,7 @@ Deno.env.set("HOME", old_home!)
 if (host().platform == 'darwin') env['MACOSX_DEPLOYMENT_TARGET'] = ['11.0']
 
 env['PATH'] ??= []
-env['PATH'].push("/usr/bin", "/bin", usePrefix().join('tea.xyz/v*/bin').string)
+env['PATH'].push("/usr/bin", "/bin", "/usr/sbin", "/sbin", usePrefix().join('tea.xyz/v*/bin').string)
 
 const text = undent`
   #!/bin/bash
