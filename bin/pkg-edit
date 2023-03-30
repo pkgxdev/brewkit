@@ -13,7 +13,7 @@ if test -z "$1"; then
   for x in $(echo "$TEA_PANTRY_PATH" | tr ':' '\n'); do
     if test -z "$PKGS" -a -d "$x"/.git; then
       #^^^^^^^^^^^^^^^ stop at first match
-      PKGS="$(GIT_DIR="$x"/.git peek.sh --print-paths)"
+      PKGS="$(GIT_WORK_TREE="$x" peek.sh --print-paths)"
     fi
   done
 elif ! PKGS="$(find.ts $1)"; then
