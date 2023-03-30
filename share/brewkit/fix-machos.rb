@@ -75,7 +75,7 @@ class Fixer
     raise ArgumentError, "codesign binary is not available on Linux" if RUBY_PLATFORM !~ /darwin/
     raise ArgumentError, "#{filename}: no such file" unless File.file?(filename)
 
-    signing_id = ENV['APPLE_SIGNING_IDENTITY'] || "-"
+    signing_id = ENV['APPLE_IDENTITY'] || "-"
 
     _, _, status = Open3.capture3("codesign", "--sign", signing_id, "--force",
                                   "--preserve-metadata=entitlements,requirements,flags,runtime",
