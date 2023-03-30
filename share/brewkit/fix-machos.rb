@@ -42,7 +42,6 @@ end
 class Fixer
   def initialize(file)
     @file = MachO.open(file)
-    @changed = false
   end
 
   def fix
@@ -63,10 +62,26 @@ class Fixer
       throw Error("unknown filetype: #{file.filetype}: #{file.filename}")
     end
 
-    # M1 binaries must be signed
     # changing the macho stuff invalidates the signature
     # this resigns with the default adhoc signing profile
-    MachO.codesign!(@file.filename) if @changed and arm?
+    # unless ENV['APPLE_SIGNING_IDENTITY'] is set, in which
+    # case it uses that
+    codesign!(@file.filename)
+  end
+
+  # Copied from https://github.com/Homebrew/ruby-macho/blob/02fa0521f8ce5c749c88d3109d2a8fccf5b3293a/lib/macho.rb#L51-L60C6
+  # to take an optional signing identity
+  def codesign!(filename)
+    raise ArgumentError, "codesign binary is not available on Linux" if RUBY_PLATFORM !~ /darwin/
+    raise ArgumentError, "#{filename}: no such file" unless File.file?(filename)
+
+    signing_id = ENV['APPLE_SIGNING_IDENTITY'] || "-"
+
+    _, _, status = Open3.capture3("codesign", "--sign", signing_id, "--force",
+                                  "--preserve-metadata=entitlements,requirements,flags,runtime",
+                                  filename)
+
+    raise CodeSigningError, "#{filename}: signing failed!" unless status.success?
   end
 
   def fix_id
@@ -189,12 +204,10 @@ ARGV.each do |arg|
     abs = Pathname.getwd.join(file).to_s
     inode = File.stat(abs).ino
     if $inodes[inode]
-      if arm?
-        # we have to code-sign on arm AND codesigning breaks the hard link
-        # so now we have to re-hardlink
-        puts "re-hardlinking #{abs} to #{$inodes[inode]}"
-        FileUtils.ln($inodes[inode], abs, :force => true)
-      end
+      # codesigning breaks the hard link
+      # so now we have to re-hardlink
+      puts "re-hardlinking #{abs} to #{$inodes[inode]}"
+      FileUtils.ln($inodes[inode], abs, :force => true)
       # stuff like git has hardlinks to the same files
       # avoid the work if we already did this inode
       next
