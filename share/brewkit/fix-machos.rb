@@ -81,7 +81,7 @@ class Fixer
                                   "--preserve-metadata=entitlements,requirements,flags,runtime",
                                   filename)
 
-    raise CodeSigningError, "#{filename}: signing failed!" unless status.success?
+    raise MachO::CodeSigningError, "#{filename}: signing failed!" unless status.success?
   end
 
   def fix_id
