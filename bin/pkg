@@ -5,6 +5,17 @@ set -e
 arg="$1"
 shift
 
+if test "$arg" = "-v" || test "$arg" = "--version"; then
+  d="$(cd "$(dirname "$0")"/.. && pwd)"
+  if echo "$d" | grep -q "$(tea --prefix)/tea.xyz/brewkit"; then
+    V="${d#"$(tea --prefix)"/tea.xyz/brewkit/}"
+  else
+    V="$(git describe --tags --abbrev=0 --match "v[0-9]*.[0-9]*.[0-9]*")-dev"
+  fi
+  echo "tea.xyz/brewkit: $V"
+  exit 0
+fi
+
 if test "$arg" = "-L"; then
   export TEA_DOCKER=1
 
