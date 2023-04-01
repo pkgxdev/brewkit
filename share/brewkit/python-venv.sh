@@ -11,6 +11,10 @@ set -ex
 CMD_NAME=$(basename "$1")
 PREFIX="$(dirname "$(dirname "$1")")"
 VERSION="$(basename "$PREFIX")"
+if test ! -n "${OPTIONAL_DEPS-}"; then
+	OPTIONAL_DEPS=
+fi
+echo $OPTIONAL_DEPS
 
 export VIRTUAL_ENV="$PREFIX"/venv
 
@@ -32,7 +36,7 @@ mkdir -p $SRCROOT/xyz.tea.python.build
 
 TMPDIR=$SRCROOT/xyz.tea.python.build \
   bin/pip install \
-    "$SRCROOT" \
+    "$SRCROOT$OPTIONAL_DEPS" \
     --verbose \
     --no-clean \
     --require-virtualenv
