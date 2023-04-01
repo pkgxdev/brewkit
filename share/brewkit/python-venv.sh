@@ -14,7 +14,6 @@ VERSION="$(basename "$PREFIX")"
 if test ! -n "${OPTIONAL_DEPS-}"; then
 	OPTIONAL_DEPS=
 fi
-echo $OPTIONAL_DEPS
 
 export VIRTUAL_ENV="$PREFIX"/venv
 
