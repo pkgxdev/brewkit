@@ -63,10 +63,15 @@ try {
     try {
       // first try the original location
       return await download({ dst, src: url })
-    } catch {
-      // then try our mirror
-      const src = useOffLicense('s3').url(stowage)
-      return await download({ dst, src })
+    } catch (err) {
+      try {
+        // then try our mirror
+        const src = useOffLicense('s3').url(stowage)
+        return await download({ dst, src })
+      } catch (err2) {
+        console.error("mirror:", err2.message)
+        throw err
+      }
     }
   })()
 
