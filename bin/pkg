@@ -19,8 +19,12 @@ fi
 if test "$arg" = "-L"; then
   export TEA_DOCKER=1
 
-  arg="$1"
-  shift
+  if test -n "$1"; then
+    arg="$1"
+    shift
+  else
+    arg="docker"
+  fi
 fi
 
 if test -n "$arg"; then
