@@ -77,11 +77,18 @@ class Fixer
 
     signing_id = ENV['APPLE_IDENTITY'] || "-"
 
-    _, _, status = Open3.capture3("codesign", "--sign", signing_id, "--force",
+    _, stderr_str, status = Open3.capture3("codesign", "--sign", signing_id, "--force",
                                   "--preserve-metadata=entitlements,requirements,flags,runtime",
                                   filename)
 
-    raise MachO::CodeSigningError, "#{filename}: signing failed!" unless status.success?
+    # This is messy, but Deno (and Zig, and possibly others) output working binaries
+    # that fail strict validation. Deno has an open issue about this since 2018:
+    # https://github.com/denoland/deno/issues/575
+    # codesign "fails" after correctly signing these binaries with the below error,
+    # but the binaries still work.
+    raise MachO::CodeSigningError, "#{filename}: signing failed!"
+      unless status.success? ||
+      stderr_str.include?("main executable failed strict validation")
   end
 
   def fix_id
