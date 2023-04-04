@@ -1,11 +1,10 @@
 #!/bin/sh
 
-set -e
+set -ex
 
 d="$(cd "$(dirname "$0")/.." && pwd)"
 
 arg0="$1"
-shift
 
 if test -z "$TEA_PREFIX"; then
   echo "tea.xyz/brewkit: error: TEA_PREFIX unset" >&2
@@ -16,30 +15,35 @@ if test -z "$GITHUB_TOKEN"; then
   GITHUB_TOKEN=$(tea gh auth token)
 fi
 
+if test -n "$TEA_PANTRY_PATH"; then
+  ADDARGS="--volume ""$TEA_PANTRY_PATH"":/root/pantry --env TEA_PANTRY_PATH=/root/pantry"
+fi
+
 if test $arg0 = docker; then
   echo "tea.xyz/brewkit: error: invalid usage" >&2
   exit 1
-fi
-
-if test -n "$TEA_PANTRY_PATH"; then
-  ADDARGS="--volume ""$TEA_PANTRY_PATH"":/pantry --env TEA_PANTRY_PATH=/pantry"
-  if test -n "$SRCROOT"; then
-    ADDARGS="$ADDARGS"" --env SRCROOT=/pantry"
-  fi
+elif shift; then
+  CMD="tea $d/bin/pkg-$arg0"
+  # ensures the dev-env has the same brewkit requirements
+  ADDARGS="$ADDARGS"" --env SRCROOT=/root/pantry"
+else
+  # we were invoked as `pkg -L` by itself
+  ADDARGS="$ADDARGS"" --interactive --tty --workdir /root/pantry"
 fi
 
 docker run \
-  --name tea \
+  --name brewkit.tea.xyz \
   --rm \
-  --volume "$TEA_PREFIX/tea.xyz/brewkit/mnt":/root \
+  --volume "$TEA_PREFIX/tea.xyz/brewkit/mnt":/root/.tea \
+  --volume "/root/.tea/tea.xyz/v*" \
   --volume "$TEA_PREFIX/tea.xyz/var/www":/root/.tea/tea.xyz/var/www \
   --volume /root/.tea/tea.xyz/var/pantry \
   --volume /root/.tea/tea.xyz/var/pantries \
-  --volume "$d":$d \
+  --volume "$d":"$d" \
   --env GITHUB_TOKEN="$GITHUB_TOKEN" \
   --env CLICOLOR_FORCE=1 \
   $ADDARGS \
   teaxyz/cli \
-  tea +deno.land $d/bin/pkg-"$arg0" "$@"
+  $CMD "$@"
 
-# ^^ `--volume $d:$d` for debugging: so errors in brewkit are paths on the host
+# ^^ `--volume $d:$d` for debugging: so errors in brewkit are the same as paths on the host
