@@ -23,7 +23,8 @@ if test $arg0 = docker; then
   echo "tea.xyz/brewkit: error: invalid usage" >&2
   exit 1
 elif shift; then
-  CMD="tea $d/bin/pkg-$arg0"
+  # we need the +deno.land because we’re setting the dev-env to the pantry
+  CMD="tea +deno.land $d/bin/pkg-$arg0"
   # ensures the dev-env has the same brewkit requirements
   ADDARGS="$ADDARGS"" --env SRCROOT=/root/pantry"
 else
