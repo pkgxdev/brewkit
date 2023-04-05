@@ -42,6 +42,7 @@ export default async function fix_rpaths(installation: Installation, pkgs: (Pack
   const skip_rpaths = [
     "go.dev", // skipping because for some reason patchelf breaks the go binary resulting in the only output being: `Segmentation Fault`
     "tea.xyz", // this causes tea to pass -E/--version (and everything else?) directly to deno, making it _too_ much of a wrapper.
+    "render.com", // same as `tea.xyz`
   ]
   if (skip_rpaths.includes(installation.pkg.project)) {
     console.info(`skipping rpath fixes for ${installation.pkg.project}`)
