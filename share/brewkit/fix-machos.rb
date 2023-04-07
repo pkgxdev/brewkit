@@ -64,7 +64,7 @@ class Fixer
 
     # changing the macho stuff invalidates the signature
     # this resigns with the default adhoc signing profile
-    # unless ENV['APPLE_SIGNING_IDENTITY'] is set, in which
+    # unless ENV['APPLE_IDENTITY'] is set, in which
     # case it uses that
     codesign!(@file.filename)
   end
@@ -86,8 +86,8 @@ class Fixer
     # https://github.com/denoland/deno/issues/575
     # codesign "fails" after correctly signing these binaries with the below error,
     # but the binaries still work.
-    raise MachO::CodeSigningError, "#{filename}: signing failed!"
-      unless status.success? ||
+    raise MachO::CodeSigningError, "#{filename}: signing failed!" unless
+      status.success? or
       stderr_str.include?("main executable failed strict validation")
   end
 
