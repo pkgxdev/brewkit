@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -e
+
+d="$(cd "$(dirname "$0")"/.. && pwd)"
+PATH="$d/libexec:$PATH"
+
+if test -z "$1"; then
+  if test -z "$TEA_PANTRY_PATH"; then
+    echo "error: TEA_PANTRY_PATH is not set" >&2
+    exit 1
+  fi
+  for x in $(echo "$TEA_PANTRY_PATH" | tr ':' '\n'); do
+    if test -d "$x"/.git; then
+      PKGS="$(GIT_WORK_TREE="$x" peek.sh) $PKGS"
+    fi
+  done
+else
+  PKGS="$1"
+fi
+
+for PKG in $PKGS; do
+  PKG="$(resolve.ts "$PKG" --cellar)"
+  PREFIX="$(query.ts "$PKG" --prefix)"
+
+  DEPS=$(deps.ts "$PKG")
+  # shellcheck disable=SC2086
+  DEPS=$(install.ts $DEPS)
+
+  PATH="$d/share/brewkit:$PATH" fixup.ts "$PREFIX" --deps "$DEPS"
+done
