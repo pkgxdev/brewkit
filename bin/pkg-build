@@ -84,6 +84,12 @@ for PKG in $PKGS; do
 
   $BASH -e "$BUILD_SCRIPT"
 
+  if ! test -d "$PREFIX"; then
+    echo "error: nothing installed to \`$PREFIX\`" >&2
+    echo "maybe: did you forget to \`make install\` or equivalent?" >&2
+    exit 1
+  fi
+
   gum "# fixing up built products"
 
   DEPS="$(deps.ts "$PKG")"  # needs to be runtime deps AND include self
