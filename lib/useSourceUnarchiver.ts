@@ -24,7 +24,7 @@ export default function useSourceUnarchiver(): Response {
     if (ZipUnarchiver.supports(opts.zipfile)) {
       const stripComponents = opts.stripComponents ?? 0
       const needsTmpdir = stripComponents > 0
-      const dstdir = needsTmpdir ? Path.mktmp() : opts.dstdir.mkpath()
+      const dstdir = needsTmpdir ? Path.mktemp({}) : opts.dstdir.mkpath()
       try {
         unarchiver = new ZipUnarchiver({ verbosity, ...opts, dstdir })
         if (needsTmpdir) {
