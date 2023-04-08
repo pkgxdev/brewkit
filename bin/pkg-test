@@ -23,7 +23,14 @@ if test -n "$TEA_DOCKER"; then
   exec "$d"/bin/pkg-docker test "$PKGS"
 fi
 
+gum() {
+  tea gum format -- "$@"
+}
+
 for PKG in $PKGS; do
+  gum "# testing $PKG"
+  gum "## preparing testbed"
+
   PKG="$(resolve.ts "$PKG" --cellar)"
   DEPS="$(deps.ts "$PKG" --test)"
   # shellcheck disable=2086
@@ -47,7 +54,11 @@ for PKG in $PKGS; do
     BASH="tea bash"
   fi
 
+  gum "## running test"
+
   $BASH -e "$DSTDIR"/xyz.tea.test.sh
+
+  gum "## running audit"
 
   audit.ts "$PKG"
 done
