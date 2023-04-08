@@ -132,6 +132,15 @@ class Fixer
     rel_path = Pathname.new($tea_prefix).relative_path_from(Pathname.new(@file.filename).parent)
     rpath = "@loader_path/#{rel_path}"
 
+    # rewrite any rpaths the tool itself set to be relative
+    @file.rpaths.each do |rpath|
+      if rpath.start_with? $tea_prefix
+        diff = Pathname.new(rpath).relative_path_from(Pathname.new(@file.filename).parent)
+        @file.change_rpath rpath, "@loader_path/#{diff}"
+        dirty = true
+      end
+    end
+
     if not @file.rpaths.include? rpath and links_to_other_tea_libs?
       @file.add_rpath rpath
       dirty = true
@@ -174,12 +183,12 @@ class Fixer
     def fix_tea_prefix s
       s = Pathname.new(s).relative_path_from(Pathname.new($tea_prefix))
       s = s.sub(%r{/v(\d+)\.(\d+\.)+\d+[a-z]?/}, '/v\1/')
+      s = s.sub(%r{[-.]\d+(\.\d+)*\.dylib$}, '.dylib')
 
-      #FIXME we need to figure this out by resolving links and shit
-      ss = s.sub(%r{[-.]\d+(\.\d+)*\.dylib$}, '.dylib')
-      s = ss if File.exist? ss
+      abort "#{s} doesn’t exist!" unless File.exist?(File.join($tea_prefix, s))
 
       s = "@rpath/#{s}"
+
       return s
     end
 
