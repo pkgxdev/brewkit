@@ -136,10 +136,11 @@ class Fixer
     @file.rpaths.each do |rpath|
       if rpath.start_with? $tea_prefix
         diff = Pathname.new(rpath).relative_path_from(Pathname.new(@file.filename).parent)
-        if @file.rpaths.include? diff
+        new_rpath = "@loader_path/#{diff}"
+        if @file.rpaths.include? new_rpath
           @file.delete_rpath rpath
         else
-          @file.change_rpath rpath, "@loader_path/#{diff}"
+          @file.change_rpath rpath, new_rpath
         end
         dirty = true
       end
