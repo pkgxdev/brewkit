@@ -251,7 +251,7 @@ function escapeRegExp(string: string) {
 
 async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
   const [user, repo, ...types] = validate_str(versions.github).split("/")
-  const type = types?.join("/").chuzzle() ?? 'releases'
+  const type = types?.join("/").chuzzle() ?? 'releases/tags'
 
   const ignore = (() => {
     const arr = (() => {
