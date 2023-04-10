@@ -195,6 +195,8 @@ class Fixer
         if file.symlink? and file.realpath == s and (shortest.nil? or file.basename.to_s.length < shortest.basename.to_s.length)
           shortest = file
         end
+      rescue Errno::ENOENT
+        # noop realpath failed
       end
 
       s = shortest if shortest  # if not then just try anyway
