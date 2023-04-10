@@ -11,7 +11,7 @@ import Path from "path"
 import tea_init from "../lib/init().ts"
 tea_init()
 
-const { flags: { prefix, srcdir, src, testdir, versions }, unknown: [pkgname] } = parseFlags(Deno.args, {
+const { flags: { prefix, srcdir, src, testdir, versions, ...flags }, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
     name: "prefix",
     standalone: true
@@ -26,6 +26,9 @@ const { flags: { prefix, srcdir, src, testdir, versions }, unknown: [pkgname] } 
     standalone: true
   }, {
     name: "versions",
+    standalone: true
+  }, {
+    name: "url",
     standalone: true
   }]
 })
@@ -78,6 +81,14 @@ if (src) {
     path = new Path(Deno.makeTempDirSync())
   }
   await console.log(path.string)
+} else if (flags.url) {
+  const { url } = await usePantry().getDistributable(pkg) ?? {}
+  if (url) {
+    console.log(url.toString())
+  } else {
+    console.error("null")
+    Deno.exit(2)
+  }
 } else {
   Deno.exit(1)
 }
