@@ -312,7 +312,7 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
       }
       const v = semver.parse(name)
       if (!v) {
-        console.warn({ignoring: pre_strip_name, reason: 'unparsable'})
+        console.debug({ignoring: pre_strip_name, reason: 'unparsable'})
       } else if (v.prerelease.length <= 0) {
         console.debug({ found: v.toString(), from: pre_strip_name });
         // used by some packages
@@ -323,6 +323,11 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
       }
     }
   }
+
+  if (rv.length == 0) {
+    console.warn("no versions parsed. Re-run with DEBUG=1 to see output.")
+  }
+
   return rv
 }
 
