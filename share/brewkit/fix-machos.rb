@@ -186,9 +186,21 @@ class Fixer
     return if bad_names.empty?
 
     def fix_tea_prefix s
-      s = Pathname.new(s).relative_path_from(Pathname.new($tea_prefix))
+      s = Pathname.new(s)
+      s = s.realpath if s.symlink?
+
+      shortest = nil
+      s.parent.each_child do |file|
+        file = s.dirname.join(file)
+        if file.symlink? and file.realpath == s and (shortest.nil? or file.basename.to_s.length < shortest.basename.to_s.length)
+          shortest = file
+        end
+      end
+
+      s = shortest if shortest  # if not then just try anyway
+
+      s = s.relative_path_from(Pathname.new($tea_prefix))
       s = s.sub(%r{/v(\d+)\.(\d+\.)+\d+[a-z]?/}, '/v\1/')
-      s = s.sub(%r{[-.]\d+(\.\d+)*\.dylib$}, '.dylib')
 
       abort "#{s} doesn’t exist!" unless File.exist?(File.join($tea_prefix, s))
 
