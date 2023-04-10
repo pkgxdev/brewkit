@@ -5,6 +5,19 @@ set -e
 d="$(cd "$(dirname "$0")"/.. && pwd)"
 PATH="$d/libexec:$PATH"
 
+while getopts 'I' OPTION; do
+  case "$OPTION" in
+    I)
+      OPT_HEADERS=1;;
+    ?)
+      echo "usage: $(basename $0) [-I] <PKGS>"
+      exit 1
+      ;;
+  esac
+done
+
+shift "$(($OPTIND -1))"
+
 if test -z "$1"; then
   if test -z "$TEA_PANTRY_PATH"; then
     echo "error: TEA_PANTRY_PATH is not set" >&2
@@ -26,15 +39,21 @@ fi
 
 for PKG in $PKGS; do
   PKG="$(resolve.ts $PKG)"
-  ZIP="$(query.ts $PKG --src)"
-  SRCDIR="$(query.ts $PKG --srcdir)"
 
-  if test -n "$ZIP"; then
-    fetch.ts $PKG -o "$ZIP"
-  fi
+  if test "$OPT_HEADERS"; then
+    URL="$(query.ts $PKG --url)"
+    curl -I "$URL"
+  else
+    ZIP="$(query.ts $PKG --src)"
+    SRCDIR="$(query.ts $PKG --srcdir)"
 
-  if test -f "$ZIP"; then
-    extract.ts "$ZIP" --pkg $PKG --output-dir "$SRCDIR"
+    if test -n "$ZIP"; then
+      fetch.ts $PKG -o "$ZIP"
+    fi
+
+    if test -f "$ZIP"; then
+      extract.ts "$ZIP" --pkg $PKG --output-dir "$SRCDIR"
+    fi
   fi
 
   echo "$SRCDIR"
