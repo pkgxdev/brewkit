@@ -13,10 +13,15 @@ const pantry = usePantry()
 const encoder = new TextEncoder()
 const print = (x: string) => Deno.stdout.write(encoder.encode(x))
 
+const outputted: Set<string> = new Set()
+
 for await (const pkg of pantry.ls()) {
+  // often we are dealing with two pantries that are mostly the same during dev/debug
+  if (outputted.has(pkg.project)) continue
+
   let output = false
   const bins: string[] = []
-  for (const bin of await pantry.getProvides(pkg)) {
+  for (const bin of await pantry.getProvides(pkg).swallow() ?? []) {
     if (bin.includes(query)) {
       output = true
       bins.push(bin)
@@ -33,4 +38,6 @@ for await (const pkg of pantry.ls()) {
     const got = await useInventory().select(rq)
     print(`: ${got}\n`)
   }
+
+  outputted.add(pkg.project)
 }
