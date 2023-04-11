@@ -112,7 +112,10 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
   const node = yml[key]
 
   const mm = useMoustaches()
-  const script = (input: string) => mm.apply(validate_str(input), mm.tokenize.all(pkg, deps))
+  const script = (input: unknown) => {
+    if (isArray(input)) input = input.join("\n")
+    return mm.apply(validate_str(input), mm.tokenize.all(pkg, deps))
+  }
 
   if (isPlainObject(node)) {
     let raw = script(node.script)
