@@ -19,5 +19,5 @@
       "deno.land": "^1.30"
     }
   },
-  "importMap": "https://raw.githubusercontent.com/teaxyz/cli/v0.26.4/import-map.json"
+  "importMap": "https://raw.githubusercontent.com/teaxyz/cli/v0.27/import-map.json"
 }

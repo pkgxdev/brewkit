@@ -1,11 +1,11 @@
 #!/usr/bin/env -S deno run --allow-net --allow-read --allow-env --allow-write
 
-import useShellEnv, { expand } from "hooks/useShellEnv.ts"
+import useShellEnv, { expand, flatten } from "hooks/useShellEnv.ts"
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { useCellar, usePrefix } from "hooks"
 import usePantry from "../lib/usePantry.ts"
 import { host, undent } from "utils"
-import { parse } from "utils/pkg.ts"
+import { parse, str as pkgstr } from "utils/pkg.ts"
 import Path from "path"
 
 import tea_init from "../lib/init().ts"
@@ -82,6 +82,17 @@ const text = undent`
 
 /// write out build script
 const sh = srcdir.join("xyz.tea.build.sh").write({ text, force: true }).chmod(0o755)
+
+/// write out tea.yaml so magic works
+import * as YAML from "deno/yaml/stringify.ts"
+
+srcdir.join("tea.yaml").write({ text: YAML.stringify({
+  env: flatten(env),
+  dependencies: deps.reduce((acc, {pkg}) => {
+    acc[pkg.project] = `=${pkg.version}`
+    return acc
+  }, {} as Record<string, string>)
+}), force: true })
 
 /// copy in auxillary files from pantry directory
 for await (const [path, {isFile}] of pantry.getYAML(pkg).path.parent().ls()) {
