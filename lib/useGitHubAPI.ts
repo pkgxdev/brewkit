@@ -12,6 +12,7 @@ interface GetVersionsOptions {
 interface GHRelease {
   tag_name: string
   name: string
+  created_at: Date
 }
 
 export default function useGitHubAPI() {
@@ -36,6 +37,12 @@ async function GET2<T>(url: URL | string, headers?: Headers): Promise<[T, Respon
 
 
 async function *getVersions({ user, repo, type }: GetVersionsOptions): AsyncGenerator<string> {
+  for await (const { version } of getVersionsLong({ user, repo, type })) {
+    yield version
+  }
+}
+
+async function *getVersionsLong({ user, repo, type }: GetVersionsOptions): AsyncGenerator<{ version: string, date: Date | undefined }> {
   //TODO set `Accept: application/vnd.github+json`
   //TODO we can use ETags to check if the data we have cached is still valid
 
@@ -47,8 +54,10 @@ async function *getVersions({ user, repo, type }: GetVersionsOptions): AsyncGene
       page++
       const [json, rsp] = await GET2<GHRelease[]>(`https://api.github.com/repos/${user}/${repo}/releases?per_page=100&page=${page}`)
       if (!isArray(json)) throw new Error("unexpected json")
-      for (const str of json.map(({ tag_name, name }) => type == 'releases/tags' ? tag_name : name)) {
-        yield str
+      for (const version of json.map(({ tag_name, name, created_at }) => ({
+        version: type == 'releases/tags' ? tag_name : name,
+        date: created_at }))) {
+        yield version
       }
 
       const linkHeader = (rsp.headers as unknown as {link: string}).link
@@ -75,6 +84,11 @@ async function *getVersions({ user, repo, type }: GetVersionsOptions): AsyncGene
             refs(last: 100, before: ${before}, refPrefix: "refs/tags/", orderBy: {field: TAG_COMMIT_DATE, direction: ASC}) {
               nodes {
                 name
+                target {
+                  ... on Commit {
+                    committedDate
+                  }
+                }
               }
               pageInfo {
                 hasPreviousPage
@@ -96,7 +110,11 @@ async function *getVersions({ user, repo, type }: GetVersionsOptions): AsyncGene
       }
 
       // deno-lint-ignore no-explicit-any
-      const foo = validate_arr(json?.data?.repository?.refs?.nodes).map((x: any) => validate_str(x?.name))
+      const foo = validate_arr(json?.data?.repository?.refs?.nodes).map((x: any) => ({
+          version: validate_str(x?.name),
+          // some repos don't return the commits, like madler/zlib
+          date: x?.target?.committedDate ? new Date(validate_str(x?.target?.committedDate)) : undefined
+      }))
 
       for (const bar of foo) {
         yield bar
