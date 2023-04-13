@@ -23,6 +23,7 @@ You can build for Linux (via Docker) using `-L`, e.g.:
 pkg -L build
 ```
 
+
 ## Without Magic
 
 If you don’t have tea’s magic installed you need to explicitly add `brewkit` to
@@ -31,6 +32,7 @@ the environment:
 ```sh
 tea +tea.xyz/brewkit pkg build
 ```
+
 
 ## Outside a Pantry Checkout
 
@@ -42,6 +44,7 @@ we operate against your tea installation (which defaults to `~/.tea`).
 tea +tea.xyz/brewkit pkg build zlib.net
 ```
 
+
 ## Additions
 
 This repo is for tooling built on top of the tea primitives with the purpose
@@ -49,9 +52,8 @@ of generalized building and testing of open source packages.
 
 If you have an idea for an addition open a [discussion]!
 
-[discussion]: https://github.com/orgs/teaxyz/discussions
 
-# Stuff That Needs to be Added
+### Stuff That Needs to be Added
 
 Getting the `rpath` out of a macOS binary:
 
@@ -69,7 +71,15 @@ lsrpath() {
 This should be added to a `pkg doctor` type thing I reckon. E.g.
 `pkg doctor zlib.net -Q:rpath`.
 
+
+### Hacking on brewkit
+
+If you do `../brewkit/bin/pkg build` for example your local brewkit will be
+used rather than that which is installed.
+
 &nbsp;
+
+
 
 # Tasks
 
@@ -94,3 +104,6 @@ V=$(tea semverator bump $V $PRIORITY)
 git push origin main
 tea gh release create "v$V"
 ```
+
+
+[discussion]: https://github.com/orgs/teaxyz/discussions

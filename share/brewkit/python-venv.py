@@ -20,22 +20,21 @@ def run(cmd_array):
 def main():
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('executable', help='Executable')
-    parser.add_argument('optionals', nargs='?', default=None, help='Optional dependencies')
+    parser.add_argument('--extra', nargs='*', default=[], help='Adds a PEP 508 optional dependencies (aka extras)', action='extend')
     args = parser.parse_args()
 
     cmd_name = os.path.basename(args.executable)
     prefix = os.path.dirname(os.path.dirname(args.executable))
     version = os.path.basename(prefix)
-    optional_deps = os.environ.get("OPTIONAL_DEPS", "")
     virtual_env = os.path.join(prefix, "venv")
 
     logging.debug("Creating {}".format(virtual_env))
 
-    venv.create(virtual_env, with_pip=True)
+    venv.create(virtual_env, with_pip=True, symlinks=True)
 
     # setup tools requires a git version typically
     srcroot = os.environ["SRCROOT"]
-    logging.debug("+cd {}".format(srcroot)
+    logging.debug("+cd {}".format(srcroot))
     os.chdir(srcroot)
     run(["git", "init"])
     run(["git", "config", "user.name", "tea[bot]"])
@@ -43,7 +42,7 @@ def main():
     run(["git", "commit", "-m", "nil", "--allow-empty"])
     run(["git", "tag", "-a", version, "-m", f"Version {version}", "--force"])
 
-    logging.debug("+cd {}".format(virtual_env)
+    logging.debug("+cd {}".format(virtual_env))
     os.chdir(virtual_env)
 
     # force tmp files to be somewhere useful for debugging purposes
@@ -53,10 +52,11 @@ def main():
     os.makedirs(build_dir, exist_ok=True)
     env = os.environ.copy()
     env["TMPDIR"] = build_dir
-    if optionals in args:
-        install_name = f"{srcroot}[{args.optionals}]"
+    if len(args.extra) > 0:
+      install_name = f"{srcroot}[{','.join(args.extra)}]"
     else:
-        install_name = srcroot
+      install_name = srcroot
+
     pipcmd = [
         "bin/pip",
         "install",
@@ -75,7 +75,7 @@ def main():
     # python virtual-envs are not relocatable
     # our only working choice is to rewrite these files and symlinks every time
     # because we promise that tea is relocatable *at any time*
-    bin_dir = os.path.join("..", "bin")
+    bin_dir = os.path.join(prefix, "bin")
     logging.debug("+mkdir -p {}".format(bin_dir))
     os.makedirs(bin_dir, exist_ok=True)
 
@@ -84,7 +84,7 @@ def main():
     # FIXME requiring sed is a bit lame
     with open(save_file, "w") as f:
         f.write(
-            f"""#!/bin/sh
+            """#!/bin/sh
 
 export VIRTUAL_ENV="$(cd "$(dirname "$0")"/.. && pwd)/venv"
 export ARG0="$(basename "$0")"
