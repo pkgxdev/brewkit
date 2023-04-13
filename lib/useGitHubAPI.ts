@@ -111,7 +111,10 @@ async function *getVersionsLong({ user, repo, type }: GetVersionsOptions): Async
 
       // deno-lint-ignore no-explicit-any
       const foo = validate_arr(json?.data?.repository?.refs?.nodes).map((x: any) => ({
-        version: validate_str(x?.name), date: new Date(validate_str(x?.target?.committedDate)) }))
+          version: validate_str(x?.name),
+          // some repos don't return the commits, like madler/zlib
+          date: x?.target?.committedDate ? new Date(validate_str(x?.target?.committedDate)) : undefined
+      }))
 
       for (const bar of foo) {
         yield bar
