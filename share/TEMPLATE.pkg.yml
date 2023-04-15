@@ -20,11 +20,9 @@ distributable:
 versions:
   # if the repo has a github then we can parse versions
   # this should be one of these (remove the rest or the YAML won’t parse)
-  github: user/repo  # reads github release *names*
+  github: user/repo  # reads github tags but only tags of releases (this is usually what you want)
   github: user/repo/tags  # reads github tags from github
-
-  # NOTE that this one is usually best and easiest for you to use
-  github: user/repo/releases/tags  # reads github *releases* but uses the tags of those releases
+  github: user/repo/releases  # reads github release *titles* (for some repos this can work better)
   # ^^ REMOVE ALL BUT ONE!
 
   # often maintainers prepend or append junk, this can be an array of regexes
