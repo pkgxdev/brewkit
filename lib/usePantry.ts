@@ -253,6 +253,15 @@ function escapeRegExp(string: string) {
 }
 
 async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
+  if (versions.github) return handleGitHubVersions(versions)
+  if (versions.url) return handleURLVersions(versions)
+
+  const keys = Object.keys(versions)
+  const first = keys.length > 0 ? keys[0] : "undefined"
+  throw new Error(`couldn’t parse version scheme for ${first}`)
+}
+
+async function handleGitHubVersions(versions: PlainObject): Promise<SemVer[]> {
   const [user, repo, ...types] = validate_str(versions.github).split("/")
   const type = types?.join("/").chuzzle() ?? 'releases/tags'
 
@@ -331,6 +340,42 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
     console.warn("no versions parsed. Re-run with DEBUG=1 to see output.")
   }
 
+  return rv
+}
+
+async function handleURLVersions(versions: PlainObject): Promise<SemVer[]> {
+  const rv: SemVer[] = []
+  const url = validate_str(versions.url)
+  const matcher = validate_str(versions.match)
+
+  const body = await fetch(url).then(x => x.text())
+  const matches = body.matchAll(new RegExp(matcher.slice(1, -1), 'g'))
+
+  const strip = versions.strip
+  for (const match of matches) {
+    let m = ((x: string) => {
+      if (!strip) return x
+      if (isString(strip)) return x.replace(new RegExp(strip.slice(1, -1)), "")
+      if (isArray(strip)) {
+        for (const rx of strip) {
+          x = x.replace(new RegExp(rx.slice(1, -1)), "")
+        }
+        return x
+      }
+      throw new Error()
+    })(match[0])
+
+    // We'll handle dates > calver automatically. For now.
+    const calver = m.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (calver) {
+      m = `${calver[1]}.${calver[2]}.${calver[3]}`
+    }
+
+    const v = semver.parse(m)
+    // Lots of times the same string will appear as both the HREF and
+    // the text of the link. We don't want to double count.
+    if (v && !rv.find(vx => vx.raw === v.raw)) rv.push(v)
+  }
   return rv
 }
 
