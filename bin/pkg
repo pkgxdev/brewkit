@@ -2,6 +2,13 @@
 
 set -e
 
+if test -z "$1"; then
+  echo available commands:
+  echo
+  ls bin | grep -E '^pkg-[^[:space:]]+$' | sed 's/^pkg-/pkg /'
+  exit 1
+fi
+
 arg="$1"
 shift
 
@@ -27,17 +34,12 @@ if test "$arg" = "-L"; then
   fi
 fi
 
-if test -n "$arg"; then
-  d="$(cd "$(dirname "$0")" && pwd)"
-  if test -x "$d"/pkg-"$arg"; then
-    exec "$d"/pkg-"$arg" "$@"
-  elif test "$(find "$d" -name "pkg-$arg*" | wc -l)" -eq 1; then
-    exec "$d"/pkg-"$arg"* "$@"
-  else
-    echo "tea.xyz/brewkit: error: unknown or ambiguous command '$arg'" >&2
-    exit 1
-  fi
+d="$(cd "$(dirname "$0")" && pwd)"
+if test -x "$d"/pkg-"$arg"; then
+  exec "$d"/pkg-"$arg" "$@"
+elif test "$(find "$d" -name "pkg-$arg*" | wc -l)" -eq 1; then
+  exec "$d"/pkg-"$arg"* "$@"
 else
-  echo "tea.xyz/brewkit: error: invalid usage" >&2
+  echo "tea.xyz/brewkit: error: unknown or ambiguous command '$arg'" >&2
   exit 1
 fi
