@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-cond-assign
 import { Package, PackageRequirement, Installation } from "types"
-import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, pkg, TeaError } from "utils"
+import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, pkg, TeaError, panic } from "utils"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { useCellar, usePrefix, usePantry as usePantryBase } from "hooks"
@@ -113,8 +113,30 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
 
   const mm = useMoustaches()
   const script = (input: unknown) => {
-    if (isArray(input)) input = input.join("\n")
-    return mm.apply(validate_str(input), mm.tokenize.all(pkg, deps))
+    const tokens = mm.tokenize.all(pkg, deps)
+    if (isArray(input)) input = input.map(obj => {
+      if (isPlainObject(obj)) {
+        const run = obj['run']
+        if (!isString(run)) throw new Error('every node in a script YAML array must contain a `run` key')
+        let cd = obj['working-directory']
+        if (cd) {
+          cd = mm.apply(validate_str(cd), tokens)
+          return undent`
+            OLDWD="$PWD"
+            mkdir -p "${cd}"
+            cd "${cd}"
+            ${run.trim()}
+            cd "$OLDWD"
+            unset OLDWD
+            `
+        } else {
+          return run.trim()
+        }
+      } else {
+        return `${obj}`.trim()
+      }
+    }).join("\n\n")
+    return mm.apply(validate_str(input), tokens)
   }
 
   if (isPlainObject(node)) {
