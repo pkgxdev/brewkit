@@ -61,15 +61,12 @@ const output: Output = (() => {
   case "linux+x86-64": {
     // buildOs: sizedUbuntu(packages),
     const os = "ubuntu-latest"
-    const container = "ghcr.io/teaxyz/infuser:latest"
     return {
       os,
       buildOs: ["self-hosted", "linux", "X64"],
-      // container,
       testMatrix: [
-        { os },
-        { os, container },
-        { os, container: "debian:buster-slim" }
+        { os, container: "ubuntu:focal", 'name-extra': "(ubuntu focal)" },
+        { os, container: "debian:buster-slim", 'name-extra': "(debian buster)" },
       ],
     }
   }
