@@ -32,6 +32,8 @@ else
   ADDARGS="$ADDARGS"" --interactive --tty --workdir /root/pantry"
 fi
 
+docker image pull teaxyz/cli
+
 docker run \
   --name brewkit.tea.xyz \
   --rm \
