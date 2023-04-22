@@ -5,7 +5,7 @@ set -e
 if test -z "$1"; then
   echo available commands:
   echo
-  ls bin | grep -E '^pkg-[^[:space:]]+$' | sed 's/^pkg-/pkg /'
+  find bin -type f | sed -ne 's/^pkg-/pkg /p'
   exit 1
 fi
 
