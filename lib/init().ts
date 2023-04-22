@@ -28,6 +28,7 @@ export function createConfig(): Config {
     debug: verbosity >= Verbosity.debug,
     silent: verbosity <= Verbosity.quiet,
     env,
+    json: false
   }
 }
 
