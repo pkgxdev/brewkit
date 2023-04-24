@@ -9,7 +9,6 @@ args:
   - --allow-write
 ---*/
 
-import { parseFlags } from "cliffy/flags/mod.ts"
 import { parse } from "utils/pkg.ts"
 import { panic } from "utils"
 import tea_init from "../../lib/init().ts"
@@ -25,7 +24,7 @@ import usePantry from "../../lib/usePantry.ts"
 
 tea_init()
 
-const packages = Deno.env.get("PROJECTS")?.trim().split(" ").map(parse)
+const packages = Deno.env.get("PROJECTS")?.trim().split(" ").filter(x => x).map(parse)
 
 type Output = {
   os: OS,
