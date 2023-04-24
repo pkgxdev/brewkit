@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-cond-assign
 import { Package, PackageRequirement, Installation } from "types"
-import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, pkg, TeaError, panic } from "utils"
+import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, pkg, TeaError } from "utils"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { useCellar, usePrefix, usePantry as usePantryBase } from "hooks"
@@ -76,15 +76,15 @@ const getYAML = (pkg: Package | PackageRequirement) => {
 }
 
 const getPlatforms = async (pkg: Package | PackageRequirement) => {
-  let { platform } = await entry(pkg).yml()
-  if (!platform) return ["linux/x86-64", "linux/aarch64", "darwin/x86-64", "darwin/aarch64"]
-  if (isString(platform)) platform = [platform]
-  if (!isArray(platform)) throw new Error(`invalid platform node: ${platform}`)
+  let { platforms } = await entry(pkg).yml()
+  if (!platforms) return ["linux/x86-64", "linux/aarch64", "darwin/x86-64", "darwin/aarch64"]
+  if (isString(platforms)) platforms = [platforms]
+  if (!isArray(platforms)) throw new Error(`invalid platform node: ${platforms}`)
   const rv = []
-  for (const p of platform) {
-    if (p.match(/^(linux|darwin)\/(aarch64|x86-64)$/)) rv.push(p)
-    else if (p.match(/^(linux|darwin)$/)) rv.push(`${p}/x86-64`, `${p}/aarch64`)
-    else throw new Error(`invalid platform: ${p}`)
+  for (const platform of platforms) {
+    if (platform.match(/^(linux|darwin)\/(aarch64|x86-64)$/)) rv.push(platform)
+    else if (platform.match(/^(linux|darwin)$/)) rv.push(`${platform}/x86-64`, `${platform}/aarch64`)
+    else throw new Error(`invalid platform: ${platform}`)
   }
   return rv
 }
@@ -289,7 +289,7 @@ function escapeRegExp(string: string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
 }
 
-async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
+function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
   if (versions.github) return handleGitHubVersions(versions)
   if (versions.url) return handleURLVersions(versions)
 
