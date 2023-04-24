@@ -25,6 +25,9 @@ outputs:
   has-artifacts:
     description: whether there is a PR associated with that SHA with artifacts in staging
     value: ${{ steps.has-artifacts.outputs.has-artifacts }}
+  platforms:
+    description: the platforms that have artifacts
+    value: ${{ steps.has-artifacts.outputs.platforms }}
 
 runs:
   using: composite

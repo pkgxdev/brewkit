@@ -40,6 +40,8 @@ if (import.meta.main) {
   const objects = await bucket.listObjects({ prefix: `pull-request/${repo.split("/")[1]}/${pr}/` })
 
   const hasArtifacts = (objects?.contents?.length || 0) > 0
+  const platforms = objects?.contents?.map(o => o.key?.split("/").pop()) ?? []
 
-  Deno.stdout.write(new TextEncoder().encode(`has-artifacts=${hasArtifacts ? "true" : "false"}`))
+  Deno.stdout.write(new TextEncoder().encode(`has-artifacts=${hasArtifacts ? "true" : "false"}\n`))
+  Deno.stdout.write(new TextEncoder().encode(`platforms=${JSON.stringify(platforms)}\n`))
 }
