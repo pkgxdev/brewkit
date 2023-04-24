@@ -53,7 +53,7 @@ export ARG0="\$(basename "\$0")"
 TEA_PYTHON="\$(which python)"
 TEA_PYHOME="\$(dirname "\$TEA_PYTHON")"
 
-cat <<EOSH > \$VIRTUAL_ENV/pyvenv.cfg
+cat <<EOSH > "\$VIRTUAL_ENV"/pyvenv.cfg
 home = \$TEA_PYHOME
 include-system-site-packages = false
 executable = \$TEA_PYTHON
