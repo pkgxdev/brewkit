@@ -28,6 +28,7 @@ export default function usePantry() {
     getDistributable,
     getScript,
     getYAML,
+    getPlatforms,
     resolve,
     ...foo,
     getDeps
@@ -72,6 +73,20 @@ const getYAML = (pkg: Package | PackageRequirement) => {
     path: foo.dir.join("package.yml").isFile() ?? foo.dir.join("package.yaml"),
     parse: foo.yml
   }
+}
+
+const getPlatforms = async (pkg: Package | PackageRequirement) => {
+  let { platform } = await entry(pkg).yml()
+  if (!platform) return ["linux/x86-64", "linux/aarch64", "darwin/x86-64", "darwin/aarch64"]
+  if (isString(platform)) platform = [platform]
+  if (!isArray(platform)) throw new Error(`invalid platform node: ${platform}`)
+  const rv = []
+  for (const p of platform) {
+    if (p.match(/^(linux|darwin)\/(aarch64|x86-64)$/)) rv.push(p)
+    else if (p.match(/^(linux|darwin)$/)) rv.push(`${p}/x86-64`, `${p}/aarch64`)
+    else throw new Error(`invalid platform: ${p}`)
+  }
+  return rv
 }
 
 const getRawDistributableURL = (yml: PlainObject) => {

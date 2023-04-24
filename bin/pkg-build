@@ -13,14 +13,6 @@ fi
 d="$(cd "$(dirname "$0")"/.. && pwd)"
 PATH="$d/libexec:$PATH"
 
-if ! available.ts "$@"; then
-  echo "warning: not supported on current platform" >&2
-  if test -n "$GITHUB_ACTIONS"; then
-    echo "unavailable=true" >> "$GITHUB_ENV"
-  fi
-  exit 0
-fi
-
 if test -z "$1"; then
   if test -z "$TEA_PANTRY_PATH"; then
     echo "error: TEA_PANTRY_PATH is not set" >&2
@@ -37,6 +29,11 @@ fi
 
 if test -n "$TEA_DOCKER"; then
   exec "$d"/bin/pkg-docker build "$PKGS"
+fi
+
+if ! available.ts "$@"; then
+  echo "warning: not supported on current platform" >&2
+  exit 0
 fi
 
 if test -z "$GITHUB_TOKEN"; then
