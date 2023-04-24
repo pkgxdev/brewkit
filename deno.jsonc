@@ -9,9 +9,7 @@
   },
   "fmt": {
     "files": {
-      "exclude": [
-        "./"
-      ]
+      "exclude": ["./"]
     }
   },
   "tea": {
@@ -19,5 +17,5 @@
       "deno.land": "^1.30"
     }
   },
-  "importMap": "https://raw.githubusercontent.com/teaxyz/cli/v0.29/import-map.json"
+  "importMap": "https://raw.githubusercontent.com/teaxyz/cli/v0.30/import-map.json"
 }
