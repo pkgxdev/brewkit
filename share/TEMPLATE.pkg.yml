@@ -23,10 +23,24 @@ versions:
   github: user/repo  # reads github tags but only tags of releases (this is usually what you want)
   github: user/repo/tags  # reads github tags from github
   github: user/repo/releases  # reads github release *titles* (for some repos this can work better)
+  # Alternatively, we have a generic web scraper that can parse versions from
+  # any website. This is useful for projects that don’t have a github or
+  # don’t use tags/releases. It works in three parts:
+  url: https://example.com/  # the url to scrape
+  match: /package-name-\d+\.\d+\.\d+\.tar\.gz/  # a regex to find versions
   # ^^ REMOVE ALL BUT ONE!
 
-  # often maintainers prepend or append junk, this can be an array of regexes
-  strip: /^prefixed-garbage-/
+  # often maintainers prepend or append junk, this can be a single or an array of regexes.
+  # almost always required with web scraping.
+  strip:
+    - /^prefixed-garbage-/
+    - /-suffixed-garbage$/
+
+# this is an key/list of platforms that the package supports
+# usually omitted, which will default to all platforms
+platforms:
+  - darwin
+  - linux/x86-64
 
 dependencies:
   # to figure out dependencies you can read the project’s README
