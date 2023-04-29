@@ -21,7 +21,7 @@ fi
 WHERE="$(echo "$TEA_PANTRY_PATH" | cut -d: -f1)"
 
 mkdir -p "$WHERE/projects/$BLEND"
-cp "$d/share/TEMPLATE.pkg.yml" "$WHERE/projects/$BLEND/package.yml"
+cp -i "$d/share/TEMPLATE.pkg.yml" "$WHERE/projects/$BLEND/package.yml"
 
 if test "$WHERE" = "$PWD"; then
   PRETTY="./projects/$BLEND/package.yml"
