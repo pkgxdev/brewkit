@@ -23,6 +23,24 @@ versions:
   github: user/repo  # reads github tags but only tags of releases (this is usually what you want)
   github: user/repo/tags  # reads github tags from github
   github: user/repo/releases  # reads github release *titles* (for some repos this can work better)
+
+  # we also natively support gitlab releases and tags
+  # including gitlab.com and self-hosted gitlab instances
+  gitlab: user/repo
+  gitlab: user/repo/tags
+  gitlab: user/repo/releases
+  # we support using project IDs, which can be found in the project’s settings
+  gitlab: 1234567
+  gitlab: 1234567/tags
+  gitlab: 1234567/releases
+  # and all of the above with a custom gitlab instance
+  gitlab: gitlab.example.com:user/repo
+  gitlab: gitlab.example.com:user/repo/tags
+  gitlab: gitlab.example.com:user/repo/releases
+  gitlab: gitlab.example.com:1234567
+  gitlab: gitlab.example.com:1234567/tags
+  gitlab: gitlab.example.com:1234567/releases
+
   # Alternatively, we have a generic web scraper that can parse versions from
   # any website. This is useful for projects that don’t have a github or
   # don’t use tags/releases. It works in three parts:
