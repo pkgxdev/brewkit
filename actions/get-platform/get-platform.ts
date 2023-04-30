@@ -30,7 +30,7 @@ type Output = {
   buildOs: OS,
   container?: string,
   testMatrix: { os: OS, container?: string }[]
-  available: string | undefined
+  available: string
 }
 
 type OS = string | string[]
@@ -41,7 +41,7 @@ const available = await (async () => {
   const pantry = usePantry()
   const platform_ = platform.replace(/\+/, "/")
 
-  if (!packages) return undefined
+  if (!packages) return ""
 
   const rv = []
 
@@ -50,7 +50,7 @@ const available = await (async () => {
     if (a.includes(platform_)) rv.push(pkg)
   }
 
-  return rv.map(str).join(" ") || undefined
+  return rv.map(str).join(" ")
 })()
 
 const output: Output = (() => {
