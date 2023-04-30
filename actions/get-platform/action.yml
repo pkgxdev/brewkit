@@ -26,7 +26,7 @@ outputs:
     description: the matrix of os/containers for test tasks
     value: ${{ steps.platform.outputs.test-matrix }}
   available:
-    description: whether the platform is unavailable for one or more of the packages
+    description: which packages are available for the requested platform
     value: ${{ steps.platform.outputs.available }}
 
 runs:

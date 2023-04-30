@@ -9,10 +9,9 @@ args:
   - --allow-write
 ---*/
 
-import { parse } from "utils/pkg.ts"
+import { parse, str } from "utils/pkg.ts"
 import { panic } from "utils"
 import tea_init from "../../lib/init().ts"
-import { PackageRequirement } from "types"
 import usePantry from "../../lib/usePantry.ts"
 
 // These are only needed if we switch back to GHA runners
@@ -31,14 +30,28 @@ type Output = {
   buildOs: OS,
   container?: string,
   testMatrix: { os: OS, container?: string }[]
-  available: boolean
+  available: string
 }
 
 type OS = string | string[]
 
 const platform = Deno.env.get("PLATFORM") ?? panic("$PLATFORM not set")
 
-const available = await getAvailability(packages)
+const available = await (async () => {
+  const pantry = usePantry()
+  const platform_ = platform.replace(/\+/, "/")
+
+  if (!packages) return ""
+
+  const rv = []
+
+  for (const pkg of packages) {
+    const a = await pantry.getPlatforms(pkg)
+    if (a.includes(platform_)) rv.push(pkg)
+  }
+
+  return rv.map(str).join(" ")
+})()
 
 const output: Output = (() => {
   switch(platform) {
@@ -48,7 +61,7 @@ const output: Output = (() => {
       os,
       buildOs: ["self-hosted", "macOS", "X64"],
       testMatrix: [{ os }],
-      available: available.has("darwin/x86-64"),
+      available,
     }
   }
   case "darwin+aarch64": {
@@ -57,7 +70,7 @@ const output: Output = (() => {
       os,
       buildOs: os,
       testMatrix: [{ os }],
-      available: available.has("darwin/aarch64"),
+      available,
     }
   }
   case "linux+aarch64": {
@@ -66,7 +79,7 @@ const output: Output = (() => {
       os,
       buildOs: os,
       testMatrix: [{ os }],
-      available: available.has("linux/aarch64"),
+      available,
     }
   }
   case "linux+x86-64": {
@@ -79,7 +92,7 @@ const output: Output = (() => {
         { os, container: "ubuntu:focal", 'name-extra': "(ubuntu focal)" },
         { os, container: "debian:buster-slim", 'name-extra': "(debian buster)" },
       ],
-      available: available.has("linux/x86-64"),
+      available,
     }
   }
   default:
@@ -90,27 +103,13 @@ const rv = `os=${JSON.stringify(output.os)}\n` +
   `build-os=${JSON.stringify(output.buildOs)}\n` +
   `container=${JSON.stringify(output.container)}\n` +
   `test-matrix=${JSON.stringify(output.testMatrix)}\n` +
-  `available=${JSON.stringify(output.available)}\n`
+  `available=${output.available}\n`
 
 Deno.stdout.write(new TextEncoder().encode(rv))
 
 if (Deno.env.get("GITHUB_OUTPUT")) {
   const envFile = Deno.env.get("GITHUB_OUTPUT")!
   await Deno.writeTextFile(envFile, rv, { append: true})
-}
-
-async function getAvailability(packages: PackageRequirement[] | undefined): Promise<Set<string>> {
-  const pantry = usePantry()
-  let available = new Set<string>(["darwin/x86-64", "darwin/aarch64", "linux/x86-64", "linux/aarch64"])
-
-  if (!packages) return available
-
-  for (const pkg of packages) {
-    const a = await pantry.getPlatforms(pkg)
-    available = new Set(a.filter(x => available.has(x)))
-  }
-
-  return available
 }
 
 // Leaving this in case we need to switch back to GHA runners
