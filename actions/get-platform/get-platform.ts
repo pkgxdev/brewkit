@@ -103,7 +103,7 @@ const rv = `os=${JSON.stringify(output.os)}\n` +
   `build-os=${JSON.stringify(output.buildOs)}\n` +
   `container=${JSON.stringify(output.container)}\n` +
   `test-matrix=${JSON.stringify(output.testMatrix)}\n` +
-  `available=${JSON.stringify(output.available)}\n`
+  `available=${output.available}\n`
 
 Deno.stdout.write(new TextEncoder().encode(rv))
 
