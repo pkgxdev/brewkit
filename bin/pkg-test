@@ -61,7 +61,7 @@ for PKG in $PKGS; do
 
   gum "## running test"
 
-  $BASH -e "$DSTDIR"/xyz.tea.test.sh
+  env -i "$BASH" --noprofile --norc -e "$DSTDIR"/xyz.tea.test.sh
 
   gum "## running audit"
 

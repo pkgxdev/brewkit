@@ -87,7 +87,7 @@ for PKG in $PKGS; do
 
   gum "# running build"
 
-  $BASH -e "$BUILD_SCRIPT"
+  env -i GITHUB_TOKEN="$GITHUB_TOKEN" "$BASH" --noprofile --norc -e "$BUILD_SCRIPT"
 
   if ! test -d "$PREFIX"; then
     echo "error: nothing installed to \`$PREFIX\`" >&2
