@@ -13,6 +13,9 @@ jobs:
           - zlib.net
           - openssl.org^1.1 curl.se/ca-certs
           - pipenv.pypa.io
+          - poppler.freedesktop.org/poppler-data
+          - catb.org/wumpus
+          - c-ares.org
     container:
       image: debian:buster-slim
     steps:

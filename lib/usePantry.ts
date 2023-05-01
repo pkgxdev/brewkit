@@ -6,6 +6,7 @@ import { validatePackageRequirement } from "utils/hacks.ts"
 import { useCellar, usePrefix, usePantry as usePantryBase } from "hooks"
 import { pantry_paths, ls } from "hooks/usePantry.ts"
 import useGitHubAPI from "./useGitHubAPI.ts"
+import useGitLabAPI from "./useGitLabAPI.ts"
 import SemVer, * as semver from "semver"
 import Path from "path"
 
@@ -291,6 +292,7 @@ function escapeRegExp(string: string) {
 
 function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
   if (versions.github) return handleGitHubVersions(versions)
+  if (versions.gitlab) return handleGitLabVersions(versions)
   if (versions.url) return handleURLVersions(versions)
 
   const keys = Object.keys(versions)
@@ -298,46 +300,13 @@ function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
   throw new Error(`couldn’t parse version scheme for ${first}`)
 }
 
-async function handleGitHubVersions(versions: PlainObject): Promise<SemVer[]> {
+function handleGitHubVersions(versions: PlainObject): Promise<SemVer[]> {
   const [user, repo, ...types] = validate_str(versions.github).split("/")
   const type = types?.join("/").chuzzle() ?? 'releases/tags'
 
-  const ignore = (() => {
-    const arr = (() => {
-      if (!versions.ignore) return []
-      if (isString(versions.ignore)) return [versions.ignore]
-      return validate_arr(versions.ignore)
-    })()
-    return arr.map(input => {
-      let rx = validate_str(input)
-      if (!(rx.startsWith("/") && rx.endsWith("/"))) {
-        rx = escapeRegExp(rx)
-        rx = rx.replace(/(x|y|z)\b/g, '\\d+')
-        rx = `^${rx}$`
-      } else {
-        rx = rx.slice(1, -1)
-      }
-      return new RegExp(rx)
-    })
-  })()
+  const ignore = parseIgnore(versions.ignore)
 
-  const strip: (x: string) => string = (() => {
-    let rxs = versions.strip
-    if (!rxs) return x => x
-    if (!isArray(rxs)) rxs = [rxs]
-    // deno-lint-ignore no-explicit-any
-    rxs = rxs.map((rx: any) => {
-      if (!isString(rx)) throw new Error()
-      if (!(rx.startsWith("/") && rx.endsWith("/"))) throw new Error()
-      return new RegExp(rx.slice(1, -1))
-    })
-    return x => {
-      for (const rx of rxs) {
-        x = x.replace(rx, "")
-      }
-      return x
-    }
-  })()
+  const strip = parseStrip(versions.strip)
 
   switch (type) {
   case 'releases':
@@ -348,17 +317,113 @@ async function handleGitHubVersions(versions: PlainObject): Promise<SemVer[]> {
     throw new Error()
   }
 
+  const fetch = useGitHubAPI().getVersions({ user, repo, type })
+
+  return handleAPIResponse({ fetch, ignore, strip })
+}
+
+function handleGitLabVersions(versions: PlainObject): Promise<SemVer[]> {
+  const [server, project, type] = (() => {
+    let input = validate_str(versions.gitlab)
+    const rv = []
+
+    if (input.includes(":")) {
+      rv.push(input.split(":")[0])
+      input = input.split(":")[1]
+    } else {
+      rv.push("gitlab.com")
+    }
+
+    if (input.match(/\/(releases|tags)$/)) {
+      const i = input.split("/")
+      rv.push(i.slice(0, -1).join("/"))
+      rv.push(i.slice(-1)[0])
+    } else {
+      rv.push(input)
+      rv.push("releases")
+    }
+
+    return rv
+  })()
+
+  const ignore = parseIgnore(versions.ignore)
+
+  const strip = parseStrip(versions.strip)
+
+  switch (type) {
+  case 'releases':
+  case 'tags':
+    break
+  default:
+    throw new Error()
+  }
+
+  const fetch = useGitLabAPI().getVersions({ server, project, type })
+
+  return handleAPIResponse({ fetch, ignore, strip })
+}
+
+function parseIgnore(ignore: string | string[] | undefined): RegExp[] {
+  const arr = (() => {
+    if (!ignore) return []
+    if (isString(ignore)) return [ignore]
+    return validate_arr(ignore)
+  })()
+  return arr.map(input => {
+    let rx = validate_str(input)
+    if (!(rx.startsWith("/") && rx.endsWith("/"))) {
+      rx = escapeRegExp(rx)
+      rx = rx.replace(/(x|y|z)\b/g, '\\d+')
+      rx = `^${rx}$`
+    } else {
+      rx = rx.slice(1, -1)
+    }
+    return new RegExp(rx)
+    })
+}
+
+function parseStrip(strip: string | string[] | undefined): (x: string) => string {
+  let s = strip
+  if (!s) return x => x
+  if (!isArray(s)) s = [s]
+  // deno-lint-ignore no-explicit-any
+  const rxs = s.map((rx: any) => {
+    if (!isString(rx)) throw new Error()
+    if (!(rx.startsWith("/") && rx.endsWith("/"))) throw new Error()
+    return new RegExp(rx.slice(1, -1))
+  })
+  return x => {
+    for (const rx of rxs) {
+      x = x.replace(rx, "")
+    }
+    return x
+  }
+}
+
+interface APIResponseParams {
+  // deno-lint-ignore no-explicit-any
+  fetch: AsyncGenerator<string, any, unknown>
+  ignore: RegExp[]
+  strip: (x: string) => string
+}
+
+async function handleAPIResponse({ fetch, ignore, strip }: APIResponseParams): Promise<SemVer[]> {
   const rv: SemVer[] = []
-  for await (const pre_strip_name of useGitHubAPI().getVersions({ user, repo, type })) {
+  for await (const pre_strip_name of fetch) {
     let name = strip(pre_strip_name)
 
     if (ignore.some(x => x.test(name))) {
       console.debug({ignoring: pre_strip_name, reason: 'explicit'})
     } else {
-      // it's common enough to use _ instead of . in github tags, but we require a `v` prefix
-      if (/^v\d+_\d+(_\d+)+$/.test(name)) {
-        name = name.replace(/_/g, '.')
+      // An unfortunate number of tags/releases/other
+      // replace the dots in the version with underscores.
+      // This is parser-unfriendly, but we can make a
+      // reasonable guess if this is happening.
+      // But find me an example where this is wrong.
+      if (name.includes("_") && !name.includes(".")) {
+        name = name.replace(/_/g, ".")
       }
+
       const v = semver.parse(name)
       if (!v) {
         console.debug({ignoring: pre_strip_name, reason: 'unparsable'})
