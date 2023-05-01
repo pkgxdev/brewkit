@@ -16,6 +16,7 @@ jobs:
           - poppler.freedesktop.org/poppler-data
           - catb.org/wumpus
           - c-ares.org
+          - vim.org
     container:
       image: debian:buster-slim
     steps:

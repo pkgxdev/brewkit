@@ -72,6 +72,7 @@ async function *getVersionsLong({ user, repo, type }: GetVersionsOptions): Async
     // so potentially could flag those projects (eg. go.dev)
 
     let before = "null"
+    let returned = 0
 
     do {
       const headers: HeadersInit = {}
@@ -117,7 +118,14 @@ async function *getVersionsLong({ user, repo, type }: GetVersionsOptions): Async
       }))
 
       for (const bar of foo) {
+        returned += 1
         yield bar
+      }
+
+      if (returned >= 1000) {
+        // That's enough. We've probably been running for 5s already
+        ismore = false
+        continue
       }
 
       ismore = json?.data?.repository?.refs?.pageInfo?.hasPreviousPage || false
