@@ -424,6 +424,13 @@ async function handleAPIResponse({ fetch, ignore, strip }: APIResponseParams): P
         name = name.replace(/_/g, ".")
       }
 
+      // A fair number of tags or "versions" are just yyyy-mm-dd.
+      // Since we're being permissive about underscores, we can
+      // probably make the same kind of guess about dashes.
+      if (name.includes("-") && !name.includes(".")) {
+        name = name.replace(/-/g, ".")
+      }
+
       const v = semver.parse(name)
       if (!v) {
         console.debug({ignoring: pre_strip_name, reason: 'unparsable'})
