@@ -2,9 +2,10 @@
 
 /*---
 dependencies:
-  gnu.org/tar: 1
-  tukaani.org/xz: 5
-  sourceware.org/bzip2: 1
+  gnu.org/tar: ^1
+  tukaani.org/xz: ^5
+  sourceware.org/bzip2: ^1
+  info-zip.org/unzip: ^6
 args:
   - deno
   - run
