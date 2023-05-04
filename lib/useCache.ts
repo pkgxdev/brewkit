@@ -6,8 +6,8 @@ export default function() {
   return { decode }
 }
 
-const bottleRegex = `^(.*)-(\\d+(\\.\\d+)*[:alpha:]?)\\+(.+?)\\+(.+?)\\.tar\\.[gx]z$`
-const srcRegex = `^(.*)-(\\d+(\\.\\d+)*[:alpha:]?)\\.tar\\.[gx]z$`
+const bottleRegex = `^(.*)-(\\d+(\\.\\d+)*[a-z]?)\\+(.+?)\\+(.+?)\\.tar\\.[gx]z$`
+const srcRegex = `^(.*)-(\\d+(\\.\\d+)*[a-z]?)\\.tar\\.[gx]z$`
 
 function decode(path: Path): Stowed | undefined {
   const bottleMatch = path.basename().match(bottleRegex)
