@@ -4,8 +4,8 @@
     "strict": true
   },
   "tasks": {
-    "typecheck": "deno check --unstable scripts/*.ts"
-    // ^^ doesn't work yet due to lack of glob support
+    "typecheck": "deno check --unstable $(find . -name '*'.ts)",
+    "test": "deno test tests"
   },
   "fmt": {
     "files": {
