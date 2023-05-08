@@ -153,13 +153,15 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
           fixture = mm.apply(validate_str(fixture), tokens)
           run = undent`
             OLD_${fixture_key}=$${fixture_key}
-            ${fixture_key}="$SRCROOT/xyz.tea.prop"
+            ${fixture_key}=$(mktemp)
 
             cat <<XYZ_TEA_EOF > $${fixture_key}
             ${fixture}
             XYZ_TEA_EOF
 
             ${run}
+
+            rm -f $${fixture_key}
 
             if test -n "$${fixture_key}"; then
               ${fixture_key}=$OLD_${fixture_key}
