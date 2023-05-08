@@ -21,6 +21,7 @@ def main():
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('executable', help='Executable')
     parser.add_argument('--extra', nargs='*', default=[], help='Adds a PEP 508 optional dependencies (aka extras)', action='extend')
+    parser.add_argument('--requirements-txt', help='uses requirements.txt', action='store_const', const=True, default=False)
     args = parser.parse_args()
 
     cmd_name = os.path.basename(args.executable)
@@ -48,23 +49,33 @@ def main():
     # force tmp files to be somewhere useful for debugging purposes
     # also why we have --no-clean later
     build_dir = os.path.join(srcroot, "xyz.tea.python.build")
+
     logging.debug("+mkdir -p {}".format(build_dir))
     os.makedirs(build_dir, exist_ok=True)
+
     env = os.environ.copy()
     env["TMPDIR"] = build_dir
+
     if len(args.extra) > 0:
       install_name = f"{srcroot}[{','.join(args.extra)}]"
     else:
       install_name = srcroot
 
     pipcmd = [
-        "bin/pip",
-        "install",
-        install_name,
-        "--verbose",
-        "--no-clean",
-        "--require-virtualenv",
+      "bin/pip",
+      "install",
+      install_name
     ]
+
+    if args.requirements_txt:
+      pipcmd.extend(["-r", f"{srcroot}/requirements.txt"])
+
+    pipcmd.extend([
+      "--verbose",
+      "--no-clean",
+      "--require-virtualenv"
+    ])
+
     logging.debug("+TMPDIR={} {}".format(build_dir, " ".join(pipcmd)))
     subprocess.run(
         pipcmd,
