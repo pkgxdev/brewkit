@@ -45,6 +45,7 @@ docker run \
   --volume "$d":"$d" \
   --env GITHUB_TOKEN="$GITHUB_TOKEN" \
   --env CLICOLOR_FORCE=1 \
+  --env DENO_DIR=/root/.tea/deno.land/cache \
   $ADDARGS \
   teaxyz/cli \
   $CMD "$@"
