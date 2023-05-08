@@ -132,12 +132,12 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
     const tokens = mm.tokenize.all(pkg, deps)
     if (isArray(input)) input = input.map(obj => {
       if (isPlainObject(obj)) {
-        const run = obj['run']
+        let run = obj['run']
         if (!isString(run)) throw new Error('every node in a script YAML array must contain a `run` key')
         let cd = obj['working-directory']
         if (cd) {
           cd = mm.apply(validate_str(cd), tokens)
-          return undent`
+          run = undent`
             OLDWD="$PWD"
             mkdir -p "${cd}"
             cd "${cd}"
@@ -145,9 +145,31 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
             cd "$OLDWD"
             unset OLDWD
             `
-        } else {
-          return run.trim()
         }
+        let fixture_key = key == 'build' ? 'prop' : 'fixture'
+        let fixture = obj[fixture_key]
+        if (fixture) {
+          fixture_key = fixture_key.toUpperCase()
+          fixture = mm.apply(validate_str(fixture), tokens)
+          run = undent`
+            OLD_${fixture_key}=$${fixture_key}
+            ${fixture_key}="$SRCROOT/xyz.tea.prop"
+
+            cat <<XYZ_TEA_EOF > $${fixture_key}
+            ${fixture}
+            XYZ_TEA_EOF
+
+            ${run}
+
+            if test -n "$${fixture_key}"; then
+              ${fixture_key}=$OLD_${fixture_key}
+            else
+              unset ${fixture_key}
+            fi
+            `
+        }
+
+        return run.trim()
       } else {
         return `${obj}`.trim()
       }
