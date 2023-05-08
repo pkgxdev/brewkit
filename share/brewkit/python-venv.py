@@ -16,6 +16,20 @@ def run(cmd_array):
     logging.debug("+{}".format(" ".join(cmd_array)))
     subprocess.run(cmd_array, check=True)
 
+def delete_empty_dirs(directory):
+  # list all files and directories in the current directory
+  contents = os.listdir(directory)
+
+  # recursively check all subdirectories for emptiness
+  for item in contents:
+    path = os.path.join(directory, item)
+    if os.path.isdir(path):
+      delete_empty_dirs(path)  # recursively check subdirectory
+    else:
+      return  # exit if a non-empty file is found
+
+  # if we reach here, all subdirectories are empty; delete the current directory
+  os.rmdir(directory)
 
 def main():
     parser = argparse.ArgumentParser(description='')
@@ -123,6 +137,8 @@ exec "$VIRTUAL_ENV"/bin/$ARG0 "$@"
     logging.debug("chmod 0o755 {}".format(save_file))
     os.chmod(save_file, 0o755)
 
+    # usually empty and thus lets delete it
+    delete_empty_dirs(os.path.join(virtual_env, "include"))
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
