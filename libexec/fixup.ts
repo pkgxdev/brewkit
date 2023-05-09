@@ -68,3 +68,21 @@ for (const part of ["share", "lib"]) {
     }
   }
 }
+
+// Facebook and others who use CMake sometimes rely on a libary's .cmake files
+// being shipped with it. This would be fine, except they have hardcoded paths.
+// But a simple solution has been found.
+const cmake = pkg_prefix.join("lib", "cmake")
+if (cmake.isDirectory()) {
+  for await (const [path, { isFile }] of cmake.walk()) {
+    if (isFile && path.extname() == ".cmake") {
+      const orig = await path.read()
+      const relative_path = pkg_prefix.relative({ to: path.parent() })
+      const text = orig.replace(pkg_prefix.string, `\${CMAKE_CURRENT_LIST_DIR}/${relative_path}`)
+      if (orig !== text) {
+        console.verbose({ fixing: path })
+        path.write({text, force: true})
+      }
+    }
+  }
+}
