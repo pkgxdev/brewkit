@@ -81,6 +81,19 @@ build:
     ./configure $ARGS
     make --jobs {{ hw.concurrency }} install
   # it’s extremely common for packages to require the above
+
+  # script also supports a list of commands, which is useful for complex builds
+  # or if you want to run a command in a different directory
+  script:
+    - ./configure $ARGS
+    - make --jobs {{ hw.concurrency }} install
+    - run: ls -l
+      working-directory: ${{prefix}}/bin
+    - run: cat $PROP > foo
+      working-directory: ${{prefix}}/bin
+      prop: |
+        #!/bin/sh
+        exec ./bar $@
   env:
     # add any environment variables here
     ARGS:
