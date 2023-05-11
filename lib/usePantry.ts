@@ -102,10 +102,24 @@ const getRawDistributableURL = (yml: PlainObject) => {
   }
 }
 
+const getGitDistribution = ({ pkg, git, ref }: { pkg: Package, git: string, ref: string }) => {
+  const moustaches = useMoustaches()
+
+  const ref_ = moustaches.apply(ref, [
+    ...moustaches.tokenize.version(pkg.version),
+    ...moustaches.tokenize.host()
+  ])
+
+  return { url: new URL(git), ref: ref_, stripComponents: 0, type: 'git' }
+}
+
 const getDistributable = async (pkg: Package) => {
   const moustaches = useMoustaches()
 
   const yml = await entry(pkg).yml()
+
+  if (yml.distributable?.git) { return getGitDistribution({ pkg, ...yml.distributable}) }
+
   let urlstr = getRawDistributableURL(yml)
   if (!urlstr) return
   let stripComponents: number | undefined
@@ -120,7 +134,7 @@ const getDistributable = async (pkg: Package) => {
 
   const url = new URL(urlstr)
 
-  return { url, stripComponents }
+  return { url, stripComponents, type: 'url' }
 }
 
 const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation[]) => {

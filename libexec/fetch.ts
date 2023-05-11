@@ -5,13 +5,16 @@ args:
   - deno
   - run
   - --allow-net
-  - --allow-run=curl
+  - --allow-run=curl,git,tar
   - --allow-read
   - --allow-write
   - --allow-env
   - --unstable
 dependencies:
   curl.se: '*'
+  git-scm.org: '*'
+  gnu.org/tar: '*'
+  tukaani.org/xz: '*'
 ---*/
 
 //TODO verify the sha
@@ -40,7 +43,7 @@ const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
 })
 
 const pkg = await pantry.resolve(parse(pkgname))
-const { url } = await pantry.getDistributable(pkg) ?? {}
+const { url, ref, type } = await pantry.getDistributable(pkg) ?? {}
 
 if (!url) {
   console.error("warn: pkg has no srcs: ", pkg)
@@ -49,7 +52,12 @@ if (!url) {
 
 try {
   const zipfile = await (async () => {
-    const stowage: Stowage = { pkg, type: 'src', extname: url.path().extname() }
+    const stowage: Stowage = (() => {
+      if (type === "git") {
+        return { pkg, type: 'src', extname: `.tar.xz` }
+      }
+      return { pkg, type: 'src', extname: url.path().extname() }
+    })()
 
     const dst = (() => {
       if (flags.outputDir) {
@@ -59,6 +67,8 @@ try {
         return Path.cwd().join(flags.o ?? panic())
       }
     })()
+
+    if (type === "git") return clone({ dst, src: url, ref})
 
     try {
       // first try the original location
@@ -98,6 +108,48 @@ async function download({ dst, src }: { dst: Path, src: URL }) {
   } else {
     // locally using our download function as it knows how to cache properly
     await useDownload().download({ dst, src })
+  }
+  return dst
+}
+
+async function clone({ dst, src, ref }: { dst: Path, src: URL, ref: string }) {
+  const tmp = Path.mktemp({})
+  const proc = new Deno.Command("git", {
+    args: [
+      "clone",
+      "--quiet",
+      "--depth=1",
+      "--branch",
+      ref,
+      src.toString(),
+      tmp.string,
+    ],
+    // `git` uses stderr for... non errors, and --quiet
+    // doesn't touch them
+    stderr: "null",
+  })
+  const status = await proc.spawn().status
+  if (!status.success) {
+    console.error({ dst, src })
+    throw new Error(`git failed to clone ${src}`)
+  }
+
+  const proc2 = new Deno.Command("tar", {
+    args: [
+      "-C",
+      tmp.string,
+      // Prevents `tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'`
+      // when unpacking on darwin
+      "--no-xattrs",
+      "-czf",
+      dst.string,
+      ".",
+    ]
+  })
+  const status2 = await proc2.spawn().status
+  if (!status2.success) {
+    console.error({ dst, src })
+    throw new Error(`tar failed to create ${dst}`)
   }
   return dst
 }
