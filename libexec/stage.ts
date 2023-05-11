@@ -29,6 +29,7 @@ const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
 
 const pantry = usePantry()
 const cellar = useCellar()
+const prefix = usePrefix()
 const srcdir = Path.cwd().join(flags.srcdir)
 const deps = await (() => {
   if (typeof flags.deps != 'string' || !flags.deps) return Promise.resolve([])
@@ -70,6 +71,7 @@ const text = undent`
   export HOME="${srcdir}/xyz.tea.home"
   export SRCROOT="${srcdir}"
   export PREFIX=${flags.prefix}
+  export TEA_PREFIX=${prefix.string}
   ${expand(env)}
 
   mkdir -p "$HOME"
