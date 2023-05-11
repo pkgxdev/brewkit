@@ -16,6 +16,10 @@ distributable:
   # `1`. If after extraction the src-directory is funky try `0` or `2`.
   strip-components: 1
   # alternatively, we can use direct git checkouts from refs
+  # but we should prefer official source distributions.
+  # often CI/CD will do some post-processing of the source
+  # for release, including setting version numbers, running
+  # autotools, etc.
   url: https://github.com/user/repo
   ref: v{{version}}}
 
