@@ -134,7 +134,7 @@ const getDistributable = async (pkg: Package) => {
 
   const url = new URL(urlstr)
 
-  return { url, stripComponents, type: 'url' }
+  return { url, ref: undefined, stripComponents, type: 'url' }
 }
 
 const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation[]) => {

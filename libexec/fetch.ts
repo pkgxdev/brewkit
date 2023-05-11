@@ -68,7 +68,7 @@ try {
       }
     })()
 
-    if (type === "git") return clone({ dst, src: url, ref})
+    if (type === "git") return clone({ dst, src: url, ref: ref! })
 
     try {
       // first try the original location
