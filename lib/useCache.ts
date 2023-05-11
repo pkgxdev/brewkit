@@ -15,7 +15,7 @@ function decode(path: Path): Stowed | undefined {
     const [_1, p, v, _2, platform, arch] = bottleMatch
     // Gotta undo the package name manipulation to get the package from the bottle
     const project = p.replaceAll("∕", "/")
-    const version = new SemVer(v, { tolerant: true })
+    const version = new SemVer(v)
     if (!version) return
     const pkg = { project, version }
     const compression = path.extname() == '.tar.gz' ? 'gz' : 'xz'
@@ -36,7 +36,7 @@ function decode(path: Path): Stowed | undefined {
     const [_, p, v] = srcMatch
     // Gotta undo the package name manipulation to get the package from the bottle
     const project = p.replaceAll("∕", "/")
-    const version = new SemVer(v, { tolerant: true })
+    const version = new SemVer(v)
     if (!version) return
     const pkg = { project, version }
     return {

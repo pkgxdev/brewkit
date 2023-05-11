@@ -14,8 +14,8 @@
   },
   "tea": {
     "dependencies": {
-      "deno.land": "^1.30"
+      "deno.land": "^1.31.1"
     }
   },
-  "importMap": "https://raw.githubusercontent.com/teaxyz/cli/v0.30/import-map.json"
+  "importMap": "https://raw.githubusercontent.com/teaxyz/cli/v0.32/import-map.json"
 }
