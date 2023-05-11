@@ -13,9 +13,10 @@ Deno.test("decode", async test => {
     for (const arch of archs) {
       for (const platform of platforms) {
         await test.step(`type == bottle, arch == ${arch}, platform == ${platform}, version == ${version}`, () => {
+          // deno-lint-ignore no-explicit-any
           const stowed = cache.decode(Path.root.join(`project∕foo-${version}+${platform}+${arch}.tar.gz`)) as any
           assertEquals(stowed.pkg.project, "project/foo")
-          assertEquals(stowed.pkg.version, new SemVer(version, { tolerant: true }))
+          assertEquals(stowed.pkg.version, new SemVer(version))
           assertEquals(stowed.type, "bottle")
           assertEquals(stowed.compression, "gz")
           assertEquals(stowed.host, {arch: arch, platform: platform})
@@ -26,9 +27,10 @@ Deno.test("decode", async test => {
 
   for (const version of versions) {
     await test.step(`type == src, version == ${version}`, () => {
+      // deno-lint-ignore no-explicit-any
       const stowed = cache.decode(Path.root.join(`project∕foo-${version}.tar.gz`)) as any
       assertEquals(stowed.pkg.project, "project/foo")
-      assertEquals(stowed.pkg.version, new SemVer(version, { tolerant: true }))
+      assertEquals(stowed.pkg.version, new SemVer(version))
       assertEquals(stowed.type, "src")
       assertEquals(stowed.extname, ".tar.gz")
     })

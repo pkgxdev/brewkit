@@ -46,7 +46,7 @@ function assert_pkg(pkg: Package | PackageRequirement) {
   } else {
     return {
       project: pkg.project,
-      version: new SemVer(pkg.constraint, {tolerant: true}),
+      version: new SemVer(pkg.constraint),
     }
   }
 }
