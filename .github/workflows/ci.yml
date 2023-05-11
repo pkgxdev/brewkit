@@ -17,6 +17,7 @@ jobs:
           - catb.org/wumpus
           - c-ares.org
           - vim.org
+          - tea.xyz/gx/cc
     container:
       image: debian:buster-slim
     steps:
