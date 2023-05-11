@@ -39,10 +39,19 @@ jobs:
       - run: pkg build ${{matrix.pkgs}}
         id: build
 
-      - run: test -n '${{ steps.build.outputs.srcs }}'
       - run: test -n '${{ steps.build.outputs.pkgs }}'
-      - run: test -n '${{ steps.build.outputs.srcs-relative-paths }}'
       - run: test -n '${{ steps.build.outputs.relative-paths }}'
+      - run: |
+          if pkg query ${{ steps.build.outputs.pkgs }} --src 2>&1 | grep -E '^warn: pkg has no srcs:'; then
+            echo "srcs=false" >> $GITHUB_OUTPUT
+          else
+            echo "srcs=true" >> $GITHUB_OUTPUT
+          fi
+        id: srcs
+      - run: test -n '${{ steps.build.outputs.srcs }}'
+        if: steps.srcs.outputs.srcs == 'true'
+      - run: test -n '${{ steps.build.outputs.srcs-relative-paths }}'
+        if: steps.srcs.outputs.srcs == 'true'
 
       - run: pkg test ${{matrix.pkgs}}
 
