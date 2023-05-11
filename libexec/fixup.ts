@@ -60,7 +60,7 @@ for (const part of ["share", "lib"]) {
     if (isFile && path.extname() == ".pc") {
       const orig = await path.read()
       const relative_path = pkg_prefix.relative({ to: path.parent() })
-      const text = orig.replace(pkg_prefix.string, `\${pcfiledir}/${relative_path}`)
+      const text = orig.replaceAll(pkg_prefix.string, `\${pcfiledir}/${relative_path}`)
       if (orig !== text) {
         console.verbose({ fixing: path })
         path.write({text, force: true})
@@ -78,7 +78,7 @@ if (cmake.isDirectory()) {
     if (isFile && path.extname() == ".cmake") {
       const orig = await path.read()
       const relative_path = pkg_prefix.relative({ to: path.parent() })
-      const text = orig.replace(pkg_prefix.string, `\${CMAKE_CURRENT_LIST_DIR}/${relative_path}`)
+      const text = orig.replaceAll(pkg_prefix.string, `\${CMAKE_CURRENT_LIST_DIR}/${relative_path}`)
       if (orig !== text) {
         console.verbose({ fixing: path })
         path.write({text, force: true})
