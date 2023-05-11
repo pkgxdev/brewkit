@@ -1,6 +1,0 @@
-#!/bin/sh
-
-set -e
-
-d="$(cd "$(dirname "$0")" && pwd)"
-exec "$d"/pkg "$@"
