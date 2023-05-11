@@ -20,7 +20,7 @@ distributable:
   # often CI/CD will do some post-processing of the source
   # for release, including setting version numbers, running
   # autotools, etc.
-  url: https://github.com/user/repo
+  url: git+https://github.com/user/repo
   ref: v{{version}}}
 
 # if there’s a github then we can parse the versions

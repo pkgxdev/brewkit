@@ -103,6 +103,10 @@ const getRawDistributableURL = (yml: PlainObject) => {
 }
 
 const getGitDistribution = ({ pkg, git, ref }: { pkg: Package, git: string, ref: string }) => {
+  if (!git.startsWith("git+")) throw new Error(`invalid git url; explicitly use git+https:// or git+ssh://: ${git}`)
+
+  const url = new URL(git.replace(/^git\+http/, 'http'))
+
   const moustaches = useMoustaches()
 
   const ref_ = moustaches.apply(ref, [
@@ -110,7 +114,7 @@ const getGitDistribution = ({ pkg, git, ref }: { pkg: Package, git: string, ref:
     ...moustaches.tokenize.host()
   ])
 
-  return { url: new URL(git), ref: ref_, stripComponents: 0, type: 'git' }
+  return { url, ref: ref_, stripComponents: 0, type: 'git' }
 }
 
 const getDistributable = async (pkg: Package) => {
