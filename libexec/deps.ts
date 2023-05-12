@@ -1,12 +1,11 @@
 #!/usr/bin/env -S deno run --allow-net --allow-read --allow-env
 
 import { parseFlags } from "cliffy/flags/mod.ts"
-import usePantry from "../lib/usePantry.ts"
-import { parse, str } from "utils/pkg.ts"
-import { hydrate } from "prefab"
+import { utils, prefab, hooks } from "tea"
 
-import tea_init from "../lib/init().ts"
-tea_init()
+const { usePantry } = hooks
+const { parse, str } = utils.pkg
+const { hydrate } = prefab
 
 const { flags: { build, test }, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
@@ -35,4 +34,4 @@ const { pkgs: wet } = await hydrate(dry, async (pkg, dry) => {
   }
 })
 
-console.log(wet.map(str).join("\n"))
+console.info(wet.map(str).join("\n"))

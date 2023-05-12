@@ -1,13 +1,9 @@
 #!/usr/bin/env -S deno run --allow-read --allow-write --allow-run=tar,/bin/ln --allow-net --allow-env --unstable
 
-import { useCellar, useInventory } from "hooks"
-import { parse, str } from "utils/pkg.ts"
-import { install, link } from "prefab"
-import { Installation } from "types"
-import { panic } from "utils"
-
-import tea_init from "../lib/init().ts"
-tea_init()
+import { utils, hooks, prefab, Installation } from "tea"
+const { pkg: { parse, str }, panic } = utils
+const { useCellar, useInventory } = hooks
+const { install, link } = prefab
 
 const cellar = useCellar()
 const inventory = useInventory()
@@ -23,4 +19,4 @@ for (const pkg of Deno.args.map(parse)) {
   rv.push(installation)
 }
 
-console.log(rv.map(({path})=>path).join("\n"))
+console.info(rv.map(({path})=>path).join("\n"))

@@ -1,16 +1,11 @@
 #!/usr/bin/env -S deno run --allow-net --allow-read --allow-env --allow-write
 
-import useShellEnv, { expand, flatten } from "hooks/useShellEnv.ts"
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { useCellar, usePrefix } from "hooks"
-import usePantry from "../lib/usePantry.ts"
-import { host, undent } from "utils"
-import { parse, str as pkgstr } from "utils/pkg.ts"
-import Path from "path"
+import { hooks, utils, Path } from "tea"
+import undent from "outdent"
 
-import tea_init from "../lib/init().ts"
-tea_init()
-
+const { useShellEnv, useCellar, useConfig, usePantry } = hooks
+const { host, pkg: { parse } } = utils
 const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
     name: "srcdir",
@@ -29,7 +24,7 @@ const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
 
 const pantry = usePantry()
 const cellar = useCellar()
-const prefix = usePrefix()
+const prefix = useConfig().prefix
 const srcdir = Path.cwd().join(flags.srcdir)
 const deps = await (() => {
   if (typeof flags.deps != 'string' || !flags.deps) return Promise.resolve([])
@@ -47,18 +42,19 @@ const pkg = await pantry.resolve(parse(pkgname))
 
 /// assemble build script
 const pantry_sh = await pantry.getScript(pkg, 'build', deps)
-const brewkit = new URL(import.meta.url).path().parent().parent().join("share/brewkit")
+const brewkit = new Path(new URL(import.meta.url).pathname).parent().parent().join("share/brewkit")
 
 /// calc env
+const sh = useShellEnv()
 const old_home = Deno.env.get("HOME")
 Deno.env.set("HOME", srcdir.string)  //lol side-effects beware!
-const env = await useShellEnv({ installations: deps })
+const env = await sh.map({ installations: deps })
 Deno.env.set("HOME", old_home!)
 
 if (host().platform == 'darwin') env['MACOSX_DEPLOYMENT_TARGET'] = ['11.0']
 
 env['PATH'] ??= []
-env['PATH'].push("/usr/bin", "/bin", "/usr/sbin", "/sbin", usePrefix().join('tea.xyz/v*/bin').string)
+env['PATH'].push("/usr/bin", "/bin", "/usr/sbin", "/sbin", useConfig().prefix.join('tea.xyz/v*/bin').string)
 
 const text = undent`
   #!/bin/bash
@@ -72,7 +68,7 @@ const text = undent`
   export SRCROOT="${srcdir}"
   export PREFIX=${flags.prefix}
   export TEA_PREFIX=${prefix.string}
-  ${expand(env)}
+  ${sh.expand(env)}
 
   mkdir -p "$HOME"
 
@@ -83,13 +79,13 @@ const text = undent`
   `
 
 /// write out build script
-const sh = srcdir.join("xyz.tea.build.sh").write({ text, force: true }).chmod(0o755)
+const script = srcdir.join("xyz.tea.build.sh").write({ text, force: true }).chmod(0o755)
 
 /// write out tea.yaml so magic works
 import * as YAML from "deno/yaml/stringify.ts"
 
 srcdir.join("tea.yaml").write({ text: YAML.stringify({
-  env: flatten(env),
+  env: sh.flatten(env),
   dependencies: deps.reduce((acc, {pkg}) => {
     acc[pkg.project] = `=${pkg.version}`
     return acc
@@ -105,4 +101,4 @@ for await (const [path, {isFile}] of pantry.getYAML(pkg).path.parent().ls()) {
 
 
 /// done
-console.log(sh.string)
+console.info(script.string)

@@ -1,11 +1,8 @@
 #!/usr/bin/env -S deno run --allow-env --allow-read --allow-net
 
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { usePantry, useInventory } from "hooks"
-import * as semver from "semver"
-import tea_init from "../lib/init().ts"
-
-tea_init()
+const { usePantry, useInventory } = hooks
+import { hooks, semver } from "tea"
 
 const { unknown: [query] } = parseFlags(Deno.args)
 const pantry = usePantry()
@@ -21,7 +18,7 @@ for await (const pkg of pantry.ls()) {
 
   let output = false
   const bins: string[] = []
-  for (const bin of await pantry.getProvides(pkg).swallow() ?? []) {
+  for (const bin of await pantry.project(pkg).provides().swallow() ?? []) {
     if (bin.includes(query)) {
       output = true
       bins.push(bin)

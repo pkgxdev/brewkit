@@ -1,8 +1,5 @@
 import { Unarchiver, TarballUnarchiver, ZipUnarchiver } from "./Unarchiver.ts"
-import { Verbosity } from "types"
-import { useConfig } from "hooks"
-import run from "hooks/useRun.ts"
-import Path from "path"
+import { Path } from "tea"
 
 //FIXME assuming strip 1 on components is going to trip people up
 
@@ -18,40 +15,27 @@ interface Response {
 
 export default function useSourceUnarchiver(): Response {
   const unarchive = async (opts: Options) => {
-    const { verbosity } = useConfig()
 
     let unarchiver: Unarchiver
     if (ZipUnarchiver.supports(opts.zipfile)) {
-      const stripComponents = opts.stripComponents ?? 0
-      const needsTmpdir = stripComponents > 0
-      const dstdir = needsTmpdir ? Path.mktemp({}) : opts.dstdir.mkpath()
-      try {
-        unarchiver = new ZipUnarchiver({ verbosity, ...opts, dstdir })
-        if (needsTmpdir) {
-          throw new Error("unimpl")
-        }
-      } finally {
-        if (needsTmpdir) {
-          if (verbosity >= Verbosity.debug) {
-            dstdir.rm()
-          } else {
-            console.debug({ leaving: dstdir })
-          }
-        }
-      }
+      const dstdir = opts.dstdir.mkpath()
+      unarchiver = new ZipUnarchiver({ ...opts, dstdir })
     } else if (TarballUnarchiver.supports(opts.zipfile) || opts.stripComponents !== undefined) {
       //FIXME we need to determine file type from the magic bytes
       // rather than assume tarball if not zip
       opts.dstdir.mkpath()
-      unarchiver = new TarballUnarchiver({ verbosity, ...opts })
+      unarchiver = new TarballUnarchiver({ ...opts })
     } else {
       // the “tarball” is actually just a single file like beyondgrep.com
       return opts.zipfile.cp({ into: opts.dstdir.mkpath() })
     }
 
-    const cmd = unarchiver.args()
+    const cmd = unarchiver.args().map(x => x.toString())
+    const proc = new Deno.Command(cmd.shift()!, { args: cmd })
 
-    await run({ cmd })
+    if (!(await proc.spawn().status).success) {
+      throw new Error(`unarchiving failed: ${opts.zipfile}`)
+    }
 
     return opts.dstdir
   }

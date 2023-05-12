@@ -9,10 +9,10 @@ args:
   - --allow-write
 ---*/
 
-import { parse, str } from "utils/pkg.ts"
-import { panic } from "utils"
-import tea_init from "../../lib/init().ts"
-import usePantry from "../../lib/usePantry.ts"
+import { utils, hooks } from "tea"
+const { parse, str } = utils.pkg
+const { usePantry } = hooks
+const { panic } = utils
 
 // These are only needed if we switch back to GHA runners
 
@@ -22,8 +22,6 @@ import usePantry from "../../lib/usePantry.ts"
 // }
 
 const requiresMacOS12 = ["github.com/realm/SwiftLint"]
-
-tea_init()
 
 const packages = Deno.env.get("PROJECTS")?.trim().split(" ").filter(x => x).map(parse)
 
@@ -103,7 +101,7 @@ const output: Output = (() => {
     }
   }
   default:
-    panic(`Invalid platform description: ${platform}`)
+    throw new Error(`Invalid platform description: ${platform}`)
 }})()
 
 const rv = `os=${JSON.stringify(output.os)}\n` +

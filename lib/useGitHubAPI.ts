@@ -1,5 +1,7 @@
-import { undent, validate_arr, validate_str } from "utils"
-import { isArray, isString } from "is_what"
+import { isArray, isString } from "is-what"
+import undent from "outdent"
+import { utils } from "tea"
+const { validate } = utils
 
 //TODO pagination
 
@@ -111,10 +113,10 @@ async function *getVersionsLong({ user, repo, type }: GetVersionsOptions): Async
       }
 
       // deno-lint-ignore no-explicit-any
-      const foo = validate_arr(json?.data?.repository?.refs?.nodes).map((x: any) => ({
-          version: validate_str(x?.name),
+      const foo = validate.arr(json?.data?.repository?.refs?.nodes).map((x: any) => ({
+          version: validate.str(x?.name),
           // some repos don't return the commits, like madler/zlib
-          date: x?.target?.committedDate ? new Date(validate_str(x?.target?.committedDate)) : undefined
+          date: x?.target?.committedDate ? new Date(validate.str(x?.target?.committedDate)) : undefined
       }))
 
       for (const bar of foo) {

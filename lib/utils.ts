@@ -1,12 +1,26 @@
-import { RunOptions } from "hooks/useRun.ts"
-import { isArray } from "is_what"
+import { isArray } from "is-what"
+import { Path } from "tea"
 
-export async function backticks(opts: RunOptions): Promise<string> {
-  const cmd = isArray(opts.cmd) ? opts.cmd.map(x => `${x}`) : [opts.cmd.string]
-  const cwd = opts.cwd?.toString()
-  console.verbose({ cwd, ...opts, cmd })
-  const proc = Deno.run({ ...opts, cwd, cmd, stdout: "piped" })
+export async function backticks({ cmd }: { cmd: Path | (string | Path)[]}): Promise<string> {
+  const args = isArray(cmd) ? cmd.map(x => `${x}`) : [cmd.string]
+  const proc = new Deno.Command(args.shift()!, { args, stdout: "piped" })
   const out = await proc.output()
-  const txt = new TextDecoder().decode(out)
+  const txt = new TextDecoder().decode(out.stdout)
   return txt
+}
+
+declare global {
+  interface Array<T> {
+    uniq(): Array<T>
+  }
+}
+
+Array.prototype.uniq = function<T>(): Array<T> {
+  const set = new Set<T>()
+  return this.compact(x => {
+    const s = x.toString()
+    if (set.has(s)) return
+    set.add(s)
+    return x
+  })
 }

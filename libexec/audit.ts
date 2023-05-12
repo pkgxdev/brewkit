@@ -1,12 +1,10 @@
 #!/usr/bin/env -S deno run --allow-env --allow-read
 
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { useCellar, usePantry, useMoustaches } from "hooks"
-import { parse } from "utils/pkg.ts"
+import { hooks, utils } from "tea"
 
-import tea_init from "../lib/init().ts"
-tea_init()
-
+const { useCellar, usePantry, useMoustaches } = hooks
+const { parse } = utils.pkg
 const { unknown: pkgnames } = parseFlags(Deno.args)
 
 const pantry = usePantry()
@@ -19,7 +17,7 @@ for(const pkg of pkgnames.map(parse)) {
   const { path, pkg: { version } } = await cellar.resolve(pkg)
   const versionMap = moustaches.tokenize.version(version)
 
-  for (const provide of await pantry.getProvides(pkg)) {
+  for (const provide of await pantry.project(pkg).provides()) {
     const name = moustaches.apply(provide, versionMap)
     const bin = path.join('bin', name)
     const sbin = path.join('sbin', name)
