@@ -45,12 +45,16 @@ const version = pkg.constraint.single() ?? panic()
 pkg = {project: pkg.project, version }
 
 if (src) {
-  const { url } = await usePantry().getDistributable(pkg) ?? {}
+  const { url, type } = await usePantry().getDistributable(pkg) ?? {}
   if (!url) {
     console.error("warn: pkg has no srcs: ", str(pkg))
     Deno.exit(0)  // NOT AN ERROR EXIT CODE THO
   }
-  const stowage: Stowage = { pkg, type: 'src', extname: url.path().extname() }
+  const stowage: Stowage = (() => {
+    if (type === 'git')
+      return { pkg, type: 'src', extname: '.tar.xz' }
+    return { pkg, type: 'src', extname: url.path().extname() }
+  })()
   const path = flatmap(Deno.env.get("SRCROOT"), x => new Path(x))
   const cache_path = useCache().path(stowage)
   if (path?.join("projects").isDirectory()) {

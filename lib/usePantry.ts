@@ -102,10 +102,28 @@ const getRawDistributableURL = (yml: PlainObject) => {
   }
 }
 
+const getGitDistribution = ({ pkg, git, ref }: { pkg: Package, git: string, ref: string }) => {
+  if (!git.startsWith("git+")) throw new Error(`invalid git url; explicitly use git+https:// or git+ssh://: ${git}`)
+
+  const url = new URL(git.replace(/^git\+http/, 'http'))
+
+  const moustaches = useMoustaches()
+
+  const ref_ = moustaches.apply(ref, [
+    ...moustaches.tokenize.version(pkg.version),
+    ...moustaches.tokenize.host()
+  ])
+
+  return { url, ref: ref_, stripComponents: 0, type: 'git' }
+}
+
 const getDistributable = async (pkg: Package) => {
   const moustaches = useMoustaches()
 
   const yml = await entry(pkg).yml()
+
+  if (yml.distributable?.git) { return getGitDistribution({ pkg, ...yml.distributable}) }
+
   let urlstr = getRawDistributableURL(yml)
   if (!urlstr) return
   let stripComponents: number | undefined
@@ -120,7 +138,7 @@ const getDistributable = async (pkg: Package) => {
 
   const url = new URL(urlstr)
 
-  return { url, stripComponents }
+  return { url, ref: undefined, stripComponents, type: 'url' }
 }
 
 const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation[]) => {
