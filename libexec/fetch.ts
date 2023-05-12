@@ -19,18 +19,13 @@ dependencies:
 
 //TODO verify the sha
 
-import { useOffLicense, useCache, useDownload } from "hooks"
+import { hooks, utils, Stowage, Path } from "tea"
 import { parseFlags } from "cliffy/flags/mod.ts"
 import usePantry from "../lib/usePantry.ts"
-import { panic } from "utils"
-import { parse } from "utils/pkg.ts"
-import { Stowage} from "types"
-import Path from "path"
 
-import tea_init from "../lib/init().ts"
-tea_init()
-
+const { useOffLicense, useCache, useDownload } = hooks
 const pantry = usePantry()
+const { panic } = utils
 
 const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
@@ -42,7 +37,7 @@ const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
   }]
 })
 
-const pkg = await pantry.resolve(parse(pkgname))
+const pkg = await pantry.resolve(utils.pkg.parse(pkgname))
 const { url, ref, type } = await pantry.getDistributable(pkg) ?? {}
 
 if (!url) {
@@ -55,8 +50,9 @@ try {
     const stowage: Stowage = (() => {
       if (type === "git") {
         return { pkg, type: 'src', extname: `.tar.xz` }
+      } else {
+        return { pkg, type: 'src', extname: new Path(url.pathname).extname() }
       }
-      return { pkg, type: 'src', extname: url.path().extname() }
     })()
 
     const dst = (() => {
@@ -85,7 +81,7 @@ try {
     }
   })()
 
-  console.log(zipfile.string)
+  console.info(zipfile.string)
 } catch (err) {
   console.error(err.message)
   console.error("tea expands the full semantic version, which may mean the URL you are")

@@ -12,8 +12,10 @@ args:
 /// Test
 /// ./scripts/fetch-pr-artifacts.ts e582b03fe6efedde80f9569403555f4513dbec91
 
-import { S3 } from "s3";
-import { panic, undent } from "utils";
+import undent from "outdent"
+import { utils } from "tea"
+const { panic } = utils
+import { S3 } from "s3"
 
 /// Main
 /// -------------------------------------------------------------------------------

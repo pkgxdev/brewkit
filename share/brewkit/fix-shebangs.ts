@@ -10,12 +10,8 @@ args:
   - --allow-write={{tea.prefix}}
 --- */
 
-import Path from "path"
-import { undent } from "utils"
-import tea_init from "../../lib/init().ts"
-
-tea_init()
-
+import { Path } from "tea"
+import undent from "outdent"
 
 const has_shebang = (() => {
   const encoder = new TextDecoder()
@@ -52,8 +48,8 @@ for (const path of Deno.args) {
   switch (interpreter) {
   case "/usr/bin/env":
   case "/bin/sh":
-    console.verbose({ line0, path })
-    console.verbose("^^ skipped acceptable shebang")
+    console.log({ line0, path })
+    console.log("^^ skipped acceptable shebang")
     continue
   }
 
@@ -64,7 +60,7 @@ for (const path of Deno.args) {
     ${lines.join("\n")}
     `
 
-  console.verbose({rewrote: path, to: `#!/usr/bin/env ${interpreter}`})
+  console.log({rewrote: path, to: `#!/usr/bin/env ${interpreter}`})
 
   const stat = Deno.lstatSync(path)
   const needs_chmod = stat.mode && !(stat.mode & 0o200)

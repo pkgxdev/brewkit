@@ -1,11 +1,8 @@
-import { PackageRequirement, Verbosity } from "types"
-import * as semver from "utils/semver.ts"
-import Path from "path"
+import { PackageRequirement, Path, semver } from "tea"
 
 interface Options {
   dstdir: Path
   zipfile: Path
-  verbosity: Verbosity
 }
 
 export class Unarchiver {
@@ -43,7 +40,6 @@ export class TarballUnarchiver extends Unarchiver {
       "tar", "xf", this.opts.zipfile,
       "-C", this.opts.dstdir
     ]
-    if (this.opts.verbosity > Verbosity.normal) args.push("--verbose")
     if (this.stripComponents) args.push(`--strip-components=${this.stripComponents}`)
     return args
   }

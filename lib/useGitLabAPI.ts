@@ -1,4 +1,4 @@
-import { isArray, isString } from "is_what"
+import { isArray, isString } from "is-what"
 
 //TODO pagination
 

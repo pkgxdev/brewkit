@@ -10,18 +10,14 @@ args:
   - --allow-write
 ---*/
 
-import { S3, S3Bucket } from "s3"
-import { pkg as pkgutils } from "utils"
-import { useOffLicense, usePrefix } from "hooks"
-import { Package, PackageRequirement } from "types"
-import SemVer, * as semver from "semver"
-import { basename, dirname } from "deno/path/mod.ts"
-import { retry } from "deno/async/retry.ts"
+import { Package, PackageRequirement, SemVer, Path, semver, hooks, utils } from "tea"
 import { decode as base64Decode } from "deno/encoding/base64.ts"
-import Path from "path"
+const { useOffLicense, usePrefix, useCache } = hooks
+import { basename, dirname } from "deno/path/mod.ts"
 import { set_output } from "../utils/gha.ts"
 import { sha256 } from "../bottle/bottle.ts"
-import useCache from "../../lib/useCache.ts"
+import { retry } from "deno/async/retry.ts"
+import { S3, S3Bucket } from "s3"
 
 //------------------------------------------------------------------------- funcs
 function args_get(key: string): string[] {
@@ -72,7 +68,7 @@ async function get_versions(key: string, pkg: Package, bucket: S3Bucket): Promis
 }
 
 async function put(key: string, body: string | Path | Uint8Array, bucket: S3Bucket) {
-  console.log({ uploading: body, to: key })
+  console.info({ uploading: body, to: key })
   rv.push(`/${key}`)
   if (body instanceof Path) {
     body = await Deno.readFile(body.string)
@@ -84,8 +80,6 @@ async function put(key: string, body: string | Path | Uint8Array, bucket: S3Buck
 }
 
 //------------------------------------------------------------------------- main
-import tea_init from "../../lib/init().ts"
-tea_init()
 
 if (Deno.args.length === 0) throw new Error("no args supplied")
 
@@ -102,7 +96,7 @@ const encode = (() => {
 })()
 const cache = useCache()
 
-const pkgs = args_get("pkgs").map(pkgutils.parse).map(assert_pkg)
+const pkgs = args_get("pkgs").map(utils.pkg.parse).map(assert_pkg)
 const srcs = args_get("srcs")
 const bottles = args_get("bottles")
 const checksums = args_get("checksums")

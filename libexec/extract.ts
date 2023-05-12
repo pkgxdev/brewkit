@@ -19,16 +19,10 @@ args:
 //TODO verify the sha
 //TODO only allow writes to Deno.args[1]
 
-import usePantry from "../lib/usePantry.ts"
-import useSourceUnarchiver from "../lib/useSourceUnarchiver.ts"
-import { Package, PackageRequirement } from "types"
+import { Package, PackageRequirement, Path, utils, hooks } from "tea"
+const { useSourceUnarchiver, usePantry } = hooks
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { parse } from "utils/pkg.ts"
-import { panic } from "utils"
-import Path from "path"
-
-import tea_init from "../lib/init().ts"
-tea_init()
+const { panic } = utils
 
 const { flags: { outputDir, pkg: pkgname }, unknown } = parseFlags(Deno.args, {
   flags: [{
@@ -44,7 +38,7 @@ const { flags: { outputDir, pkg: pkgname }, unknown } = parseFlags(Deno.args, {
 
 const pantry = usePantry()
 
-let pkg: Package | PackageRequirement = parse(pkgname)
+let pkg: Package | PackageRequirement = utils.pkg.parse(pkgname)
 pkg = { project: pkg.project, version: pkg.constraint.single() ?? panic() }
 
 const dstdir = Path.cwd().join(outputDir)

@@ -13,16 +13,10 @@ dependencies:
   darwinsys.com/file: 5
 ---*/
 
-import { useCellar } from "hooks"
-import { PackageRequirement, Installation, Package } from "types"
-import { host, pkg as pkgutils } from "utils"
+import { utils, PackageRequirement, Installation, Package, hooks, Path } from "tea"
 import { backticks } from "../../lib/utils.ts"
-import run from "hooks/useRun.ts"
-import Path from "path"
-
-import tea_init from "../../lib/init().ts"
-tea_init()
-
+const { host, pkg: pkgutils } = utils
+const { useCellar } = hooks
 
 if (import.meta.main) {
   const cellar = useCellar()
@@ -95,10 +89,9 @@ async function set_rpaths(exename: Path, pkgs: (Package | PackageRequirement)[],
   })()
 
   if (cmd.length) {
-    try {
-      await run({ cmd })
-    } catch (err) {
-      console.warn(err)
+    const { success } = await Deno.run({ cmd: cmd.map(x => `${x}`) }).status()
+    if (!success) {
+      console.warn("patch-elf failed")
       //FIXME allowing this error because on Linux:
       //    patchelf: cannot find section '.dynamic'. The input file is most likely statically linked
       // happens with eg. gofmt

@@ -1,7 +1,6 @@
 import { assertEquals } from "deno/testing/asserts.ts"
-import useCache from "../../lib/useCache.ts"
-import Path from "path"
-import SemVer from "semver"
+import { hooks, Path, SemVer } from "tea"
+const { useCache } = hooks
 
 Deno.test("decode", async test => {
   const cache = useCache()

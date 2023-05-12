@@ -1,14 +1,11 @@
 #!/usr/bin/env -S deno run --allow-read --allow-write --allow-env
 
-import { usePrefix, useCellar } from "hooks"
-import usePantry from "../lib/usePantry.ts"
-import useShellEnv, { expand } from "hooks/useShellEnv.ts"
-import { undent, pkg as pkgutils, panic } from "utils"
 import { parseFlags } from "cliffy/flags/mod.ts"
-import Path from "path"
+import { hooks, utils, Path } from "tea"
+import undent from "outdent"
 
-import tea_init from "../lib/init().ts"
-tea_init()
+const { usePantry, useCellar, useConfig, useShellEnv } = hooks
+const { pkg: pkgutils, panic } = utils
 
 const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
@@ -39,7 +36,7 @@ const installations = [...deps]
 if (deps.find(x => x.pkg.project == self.pkg.project) === undefined) installations.push(self)
 
 Deno.env.set("HOME", dstdir.string)  //lol side-effects beware!
-const env = await useShellEnv({ installations })
+const env = await useShellEnv().map({ installations })
 
 if (!yml.test) throw "no `test` node in package.yml"
 
@@ -53,10 +50,10 @@ let text = undent`
   set -o pipefail
   set -x
 
-  export TEA_PREFIX="${usePrefix()}"
+  export TEA_PREFIX="${useConfig().prefix}"
   export HOME="${dstdir}"
 
-  ${expand(env)}
+  ${useShellEnv().expand(env)}
 
   `
 
@@ -81,4 +78,4 @@ const sh = dstdir
   .write({ text, force: true })
   .chmod(0o500)
 
-console.log(sh.string)
+console.info(sh.string)

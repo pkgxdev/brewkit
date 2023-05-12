@@ -71,4 +71,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
-      - run: deno task test
+      - run: deno test --allow-env

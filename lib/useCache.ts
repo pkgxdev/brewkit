@@ -1,9 +1,9 @@
-import { Stowed, SupportedArchitecture, SupportedPlatform } from "types"
-import SemVer from "semver"
-import Path from "path"
+import { hooks, SemVer, Stowed, SupportedArchitecture, SupportedPlatform, Path } from "libtea"
+const { useCache } = hooks
 
 export default function() {
-  return { decode }
+  const foo = useCache()
+  return { ...foo, decode }
 }
 
 const bottleRegex = `^(.*)-(\\d+(\\.\\d+)*[a-z]?)\\+(.+?)\\+(.+?)\\.tar\\.[gx]z$`

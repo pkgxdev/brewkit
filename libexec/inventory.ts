@@ -1,22 +1,18 @@
 #!/usr/bin/env -S deno run --allow-net --allow-env --allow-read
 
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { useInventory } from "hooks"
-import SemVer from "semver"
-import { parse } from "utils/pkg.ts"
-
-import tea_init from "../lib/init().ts"
-tea_init()
+import { hooks, utils, SemVer } from "tea"
+const { useInventory } = hooks
 
 const { unknown: pkgnames } = parseFlags(Deno.args)
 
 const rv: Record<string, SemVer[]> = {}
-for (const pkg of pkgnames.map(parse)) {
+for (const pkg of pkgnames.map(utils.pkg.parse)) {
   rv[pkg.project] = await useInventory().get(pkg)
 }
 
 if (pkgnames.length == 1) {
-  console.log(Object.values(rv)[0].join("\n"))
+  console.info(Object.values(rv)[0].join("\n"))
 } else {
-  console.log(JSON.stringify(rv, null, 2))
+  console.info(JSON.stringify(rv, null, 2))
 }
