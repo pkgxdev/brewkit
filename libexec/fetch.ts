@@ -112,8 +112,13 @@ async function download({ dst, src }: { dst: Path, src: URL }) {
   return dst
 }
 
+// Clones a git repo, then builds a src tarball from it
+// This allows our system to treat git repos as if they were
+// tarballs, improving internal consistency
 async function clone({ dst, src, ref }: { dst: Path, src: URL, ref: string }) {
   const tmp = Path.mktemp({})
+
+  // Clone the specific ref to our temp dir
   const proc = new Deno.Command("git", {
     args: [
       "clone",
@@ -134,6 +139,7 @@ async function clone({ dst, src, ref }: { dst: Path, src: URL, ref: string }) {
     throw new Error(`git failed to clone ${src}`)
   }
 
+  // Create a tarball from the temp dir
   const proc2 = new Deno.Command("tar", {
     args: [
       "-C",
