@@ -28,7 +28,7 @@ case 'darwin':
     cmd: [
       'fix-machos.rb',
       pkg_prefix.string,
-      ...['bin', 'lib', 'libexec'].compact(x => pkg_prefix.join(x).isDirectory())
+      ...['bin', 'sbin', 'tbin', 'lib', 'libexec'].compact(x => pkg_prefix.join(x).isDirectory())
     ],
     env: {
       GEM_HOME: usePrefix().join('tea/local/share/ruby/gem').string
