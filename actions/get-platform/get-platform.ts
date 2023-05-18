@@ -21,6 +21,8 @@ import usePantry from "../../lib/usePantry.ts"
 //   "ziglang.org": 8,
 // }
 
+const requiresMacOS12 = ["github.com/realm/SwiftLint"]
+
 tea_init()
 
 const packages = Deno.env.get("PROJECTS")?.trim().split(" ").filter(x => x).map(parse)
@@ -56,7 +58,11 @@ const available = await (async () => {
 const output: Output = (() => {
   switch(platform) {
   case "darwin+x86-64": {
-    const os = "macos-11"
+    const os = (() => {
+      console.log({ packages, requiresMacOS12 })
+      if (packages?.some(pkg => requiresMacOS12.includes(pkg.project))) return ["self-hosted", "macOS", "X64"]
+      return "macos-11"
+    })()
     return {
       os,
       buildOs: ["self-hosted", "macOS", "X64"],
