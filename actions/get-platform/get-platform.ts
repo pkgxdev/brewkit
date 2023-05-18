@@ -58,9 +58,10 @@ const available = await (async () => {
 const output: Output = (() => {
   switch(platform) {
   case "darwin+x86-64": {
+    // Some packages need macOS 12
     const os = (() => {
-      console.log({ packages, requiresMacOS12 })
-      if (packages?.some(pkg => requiresMacOS12.includes(pkg.project))) return ["self-hosted", "macOS", "X64"]
+      if (packages?.some(pkg => requiresMacOS12.includes(pkg.project)))
+        return ["self-hosted", "macOS", "X64"]
       return "macos-11"
     })()
     return {
