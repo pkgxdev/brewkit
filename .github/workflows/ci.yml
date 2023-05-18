@@ -18,6 +18,7 @@ jobs:
           - c-ares.org
           - vim.org
           - tea.xyz/gx/cc
+          - github.com/realm/SwiftLint
     container:
       image: debian:buster-slim
     steps:
