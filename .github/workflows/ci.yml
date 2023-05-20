@@ -18,7 +18,10 @@ jobs:
           - c-ares.org
           - vim.org
           - tea.xyz/gx/cc
-          - github.com/realm/SwiftLint
+          # FIXME? requires a darwin platform to run, and needs
+          # macOS 12 to test. That'll require a more complex matrix
+          # using get-platform.
+          # - github.com/realm/SwiftLint
     container:
       image: debian:buster-slim
     steps:
