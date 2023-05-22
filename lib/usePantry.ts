@@ -17,10 +17,10 @@ export default function() {
     getVersions,
     getDistributable,
     getScript,
-    getYAML,
     getPlatforms,
     resolve,
     getDeps,
+    filepath,
     ...foo
   }
 }
@@ -41,16 +41,6 @@ async function resolve(spec: Package | PackageRequirement): Promise<Package> {
   if (!version) throw new Error(`not-found: version: ${utils.pkg.str(spec)}`)
   console.debug({selected: version})
   return { project: spec.project, version };
-}
-
-//TODO take `T` and then type check it
-const getYAML = (pkg: Package | PackageRequirement) => {
-  const foo = hooks.usePantry().project(pkg)
-  const dir = hooks.usePantry().prefix.join(pkg.project)
-  return {
-    path: dir.join("package.yml"),
-    parse: foo.yaml
-  }
 }
 
 const getPlatforms = async (pkg: Package | PackageRequirement) => {
@@ -435,4 +425,12 @@ function expand_env(env: PlainObject, pkg: Package, deps: Installation[]): strin
 
     return `export ${key}=${value}`
   }).join("\n")
+}
+
+//FIXME inefficient, should be in libtea as part of .project()
+async function filepath(project: string) {
+  for await (const pkg of hooks.usePantry().ls()) {
+    if (project == pkg.project) return pkg.path
+  }
+  throw new Error(`package.yml not found: ${project}`)
 }

@@ -31,7 +31,7 @@ const deps = await (() => {
   return Promise.all(pp)
 })()
 const dstdir = new Path(flags.dstdir)
-const yml = await pantry.getYAML(pkg).parse()
+const yml = await pantry.project(pkg).yaml()
 const installations = [...deps]
 if (deps.find(x => x.pkg.project == self.pkg.project) === undefined) installations.push(self)
 
@@ -67,7 +67,7 @@ text += `cd "${dstdir}"\n\n`
 text += await pantry.getScript(pkg, 'test', deps)
 text += "\n"
 
-for await (const [path, {name, isFile}] of pantry.getYAML(pkg).path.parent().ls()) {
+for await (const [path, {name, isFile}] of (await pantry.filepath(pkg.project)).parent().ls()) {
   if (isFile && name != 'package.yml') {
     path.cp({ into: dstdir })
   }

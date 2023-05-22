@@ -93,7 +93,7 @@ srcdir.join("tea.yaml").write({ text: YAML.stringify({
 }), force: true })
 
 /// copy in auxillary files from pantry directory
-for await (const [path, {isFile}] of pantry.getYAML(pkg).path.parent().ls()) {
+for await (const [path, {isFile}] of (await pantry.filepath(pkg.project)).parent().ls()) {
   if (isFile) {
     path.cp({ into: srcdir.join("props").mkdir() })
   }
