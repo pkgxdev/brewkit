@@ -9,6 +9,11 @@ inputs:
       Where tea stows its packages.
       Defaults to `$HOME/.tea`.
     required: false
+  version:
+    description: >
+      The version of tea to install.
+      Defaults to `latest`.
+    required: false
 outputs:
   version:
     description: Your project’s version.
@@ -24,6 +29,7 @@ runs:
       id: tea
       with:
         prefix: ${{ inputs.prefix }}
+        version: ${{ inputs.version }}
         +: tea.xyz/brewkit
         # prevent pantry from reassigning TEA_PANTRY_PATH
         srcroot: null
