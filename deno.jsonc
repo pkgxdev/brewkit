@@ -3,6 +3,7 @@
     "allowJs": false,
     "strict": true
   },
+  "lock": false,
   "tasks": {
     "typecheck": "deno check --unstable $(find . -name '*'.ts)"
   },
@@ -26,7 +27,7 @@
     "cliffy/": "https://deno.land/x/cliffy@v0.25.7/",
     "s3": "https://deno.land/x/s3@0.5.0/mod.ts",
     "deno/": "https://deno.land/std@0.187.0/",
-    "libtea": "https://raw.github.com/teaxyz/lib/v0/mod.ts",
+    "libtea": "https://raw.github.com/teaxyz/lib/v0.1.5/mod.ts",
     "tea": "./lib/tea.ts"
   }
 }
