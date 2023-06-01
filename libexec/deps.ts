@@ -1,11 +1,11 @@
 #!/usr/bin/env -S deno run --allow-net --allow-read --allow-env
 
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { utils, prefab, hooks } from "tea"
+import { utils, plumbing, hooks } from "tea"
 
 const { usePantry } = hooks
 const { parse, str } = utils.pkg
-const { hydrate } = prefab
+const { hydrate } = plumbing
 
 const { flags: { build, test }, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
