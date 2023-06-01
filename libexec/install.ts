@@ -1,9 +1,9 @@
 #!/usr/bin/env -S deno run --allow-read --allow-write --allow-run=tar,/bin/ln --allow-net --allow-env --unstable
 
-import { utils, hooks, prefab, Installation } from "tea"
+import { utils, hooks, plumbing, Installation } from "tea"
 const { pkg: { parse, str }, panic } = utils
 const { useCellar, useInventory } = hooks
-const { install, link } = prefab
+const { install, link } = plumbing
 
 const cellar = useCellar()
 const inventory = useInventory()

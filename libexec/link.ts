@@ -1,7 +1,7 @@
 #!/usr/bin/env -S deno run --allow-read --allow-write --allow-env --allow-run=/bin/ln
 
-import { PackageRequirement, Package, Path, utils, prefab } from "tea"
-const { link } = prefab
+import { PackageRequirement, Package, Path, utils, plumbing } from "tea"
+const { link } = plumbing
 
 let pkg: Package | PackageRequirement = utils.pkg.parse(Deno.args[1])
 pkg = { project: pkg.project, version: pkg.constraint.single() ?? utils.panic() }

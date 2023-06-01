@@ -1,4 +1,5 @@
-import { hooks, SemVer, Stowed, SupportedArchitecture, SupportedPlatform, Path } from "libtea"
+import { SupportedArchitecture, SupportedPlatform } from "libtea/utils/host.ts"
+import { hooks, SemVer, Stowed, Path } from "libtea"
 const { useCache } = hooks
 
 export default function() {
