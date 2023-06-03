@@ -9,7 +9,9 @@ args:
   - --allow-read
   - --allow-write={{tea.prefix}}
 dependencies:
-  nixos.org/patchelf: '*'
+  # FIXME: 0.18.0 has a regression that breaks libraries
+  # https://github.com/NixOS/patchelf/issues/492#issuecomment-1561912775
+  nixos.org/patchelf: =0.17.2
   darwinsys.com/file: 5
 ---*/
 
