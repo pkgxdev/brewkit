@@ -18,6 +18,7 @@ import { set_output } from "../utils/gha.ts"
 import { sha256 } from "../bottle/bottle.ts"
 import { retry } from "deno/async/retry.ts"
 import { S3, S3Bucket } from "s3"
+import usePantry from "../../lib/usePantry.ts"
 
 //------------------------------------------------------------------------- funcs
 function args_get(key: string): string[] {
@@ -67,9 +68,10 @@ async function get_versions(key: string, pkg: Package, bucket: S3Bucket): Promis
     .sort(semver.compare)
 }
 
-async function put(key: string, body: string | Path | Uint8Array, bucket: S3Bucket) {
+async function put(key_: string, body: string | Path | Uint8Array, bucket: S3Bucket, qaRequired: boolean) {
+  const key = qaRequired ? `qa/${key_}` : key_
   console.info({ uploading: body, to: key })
-  rv.push(`/${key}`)
+  if (!qaRequired) rv.push(`/${key}`)
   if (body instanceof Path) {
     body = await Deno.readFile(body.string)
   } else if (typeof body === "string") {
@@ -90,6 +92,8 @@ const s3 = new S3({
 })
 
 const bucket = s3.getBucket(Deno.env.get("AWS_S3_BUCKET")!)
+const stagingBucket = s3.getBucket(Deno.env.get("AWS_S3_STAGING_BUCKET")!)
+
 const encode = (() => {
   const e = new TextEncoder()
   return e.encode.bind(e)
@@ -103,20 +107,27 @@ const checksums = args_get("checksums")
 const signatures = args_get("signatures")
 
 const rv: string[] = []
+const qa = new Set<string>()
 
 for (const [index, pkg] of pkgs.entries()) {
+  const yml = await usePantry().project(pkg.project).yaml()
+  ///// FIXME: test condition
+  // const qaRequired = yml?.["test"]?.["qa-required"] === true
+  const qaRequired = pkg.project === "crates.io/semverator"
+  const dst = qaRequired ? stagingBucket : bucket
+
   const bottle = usePrefix().join(bottles[index])
   const checksum = checksums[index]
   const signature = base64Decode(signatures[index])
   const stowed = cache.decode(bottle)!
   const key = useOffLicense("s3").key(stowed)
-  const versions = await get_versions(key, pkg, bucket)
+  const versions = await get_versions(key, pkg, dst)
 
   //FIXME stream the bottle (at least) to S3
-  await put(key, bottle, bucket)
-  await put(`${key}.sha256sum`, `${checksum}  ${basename(key)}`, bucket)
-  await put(`${key}.asc`, signature, bucket)
-  await put(`${dirname(key)}/versions.txt`, versions.join("\n"), bucket)
+  await put(key, bottle, dst, qaRequired)
+  await put(`${key}.sha256sum`, `${checksum}  ${basename(key)}`, dst, qaRequired)
+  await put(`${key}.asc`, signature, dst, qaRequired)
+  await put(`${dirname(key)}/versions.txt`, versions.join("\n"), dst, qaRequired)
 
   // mirror the sources
   if (srcs[index] != "~") {
@@ -131,11 +142,16 @@ for (const [index, pkg] of pkgs.entries()) {
       extname: src.extname(),
     })
     const srcChecksum = await sha256(src)
-    const srcVersions = await get_versions(srcKey, pkg, bucket)
-    await put(srcKey, src, bucket)
-    await put(`${srcKey}.sha256sum`, `${srcChecksum}  ${basename(srcKey)}`, bucket)
-    await put(`${dirname(srcKey)}/versions.txt`, srcVersions.join("\n"), bucket)
+    const srcVersions = await get_versions(srcKey, pkg, dst)
+    await put(srcKey, src, dst, qaRequired)
+    await put(`${srcKey}.sha256sum`, `${srcChecksum}  ${basename(srcKey)}`, dst, qaRequired)
+    await put(`${dirname(srcKey)}/versions.txt`, srcVersions.join("\n"), dst, qaRequired)
+  }
+
+  if (qaRequired) {
+    qa.add(`${pkg.project}@${pkg.version}`)
   }
 }
 
 await set_output("cf-invalidation-paths", rv)
+await set_output("qa-required", [JSON.stringify([...qa])])
