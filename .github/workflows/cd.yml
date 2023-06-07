@@ -1,0 +1,43 @@
+on:
+  release:
+    types:
+      - created
+
+concurrency:
+  group: ${{ github.event.release.tag_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify-prerelease:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "we only publish pre-releases!" >&2
+          exit 1
+        if: ${{ ! github.event.release.prerelease }}
+
+  qa:
+    needs: verify-prerelease
+    if: ${{ github.event.release.prerelease }}
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: qa
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: fischerscode/tagger@v0
+        with:
+          prefix: v
+      - name: Convert pre-release to release
+        run: |
+          curl -fX PATCH \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{"draft": false, "prerelease": false, "make_latest": true}' \
+            "https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}"

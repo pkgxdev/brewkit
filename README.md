@@ -92,7 +92,7 @@ V=$(git describe --tags --abbrev=0 --match "v[0-9]*.[0-9]*.[0-9]*")
 V=$(tea semverator bump $V $PRIORITY)
 
 git push origin main
-tea gh release create "v$V"
+tea gh release create "v$V" --prerelease --generate-notes --title "v$V"
 ```
 
 
