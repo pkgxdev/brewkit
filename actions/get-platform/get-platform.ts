@@ -94,6 +94,7 @@ const output: Output = (() => {
       os,
       buildOs: ["self-hosted", "linux", "X64"],
       testMatrix: [
+        { os, container: "ubuntu:latest", 'name-extra': "(ubuntu latest)" },
         { os, container: "ubuntu:focal", 'name-extra': "(ubuntu focal)" },
         { os, container: "debian:buster-slim", 'name-extra': "(debian buster)" },
       ],
