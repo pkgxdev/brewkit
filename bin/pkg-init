@@ -39,3 +39,5 @@ we typically name packages after their homepage.
 
 if you aren’t sure about the name you can submit and we’ll assist.
 EOF
+
+pkg edit $BLEND
