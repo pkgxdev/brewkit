@@ -1,11 +1,8 @@
 #!/usr/bin/env ruby
-# tea brewed ruby works with a tea shebang
-# but normal ruby does not, macOS comes with ruby so we just use it
-# ---
-# dependencies:
-#   ruby-lang.org: '>=2'
-# args: [ruby]
-# ---
+
+# using macOS provided ruby is complex, ocassionally breaks and that causes revlock
+# ideally our tests would be thorough enough to guarantee more stability
+# we’ll get there…
 
 require 'bundler/inline'
 
