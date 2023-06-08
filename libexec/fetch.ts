@@ -64,7 +64,7 @@ try {
       }
     })()
 
-    if (type === "git") return clone({ dst, src: url, ref: ref! })
+    if (type === "git") return clone({ dst, src: url, ref })
 
     try {
       // first try the original location
@@ -111,20 +111,30 @@ async function download({ dst, src }: { dst: Path, src: URL }) {
 // Clones a git repo, then builds a src tarball from it
 // This allows our system to treat git repos as if they were
 // tarballs, improving internal consistency
-async function clone({ dst, src, ref }: { dst: Path, src: URL, ref: string }) {
+async function clone({ dst, src, ref }: { dst: Path, src: URL, ref?: string }) {
+  if (dst.isFile()) {
+    console.info("using cached tarball")
+    return dst
+  }
+
   const tmp = Path.mktemp({})
+
+  const args = [
+    "clone",
+    "--quiet",
+    "--depth=1"
+  ]
+  if (ref) {
+    args.push("--branch", ref)
+  }
+  args.push(
+    src.toString(),
+    tmp.string,
+  )
 
   // Clone the specific ref to our temp dir
   const proc = new Deno.Command("git", {
-    args: [
-      "clone",
-      "--quiet",
-      "--depth=1",
-      "--branch",
-      ref,
-      src.toString(),
-      tmp.string,
-    ],
+    args,
     // `git` uses stderr for... non errors, and --quiet
     // doesn't touch them
     stderr: "null",
