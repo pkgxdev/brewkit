@@ -6,7 +6,7 @@ import { parseFlags } from "cliffy/flags/mod.ts"
 const { useCache, useCellar, usePantry } = hooks
 const { panic } = utils
 
-const { flags: { prefix, srcdir, src, testdir, versions, ...flags }, unknown: [pkgname] } = parseFlags(Deno.args, {
+const { flags: { prefix, srcdir, src, testdir, blddir, versions, ...flags }, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
     name: "prefix",
     standalone: true
@@ -15,6 +15,10 @@ const { flags: { prefix, srcdir, src, testdir, versions, ...flags }, unknown: [p
     standalone: true
   }, {
     name: "src",
+    standalone: true
+  }, {
+    name: "blddir",
+    aliases: ["build-dir"],
     standalone: true
   }, {
     name: "testdir",
@@ -53,14 +57,14 @@ if (src) {
   const path = flatmap(Deno.env.get("SRCROOT"), x => new Path(x))
   const cache_path = useCache().path(stowage)
   if (path?.join("projects").isDirectory()) {
-    await console.info(`${path.join("srcs", cache_path.basename())}`)
+    console.info(`${path.join("srcs", cache_path.basename())}`)
   } else {
-    await console.info(cache_path.string)
+    console.info(cache_path.string)
   }
 } else if (prefix) {
   const path = useCellar().keg(pkg)
-  await console.info(path.string)
-} else if (srcdir) {
+  console.info(path.string)
+} else if (blddir) {
   let path = flatmap(Deno.env.get("SRCROOT"), x => new Path(x))
   if (path?.join("projects").isDirectory()) {
     const project = pkg.project.replaceAll("/", "∕")
@@ -69,7 +73,7 @@ if (src) {
   } else {
     path = new Path(Deno.makeTempDirSync())
   }
-  await console.info(path.string)
+  console.info(path.string)
 } else if (testdir) {
   let path = flatmap(Deno.env.get("SRCROOT"), x => new Path(x))
   if (path?.join("projects").isDirectory()) {
@@ -79,7 +83,7 @@ if (src) {
   } else {
     path = new Path(Deno.makeTempDirSync())
   }
-  await console.info(path.string)
+  console.info(path.string)
 } else if (flags.url) {
   const { url } = await usePantry().getDistributable(pkg) ?? {}
   if (url) {
@@ -88,6 +92,15 @@ if (src) {
     console.error("null")
     Deno.exit(2)
   }
+} else if (srcdir) {
+  let path = flatmap(Deno.env.get("SRCROOT"), x => new Path(x))
+  if (path?.join("projects").isDirectory()) {
+    const project = pkg.project.replaceAll("/", "∕")
+    path = path.join("srcs").join(`${project}-${pkg.version}`)
+  } else {
+    path = new Path(Deno.makeTempDirSync())
+  }
+  console.info(path.string)
 } else {
   Deno.exit(1)
 }

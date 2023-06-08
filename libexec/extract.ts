@@ -42,6 +42,11 @@ let pkg: Package | PackageRequirement = utils.pkg.parse(pkgname)
 pkg = { project: pkg.project, version: pkg.constraint.single() ?? panic() }
 
 const dstdir = Path.cwd().join(outputDir)
-const zipfile = new Path(unknown[0])
-const { stripComponents } = await pantry.getDistributable(pkg) ?? {}
-await useSourceUnarchiver().unarchive({ dstdir, zipfile, stripComponents })
+
+if (!dstdir.isDirectory() || dstdir.exists()?.isEmpty()) {
+  const zipfile = new Path(unknown[0])
+  const { stripComponents } = await pantry.getDistributable(pkg) ?? {}
+  await useSourceUnarchiver().unarchive({ dstdir, zipfile, stripComponents })
+} else {
+  console.error("notice: already extracted: skipping")
+}
