@@ -69,19 +69,21 @@ const getRawDistributableURL = (yml: PlainObject) => {
   }
 }
 
-const getGitDistribution = ({ pkg, git, ref }: { pkg: Package, git: string, ref: string }) => {
-  if (!git.startsWith("git+")) throw new Error(`invalid git url; explicitly use git+https:// or git+ssh://: ${git}`)
+const getGitDistribution = ({ pkg, url: urlstr, ref }: { pkg: Package, url: string, ref: string }) => {
+  if (!ref) {
+    throw new Error("distributable.ref is required because we mirror source tarballs even when cloning from git")
+  }
 
-  const url = new URL(git.replace(/^git\+http/, 'http'))
+  const url = new URL(urlstr.replace(/^git\+http/, 'http'))
 
   const moustaches = useMoustaches()
 
-  const ref_ = moustaches.apply(ref, [
+  ref = moustaches.apply(ref, [
     ...moustaches.tokenize.version(pkg.version),
     ...moustaches.tokenize.host()
   ])
 
-  return { url, ref: ref_, stripComponents: 0, type: 'git' }
+  return { url, ref, stripComponents: 0, type: 'git' }
 }
 
 const getDistributable = async (pkg: Package) => {
@@ -89,7 +91,13 @@ const getDistributable = async (pkg: Package) => {
 
   const yml = await hooks.usePantry().project(pkg).yaml()
 
-  if (yml.distributable?.git) { return getGitDistribution({ pkg, ...yml.distributable}) }
+  if (yml.distributable?.git) {
+    console.warn("brewkit: using distributable.git instead of distributable.url is deprecated")
+    return getGitDistribution({ pkg, ...yml.distributable})
+  }
+  if (yml.distributable?.url?.startsWith("git")) {
+    return getGitDistribution({ pkg, ...yml.distributable})
+  }
 
   let urlstr = getRawDistributableURL(yml)
   if (!urlstr) return
