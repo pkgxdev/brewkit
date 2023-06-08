@@ -2,6 +2,7 @@
 
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { hooks, utils, Path } from "tea"
+import { copy } from "deno/fs/mod.ts"
 import undent from "outdent"
 
 const { useShellEnv, useCellar, useConfig, usePantry } = hooks
@@ -19,6 +20,11 @@ const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
     name: "deps",
     type: "string",
     optionalValue: true
+  }, {
+    name: "blddir",
+    aliases: ["build-dir"],
+    type: "string",
+    required: true
   }],
 })
 
@@ -26,14 +32,21 @@ const pantry = usePantry()
 const cellar = useCellar()
 const prefix = useConfig().prefix
 const srcdir = Path.cwd().join(flags.srcdir)
+const blddir = Path.cwd().join(flags.blddir)
 const deps = await (() => {
   if (typeof flags.deps != 'string' || !flags.deps) return Promise.resolve([])
   const parts = flags.deps.split(/\s+/)
   const pp = parts.map(x => cellar.resolve(new Path(x)))
   return Promise.all(pp)
 })()
-if (srcdir.string.includes(" ")) {
-  console.error("warning: srcdir should not contain spaces, some build tools *will* choke")
+if (blddir.string.includes(" ")) {
+  console.error("warning: build directory contains spaces. build tools *may choke*")
+}
+
+console.error(blddir.isDirectory(), blddir.isDirectory()?.isEmpty(), blddir.isDirectory()?.isEmpty() ?? true)
+
+if (!blddir.isDirectory() || blddir.exists()?.isEmpty()) {
+  await copy(srcdir.string, blddir.string, { overwrite: true })
 }
 
 //FIXME this goes to GitHub, and we already did this once
@@ -47,7 +60,7 @@ const brewkit = new Path(new URL(import.meta.url).pathname).parent().parent().jo
 /// calc env
 const sh = useShellEnv()
 const old_home = Deno.env.get("HOME")
-Deno.env.set("HOME", srcdir.string)  //lol side-effects beware!
+Deno.env.set("HOME", blddir.string)  //lol side-effects beware!
 const env = await sh.map({ installations: deps })
 Deno.env.set("HOME", old_home!)
 
@@ -62,10 +75,10 @@ const text = undent`
   set -e
   set -o pipefail
   set -x
-  cd "${srcdir}"
+  cd "${blddir}"
 
-  export HOME="${srcdir}/xyz.tea.home"
-  export SRCROOT="${srcdir}"
+  export HOME="${blddir}/xyz.tea.home"
+  export SRCROOT="${blddir}"
   export PREFIX=${flags.prefix}
   export TEA_PREFIX=${prefix.string}
   ${sh.expand(env)}
@@ -79,12 +92,12 @@ const text = undent`
   `
 
 /// write out build script
-const script = srcdir.join("xyz.tea.build.sh").write({ text, force: true }).chmod(0o755)
+const script = blddir.join("xyz.tea.build.sh").write({ text, force: true }).chmod(0o755)
 
 /// write out tea.yaml so magic works
 import * as YAML from "deno/yaml/stringify.ts"
 
-srcdir.join("tea.yaml").write({ text: YAML.stringify({
+blddir.join("tea.yaml").write({ text: YAML.stringify({
   env: sh.flatten(env),
   dependencies: deps.reduce((acc, {pkg}) => {
     acc[pkg.project] = `=${pkg.version}`
@@ -95,7 +108,7 @@ srcdir.join("tea.yaml").write({ text: YAML.stringify({
 /// copy in auxillary files from pantry directory
 for await (const [path, {isFile}] of (await pantry.filepath(pkg.project)).parent().ls()) {
   if (isFile) {
-    path.cp({ into: srcdir.join("props").mkdir() })
+    path.cp({ into: blddir.join("props").mkdir() })
   }
 }
 
