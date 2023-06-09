@@ -111,9 +111,7 @@ const qa = new Set<string>()
 
 for (const [index, pkg] of pkgs.entries()) {
   const yml = await usePantry().project(pkg.project).yaml()
-  ///// FIXME: test condition
-  // const qaRequired = yml?.["test"]?.["qa-required"] === true
-  const qaRequired = pkg.project === "crates.io/semverator"
+  const qaRequired = yml?.["test"]?.["qa-required"] === true
   const dst = qaRequired ? stagingBucket : bucket
 
   const bottle = usePrefix().join(bottles[index])
