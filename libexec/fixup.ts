@@ -27,7 +27,7 @@ case 'darwin': {
       ...['bin', 'sbin', 'tbin', 'lib', 'libexec'].compact(x => pkg_prefix.join(x).isDirectory()?.string)
     ],
     env: {
-      GEM_HOME: useConfig().prefix.join('tea/local/share/ruby/gem').string
+      GEM_HOME: useConfig().prefix.join('.local/share/ruby/gem').string
     }
   }).status()
   if (!success) throw new Error("failed to fix machos")
