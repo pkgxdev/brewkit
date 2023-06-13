@@ -26,9 +26,9 @@ fi
 
 for PKG in $PKGS; do
   PKG="$(resolve.ts "$PKG")"
-  SRCDIR="$(query.ts "$PKG" --srcdir)"
-  BUILDDIR="$(query.ts "$PKG" --prefix)"
-  TESTDIR="$(query.ts "$PKG" --testdir)"
+  BLDDIR="$(query.ts "$PKG" --build-dir)"
+  DSTDIR="$(query.ts "$PKG" --prefix)"
+  TSTDIR="$(query.ts "$PKG" --testdir)"
 
-  rm -rf $SRCDIR $BUILDDIR $TESTDIR
+  rm -rf $BLDDIR $DSTDIR $TSTDIR
 done
