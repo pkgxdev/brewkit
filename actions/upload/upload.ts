@@ -8,11 +8,14 @@ args:
   - --allow-read
   - --allow-env
   - --allow-write
+depdenencies:
+  aws.amazon.com/cli: ^2
 ---*/
 
-import { Package, PackageRequirement, SemVer, Path, semver, hooks, utils } from "tea"
+import { Package, PackageRequirement, SemVer, Path, semver, hooks, utils, porcelain } from "tea"
 import { decode as base64Decode } from "deno/encoding/base64.ts"
 const { useOffLicense, usePrefix, useCache } = hooks
+const { run } = porcelain
 import { basename, dirname } from "deno/path/mod.ts"
 import { set_output } from "../utils/gha.ts"
 import { sha256 } from "../bottle/bottle.ts"
@@ -68,11 +71,28 @@ async function get_versions(key: string, pkg: Package, bucket: S3Bucket): Promis
     .sort(semver.compare)
 }
 
-async function put(key_: string, body: string | Path | Uint8Array, bucket: S3Bucket, qaRequired: boolean) {
+class ExtBucket {
+  name: string
+  bucket: S3Bucket
+
+  constructor(name: string, s3: S3) {
+    this.bucket = s3.getBucket(name)
+    this.name = name
+  }
+}
+
+async function put(key_: string, body: string | Path | Uint8Array, bucket: ExtBucket, qaRequired: boolean) {
   const key = qaRequired ? `qa/${key_}` : key_
   console.info({ uploading: body, to: key })
   if (!qaRequired) rv.push(`/${key}`)
   if (body instanceof Path) {
+    // For really large files, just kick it to the CLI
+    if (Deno.statSync(body.string).size > 1024 * 1024 * 1024) {
+      console.log("large file (>1GB), using aws cli")
+      const filename = body.string
+      console.log(["aws", "s3", "cp", filename, `s3://${bucket.name}/${key}`])
+      return retry(() => run(["aws", "s3", "cp", filename, `s3://${bucket.name}/${key}`]))
+    }
     body = await Deno.readFile(body.string)
   } else if (typeof body === "string") {
     body = encode(body)
@@ -91,8 +111,8 @@ const s3 = new S3({
   region: "us-east-1",
 })
 
-const bucket = s3.getBucket(Deno.env.get("AWS_S3_BUCKET")!)
-const stagingBucket = s3.getBucket(Deno.env.get("AWS_S3_STAGING_BUCKET")!)
+const bucket = new ExtBucket(Deno.env.get("AWS_S3_BUCKET")!, s3)
+const stagingBucket = new ExtBucket(Deno.env.get("AWS_S3_STAGING_BUCKET")!, s3)
 
 const encode = (() => {
   const e = new TextEncoder()
@@ -119,7 +139,7 @@ for (const [index, pkg] of pkgs.entries()) {
   const signature = base64Decode(signatures[index])
   const stowed = cache.decode(bottle)!
   const key = useOffLicense("s3").key(stowed)
-  const versions = await get_versions(key, pkg, dst)
+  const versions = await get_versions(key, pkg, dst.bucket)
 
   //FIXME stream the bottle (at least) to S3
   await put(key, bottle, dst, qaRequired)
@@ -140,7 +160,7 @@ for (const [index, pkg] of pkgs.entries()) {
       extname: src.extname(),
     })
     const srcChecksum = await sha256(src)
-    const srcVersions = await get_versions(srcKey, pkg, dst)
+    const srcVersions = await get_versions(srcKey, pkg, dst.bucket)
     await put(srcKey, src, dst, qaRequired)
     await put(`${srcKey}.sha256sum`, `${srcChecksum}  ${basename(srcKey)}`, dst, qaRequired)
     await put(`${dirname(srcKey)}/versions.txt`, srcVersions.join("\n"), dst, qaRequired)
