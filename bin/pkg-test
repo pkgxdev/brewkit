@@ -16,7 +16,7 @@ if test -z "$1"; then
     fi
   done
 else
-  PKGS="$1"
+  PKGS="$*"
 fi
 
 if test -n "$TEA_DOCKER"; then
