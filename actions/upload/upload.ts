@@ -102,12 +102,10 @@ async function put(key_: string, body: string | Path | Uint8Array, bucket: ExtBu
         AWS_SECRET_ACCESS_KEY: Deno.env.get("AWS_SECRET_ACCESS_KEY")!,
         AWS_DEFAULT_REGION: "us-east-1",
       }
-      console.info("aws", args)
-      const cmd = new Deno.Command("aws", { args, env }).spawn()
-      const res = await cmd.status
-      console.error(`status: ${res}`)
-      return
-      // return retry(() => run(cmd, { env, stdout: true, stderr: true, status: true }))
+      return retry(() => {
+        const cmd = new Deno.Command("aws", { args, env }).spawn()
+        return cmd.status
+      })
     }
     body = await Deno.readFile(body.string)
   } else if (typeof body === "string") {
