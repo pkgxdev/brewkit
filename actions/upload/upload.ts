@@ -8,6 +8,7 @@ args:
   - --allow-read
   - --allow-env
   - --allow-write
+  - --allow-run=aws
 dependencies:
   aws.amazon.com/cli: ^2
 ---*/
