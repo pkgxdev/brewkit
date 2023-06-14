@@ -8,7 +8,7 @@ args:
   - --allow-read
   - --allow-env
   - --allow-write
-depdenencies:
+dependencies:
   aws.amazon.com/cli: ^2
 ---*/
 
@@ -88,9 +88,9 @@ async function put(key_: string, body: string | Path | Uint8Array, bucket: ExtBu
   if (body instanceof Path) {
     // For really large files, just kick it to the CLI
     if (Deno.statSync(body.string).size > 1024 * 1024 * 1024) {
-      console.log("large file (>1GB), using aws cli")
+      console.info("large file (>1GB), using aws cli")
       const filename = body.string
-      console.log(["aws", "s3", "cp", filename, `s3://${bucket.name}/${key}`])
+      console.info(["aws", "s3", "cp", filename, `s3://${bucket.name}/${key}`])
       return retry(() => run(["aws", "s3", "cp", filename, `s3://${bucket.name}/${key}`]))
     }
     body = await Deno.readFile(body.string)
