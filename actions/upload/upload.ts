@@ -9,6 +9,8 @@ args:
   - --allow-env
   - --allow-write
   - --allow-run=aws
+dependencies:
+  aws.amazon.com/cli: ^2
 ---*/
 
 import { Package, PackageRequirement, SemVer, Path, semver, hooks, utils, porcelain } from "tea"
@@ -89,9 +91,7 @@ async function put(key_: string, body: string | Path | Uint8Array, bucket: ExtBu
     if (Deno.statSync(body.string).size > 1024 * 1024 * 1024) {
       console.info("large file (>1GB), using aws cli")
       const filename = body.string
-      const cmd = [
-        "tea",
-        "aws",
+      const args = [
         "s3",
         "cp",
         filename,
@@ -102,11 +102,10 @@ async function put(key_: string, body: string | Path | Uint8Array, bucket: ExtBu
         AWS_SECRET_ACCESS_KEY: Deno.env.get("AWS_SECRET_ACCESS_KEY")!,
         AWS_DEFAULT_REGION: "us-east-1",
       }
-      console.info(cmd)
-      const foo = await run(cmd, { env, stdout: true, stderr: true, status: true })
-      console.error(`status: ${foo.status}`)
-      console.error(`stdout: ${foo.stdout}`)
-      console.error(`stderr: ${foo.stderr}`)
+      console.info("aws", args)
+      const cmd = new Deno.Command("aws", { args, env }).spawn()
+      const res = await cmd.status()
+      console.error(`status: ${res}`)
       return
       // return retry(() => run(cmd, { env, stdout: true, stderr: true, status: true }))
     }
