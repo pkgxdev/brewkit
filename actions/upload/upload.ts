@@ -87,27 +87,21 @@ async function put(key_: string, body: string | Path | Uint8Array, bucket: ExtBu
   console.info({ uploading: body, to: key })
   if (!qaRequired) rv.push(`/${key}`)
   if (body instanceof Path) {
-    // For really large files, just kick it to the CLI
-    if (Deno.statSync(body.string).size > 1024 * 1024 * 1024) {
-      console.info("large file (>1GB), using aws cli")
-      const filename = body.string
-      const args = [
-        "s3",
-        "cp",
-        filename,
-        `s3://${bucket.name}/${key}`,
-      ]
-      const env = {
-        AWS_ACCESS_KEY_ID: Deno.env.get("AWS_ACCESS_KEY_ID")!,
-        AWS_SECRET_ACCESS_KEY: Deno.env.get("AWS_SECRET_ACCESS_KEY")!,
-        AWS_DEFAULT_REGION: "us-east-1",
-      }
-      return retry(() => {
-        const cmd = new Deno.Command("aws", { args, env }).spawn()
-        return cmd.status
-      })
+    const args = [
+      "s3",
+      "cp",
+      body.string,
+      `s3://${bucket.name}/${key}`,
+    ]
+    const env = {
+      AWS_ACCESS_KEY_ID: Deno.env.get("AWS_ACCESS_KEY_ID")!,
+      AWS_SECRET_ACCESS_KEY: Deno.env.get("AWS_SECRET_ACCESS_KEY")!,
+      AWS_DEFAULT_REGION: "us-east-1",
     }
-    body = await Deno.readFile(body.string)
+    return retry(() => {
+      const cmd = new Deno.Command("aws", { args, env }).spawn()
+      return cmd.status
+    })
   } else if (typeof body === "string") {
     body = encode(body)
   }
