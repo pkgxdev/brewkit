@@ -91,8 +91,22 @@ async function put(key_: string, body: string | Path | Uint8Array, bucket: ExtBu
     if (Deno.statSync(body.string).size > 1024 * 1024 * 1024) {
       console.info("large file (>1GB), using aws cli")
       const filename = body.string
-      console.info(["aws", "s3", "cp", filename, `s3://${bucket.name}/${key}`])
-      return retry(() => run(["aws", "s3", "cp", filename, `s3://${bucket.name}/${key}`]))
+      const cmd = [
+        "aws",
+        "s3",
+        "cp",
+        filename,
+        `s3://${bucket.name}/${key}`,
+      ]
+      const env = {
+        AWS_ACCESS_KEY_ID: Deno.env.get("AWS_ACCESS_KEY_ID")!,
+        AWS_SECRET_ACCESS_KEY: Deno.env.get("AWS_SECRET_ACCESS_KEY")!,
+        AWS_DEFAULT_REGION: "us-east-1",
+      }
+      console.info(cmd)
+      return retry(() => run(cmd, { env, stdout: true, stderr: true }).catch((e) => {
+        console.error("aws call failed:", e)
+      }))
     }
     body = await Deno.readFile(body.string)
   } else if (typeof body === "string") {
