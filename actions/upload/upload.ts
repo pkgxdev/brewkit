@@ -104,7 +104,7 @@ async function put(key_: string, body: string | Path | Uint8Array, bucket: ExtBu
       }
       console.info("aws", args)
       const cmd = new Deno.Command("aws", { args, env }).spawn()
-      const res = await cmd.status()
+      const res = await cmd.status
       console.error(`status: ${res}`)
       return
       // return retry(() => run(cmd, { env, stdout: true, stderr: true, status: true }))
