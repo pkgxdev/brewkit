@@ -9,8 +9,6 @@ args:
   - --allow-env
   - --allow-write
   - --allow-run=aws
-dependencies:
-  aws.amazon.com/cli: ^2
 ---*/
 
 import { Package, PackageRequirement, SemVer, Path, semver, hooks, utils, porcelain } from "tea"
@@ -92,6 +90,7 @@ async function put(key_: string, body: string | Path | Uint8Array, bucket: ExtBu
       console.info("large file (>1GB), using aws cli")
       const filename = body.string
       const cmd = [
+        "tea",
         "aws",
         "s3",
         "cp",
