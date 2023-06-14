@@ -98,7 +98,7 @@ async function put(key_: string, body: string | Path | Uint8Array, bucket: ExtBu
     body = encode(body)
   }
   // @ts-ignore typescript doesn't narrow the types properly here
-  return retry(()=>bucket.putObject(key, body))
+  return retry(()=>bucket.bucket.putObject(key, body))
 }
 
 //------------------------------------------------------------------------- main
