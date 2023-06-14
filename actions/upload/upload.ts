@@ -104,11 +104,12 @@ async function put(key_: string, body: string | Path | Uint8Array, bucket: ExtBu
         AWS_DEFAULT_REGION: "us-east-1",
       }
       console.info(cmd)
-      return retry(() => run(cmd, { env, stdout: true, stderr: true, status: true }).then((x) => {
-        console.log("status:", x.status)
-        console.log("stdout:", x.stdout)
-        console.log("stderr:", x.stderr)
-      }))
+      const foo = await run(cmd, { env, stdout: true, stderr: true, status: true })
+      console.error(`status: ${foo.status}`)
+      console.error(`stdout: ${foo.stdout}`)
+      console.error(`stderr: ${foo.stderr}`)
+      return
+      // return retry(() => run(cmd, { env, stdout: true, stderr: true, status: true }))
     }
     body = await Deno.readFile(body.string)
   } else if (typeof body === "string") {
