@@ -43,8 +43,6 @@ if (blddir.string.includes(" ")) {
   console.error("warning: build directory contains spaces. build tools *may choke*")
 }
 
-console.error(blddir.isDirectory(), blddir.isDirectory()?.isEmpty(), blddir.isDirectory()?.isEmpty() ?? true)
-
 if (!blddir.isDirectory() || blddir.exists()?.isEmpty()) {
   await copy(srcdir.string, blddir.string, { overwrite: true })
 }

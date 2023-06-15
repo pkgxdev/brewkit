@@ -1,10 +1,11 @@
-import { Package, PackageRequirement, Installation, SemVer, semver, utils, hooks } from "libtea"
+import { Package, PackageRequirement, SemVer, semver, utils, hooks } from "libtea"
 import { isNumber, isPlainObject, isString, isArray, PlainObject } from "is-what"
+import { getScript } from "./usePantry.getScript.ts"
 import useGitLabAPI from "./useGitLabAPI.ts"
 import useGitHubAPI from "./useGitHubAPI.ts"
+
 const { flatmap, validate } = utils
 const { useMoustaches } = hooks
-import undent from "outdent"
 
 export interface Interpreter {
   project: string
@@ -38,7 +39,10 @@ async function resolve(spec: Package | PackageRequirement): Promise<Package> {
   const constraint = "constraint" in spec ? spec.constraint : new semver.Range(`=${spec.version}`)
   const versions = await getVersions(spec)
   const version = constraint.max(versions)
-  if (!version) throw new Error(`not-found: version: ${utils.pkg.str(spec)}`)
+  if (!version) {
+    console.error({versions})
+    throw new Error(`not-found: version: ${utils.pkg.str(spec)}`)
+  }
   console.debug({selected: version})
   return { project: spec.project, version };
 }
@@ -114,90 +118,6 @@ const getDistributable = async (pkg: Package) => {
   const url = new URL(urlstr)
 
   return { url, ref: undefined, stripComponents, type: 'url' }
-}
-
-const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation[]) => {
-  const yml = await hooks.usePantry().project(pkg).yaml()
-  const node = yml[key]
-
-  const mm = useMoustaches()
-  const script = (input: unknown) => {
-    const tokens = mm.tokenize.all(pkg, deps)
-    if (isArray(input)) input = input.map(obj => {
-      if (isPlainObject(obj)) {
-        let run = obj['run']
-        if (!isString(run)) throw new Error('every node in a script YAML array must contain a `run` key')
-        let cd = obj['working-directory']
-        if (cd) {
-          cd = mm.apply(validate.str(cd), tokens)
-          run = undent`
-            OLDWD="$PWD"
-            mkdir -p "${cd}"
-            cd "${cd}"
-            ${run.trim()}
-            cd "$OLDWD"
-            unset OLDWD
-            `
-        }
-        let fixture_key = key == 'build' ? 'prop' : 'fixture'
-        let fixture = obj[fixture_key]
-        if (fixture) {
-          fixture_key = fixture_key.toUpperCase()
-          fixture = mm.apply(validate.str(fixture), tokens)
-          run = undent`
-            OLD_${fixture_key}=$${fixture_key}
-            ${fixture_key}=$(mktemp)
-
-            cat <<XYZ_TEA_EOF > $${fixture_key}
-            ${fixture}
-            XYZ_TEA_EOF
-
-            ${run}
-
-            rm -f $${fixture_key}
-
-            if test -n "$${fixture_key}"; then
-              ${fixture_key}=$OLD_${fixture_key}
-            else
-              unset ${fixture_key}
-            fi
-            `
-        }
-
-        return run.trim()
-      } else {
-        return `${obj}`.trim()
-      }
-    }).join("\n\n")
-    return mm.apply(validate.str(input), tokens)
-  }
-
-  if (isPlainObject(node)) {
-    let raw = script(node.script)
-
-    let wd = node["working-directory"]
-    if (wd) {
-      wd = mm.apply(wd, [
-        ...mm.tokenize.version(pkg.version),
-        ...mm.tokenize.host(),
-        ...mm.tokenize.pkg(pkg)
-      ])
-      raw = undent`
-        mkdir -p ${wd}
-        cd ${wd}
-
-        ${raw}
-        `
-    }
-
-    const env = node.env
-    if (isPlainObject(env)) {
-      raw = `${expand_env(env, pkg, deps)}\n\n${raw}`
-    }
-    return raw
-  } else {
-    return script(node)
-  }
 }
 
 // deno-lint-ignore no-explicit-any
@@ -420,19 +340,6 @@ async function handleURLVersions(versions: PlainObject): Promise<SemVer[]> {
     if (v && !rv.find(vx => vx.raw === v.raw)) rv.push(v)
   }
   return rv
-}
-
-function expand_env(env: PlainObject, pkg: Package, deps: Installation[]): string {
-  const { expand_env_obj } = hooks.usePantry()
-  return Object.entries(expand_env_obj(env, pkg, deps)).map(([key,value]) => {
-    // weird POSIX string escaping/concat stuff
-    // eg. export FOO="bar ""$baz"" bun"
-    value = `"${value.trim().replace(/"/g, '""')}"`
-    while (value.startsWith('""')) value = value.slice(1)  //FIXME lol better pls
-    while (value.endsWith('""')) value = value.slice(0,-1) //FIXME lol better pls
-
-    return `export ${key}=${value}`
-  }).join("\n")
 }
 
 //FIXME inefficient, should be in libtea as part of .project()
