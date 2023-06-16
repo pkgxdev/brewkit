@@ -15,7 +15,7 @@ dependencies:
 
 import { Package, PackageRequirement, SemVer, Path, semver, hooks, utils } from "tea"
 import { decode as base64Decode } from "deno/encoding/base64.ts"
-const { useOffLicense, usePrefix, useCache } = hooks
+const { useOffLicense, useCache } = hooks
 import { basename, dirname } from "deno/path/mod.ts"
 import { set_output } from "../utils/gha.ts"
 import { sha256 } from "../bottle/bottle.ts"
@@ -160,7 +160,7 @@ for (const [index, pkg] of pkgs.entries()) {
 
   // mirror the sources
   if (srcs[index] != "~") {
-    const src = usePrefix().join(srcs[index])
+    const src = Path.cwd().join(srcs[index])
     if (src.isDirectory()) {
       // we almost certainly expanded `~` to the user’s home directory
       continue
