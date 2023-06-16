@@ -98,9 +98,13 @@ async function put(key_: string, body: string | Path | Uint8Array, bucket: ExtBu
       AWS_SECRET_ACCESS_KEY: Deno.env.get("AWS_SECRET_ACCESS_KEY")!,
       AWS_DEFAULT_REGION: "us-east-1",
     }
-    return retry(() => {
+    return retry(async() => {
       const cmd = new Deno.Command("aws", { args, env }).spawn()
-      return cmd.status
+      const status = await cmd.status
+      if (!status.success) {
+        throw new Error(`aws failed with status ${status.code}`)
+      }
+      return
     })
   } else if (typeof body === "string") {
     body = encode(body)
