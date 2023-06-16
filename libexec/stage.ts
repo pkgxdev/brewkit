@@ -2,7 +2,7 @@
 
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { hooks, utils, Path } from "tea"
-import { copy } from "deno/fs/mod.ts"
+import { move } from "deno/fs/mod.ts"
 import undent from "outdent"
 
 const { useShellEnv, useCellar, useConfig, usePantry } = hooks
@@ -44,7 +44,8 @@ if (blddir.string.includes(" ")) {
 }
 
 if (!blddir.isDirectory() || blddir.exists()?.isEmpty()) {
-  await copy(srcdir.string, blddir.string, { overwrite: true, preserveTimestamps: true })
+  if (blddir.exists()) await blddir.rm()
+  await move(srcdir.string, blddir.string)
 }
 
 //FIXME this goes to GitHub, and we already did this once
