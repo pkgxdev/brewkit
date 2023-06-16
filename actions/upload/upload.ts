@@ -13,10 +13,9 @@ dependencies:
   aws.amazon.com/cli: ^2
 ---*/
 
-import { Package, PackageRequirement, SemVer, Path, semver, hooks, utils, porcelain } from "tea"
+import { Package, PackageRequirement, SemVer, Path, semver, hooks, utils } from "tea"
 import { decode as base64Decode } from "deno/encoding/base64.ts"
 const { useOffLicense, usePrefix, useCache } = hooks
-const { run } = porcelain
 import { basename, dirname } from "deno/path/mod.ts"
 import { set_output } from "../utils/gha.ts"
 import { sha256 } from "../bottle/bottle.ts"
@@ -146,7 +145,7 @@ for (const [index, pkg] of pkgs.entries()) {
   const qaRequired = yml?.["test"]?.["qa-required"] === true
   const dst = qaRequired ? stagingBucket : bucket
 
-  const bottle = usePrefix().join(bottles[index])
+  const bottle = Path.cwd().join(bottles[index])
   const checksum = checksums[index]
   const signature = base64Decode(signatures[index])
   const stowed = cache.decode(bottle)!
