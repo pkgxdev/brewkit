@@ -44,7 +44,7 @@ if (blddir.string.includes(" ")) {
 }
 
 if (!blddir.isDirectory() || blddir.exists()?.isEmpty()) {
-  await copy(srcdir.string, blddir.string, { overwrite: true })
+  await copy(srcdir.string, blddir.string, { overwrite: true, preserveTimestamps: true })
 }
 
 //FIXME this goes to GitHub, and we already did this once
