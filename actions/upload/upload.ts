@@ -55,7 +55,7 @@ async function get_versions(key: string, pkg: Package, bucket: S3Bucket): Promis
   const prefix = dirname(key)
   const got = new Set<string>([pkg.version.toString()])
 
-  for await (const obj of await bucket.listAllObjects({ prefix })) {
+  for await (const obj of await bucket.listAllObjects({ batchSize: 200, prefix })) {
     if (!obj.key) continue
     const base = basename(obj.key)
     if (!base.match(/v.*\.tar\.gz$/)) continue
