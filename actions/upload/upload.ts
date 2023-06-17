@@ -53,20 +53,17 @@ function assert_pkg(pkg: Package | PackageRequirement) {
 
 async function get_versions(key: string, pkg: Package, bucket: S3Bucket): Promise<SemVer[]> {
   const prefix = dirname(key)
-  const rsp = await bucket.listObjects({ prefix })
+  const got = new Set<string>([pkg.version.toString()])
 
-  //FIXME? API isn’t clear if these nulls indicate failure or not
-  //NOTE if this is a new package then some empty results is expected
-  const got = rsp
-    ?.contents
-    ?.compact((x) => x.key)
-    .map((x) => basename(x))
-    .filter((x) => x.match(/v.*\.tar\.gz$/))
-    .map((x) => x.replace(/v(.*)\.tar\.gz/, "$1")) ??
-    []
+  for await (const obj of await bucket.listAllObjects({ prefix })) {
+    if (!obj.key) continue
+    const base = basename(obj.key)
+    if (!base.match(/v.*\.tar\.gz$/)) continue
+    const version = base.replace(/v(.*)\.tar\.gz/, "$1")
+    got.add(version)
+  }
 
-  // have to add pkg.version as put and get are not atomic
-  return [...new Set([...got, pkg.version.toString()])]
+  return [...got]
     .compact(semver.parse)
     .sort(semver.compare)
 }
