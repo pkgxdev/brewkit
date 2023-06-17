@@ -1,8 +1,7 @@
-#!/usr/bin/env -S deno run --allow-net --allow-read --allow-env --allow-write
+#!/usr/bin/env -S deno run --allow-net --allow-read --allow-env --allow-write --allow-run=cp
 
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { hooks, utils, Path } from "tea"
-import { copy } from "deno/fs/mod.ts"
 import undent from "outdent"
 
 const { useShellEnv, useCellar, useConfig, usePantry } = hooks
@@ -44,7 +43,11 @@ if (blddir.string.includes(" ")) {
 }
 
 if (!blddir.isDirectory() || blddir.exists()?.isEmpty()) {
-  await copy(srcdir.string, blddir.string, { overwrite: true, preserveTimestamps: true })
+  if (blddir.exists()) await blddir.rm()
+  // NOTE we use cp -a to preserve symlinks
+  // We'd love to use deno/sd/copy.ts but it fails on symlinks
+  // https://github.com/denoland/deno_std/issues/3454
+  await Deno.run({ cmd: ["cp", "-a", srcdir.string, blddir.string] }).status()
 }
 
 //FIXME this goes to GitHub, and we already did this once
