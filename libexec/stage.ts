@@ -43,7 +43,7 @@ if (blddir.string.includes(" ")) {
 }
 
 if (!blddir.isDirectory() || blddir.exists()?.isEmpty()) {
-  if (blddir.exists()) await blddir.rm()
+  blddir.rm().parent().mkdir('p')
   // NOTE we use cp -a to preserve symlinks
   // We'd love to use deno/sd/copy.ts but it fails on symlinks
   // https://github.com/denoland/deno_std/issues/3454
