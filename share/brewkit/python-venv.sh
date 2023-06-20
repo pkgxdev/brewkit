@@ -69,7 +69,7 @@ new_first_line = b"#!" + os.path.join(virtual_env, 'bin', 'python').encode('utf-
 
 # Go through files in the bin directory
 for filepath in glob.glob(os.path.join(virtual_env, 'bin', '*')):
-    if os.path.isfile(filepath) and not os.path.issymlink(filepath):
+    if os.path.isfile(filepath) and not os.path.islink(filepath):
         with open(filepath, 'rb+') as f:
           first_two_chars = f.read(2)
 
