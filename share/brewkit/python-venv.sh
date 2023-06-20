@@ -86,7 +86,7 @@ for filepath in glob.glob(os.path.join(virtual_env, 'bin', '*')):
 python_symlink = os.path.join(virtual_env, 'bin', 'python')
 
 # Remove the symbolic link if it already exists
-if os.path.exists(python_symlink):
+if os.path.islink(python_symlink) or os.path.exists(python_symlink):
     os.remove(python_symlink)
 
 os.symlink(python_path, python_symlink)
