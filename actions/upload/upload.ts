@@ -78,7 +78,7 @@ class ExtBucket {
   }
 }
 
-async function put(key_: string, body: string | Path | Uint8Array, bucket: ExtBucket, qaRequired: boolean) {
+function put(key_: string, body: string | Path | Uint8Array, bucket: ExtBucket, qaRequired: boolean) {
   const key = qaRequired ? `qa/${key_}` : key_
   console.info({ uploading: body, to: key })
   if (!qaRequired) rv.push(`/${key}`)
@@ -133,13 +133,14 @@ const srcs = args_get("srcs")
 const bottles = args_get("bottles")
 const checksums = args_get("checksums")
 const signatures = args_get("signatures")
+const qaPackages = args_get("qa")[0] === "true"
 
 const rv: string[] = []
 const qa = new Set<string>()
 
 for (const [index, pkg] of pkgs.entries()) {
   const yml = await usePantry().project(pkg.project).yaml()
-  const qaRequired = yml?.["test"]?.["qa-required"] === true
+  const qaRequired = qaPackages && yml?.["test"]?.["qa-required"] === true
   const dst = qaRequired ? stagingBucket : bucket
 
   const bottle = Path.cwd().join(bottles[index])

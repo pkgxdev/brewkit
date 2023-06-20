@@ -5,6 +5,9 @@ inputs:
   pkgs:
     description: packages to upload
     required: true
+  qa:
+    description: whether to QA packages
+    required: true
   srcs:
     description: source tarballs
     required: true
@@ -50,6 +53,7 @@ runs:
           --bottles ${{ inputs.bottles }}
           --checksums ${{ inputs.checksums }}
           --signatures ${{ inputs.signatures }}
+          --qa ${{ inputs.qa }}
       shell: sh
       id: upload
       env:
