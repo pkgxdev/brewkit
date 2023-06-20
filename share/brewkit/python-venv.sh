@@ -45,37 +45,50 @@ mkdir -p ../bin
 
 #FIXME requiring sed is a bit lame
 cat <<EOF > ../bin/"$CMD_NAME"
-#!/bin/sh
+#!/usr/bin/env python
 
-set -e
+import os
+import sys
+import glob
+import shutil
+from pathlib import Path
 
-export VIRTUAL_ENV="\$(cd "\$(dirname "\$0")"/.. && pwd)/venv"
-export ARG0="\$(basename "\$0")"
+# Determine directories and paths
+script_dir = os.path.dirname(os.path.realpath(__file__))
+virtual_env = os.path.join(script_dir, '..', 'venv')
+arg0 = os.path.basename(sys.argv[0])
+python_path = shutil.which('python')
+python_home = os.path.dirname(python_path)
 
-TEA_PYTHON="\$(which python)"
-TEA_PYHOME="\$(dirname "\$TEA_PYTHON")"
+# Write pyvenv.cfg file
+pyvenv_cfg_path = os.path.join(virtual_env, 'pyvenv.cfg')
+with open(pyvenv_cfg_path, 'w') as f:
+    f.write(f"home = {python_home}\ninclude-system-site-packages = false\nexecutable = {python_path}\n")
 
-cat <<EOSH > "\$VIRTUAL_ENV"/pyvenv.cfg
-home = \$TEA_PYHOME
-include-system-site-packages = false
-executable = \$TEA_PYTHON
-EOSH
+# Go through files in the bin directory
+for filepath in glob.glob(os.path.join(virtual_env, 'bin', '*')):
+    if os.path.isfile(filepath):
+        with open(filepath, 'rb+') as f:
+            first_two_chars = f.read(2)
 
-find "\$VIRTUAL_ENV"/bin -maxdepth 1 -type f | while read -r f; do
-  exec 3< "\$f"
-  # reads first 2 characters
-  read -r -n 2 -u 3 cc
-  exec 3<&-
+            # If the file starts with '#!'
+            if first_two_chars == b'#!':
+                rest_of_file = f.read()
+                f.seek(0)
+                f.write(f"#!{os.path.join(virtual_env, 'bin', 'python')}\n".encode('utf-8') + rest_of_file)
+                f.truncate()
 
-  if [ "\$cc" = "#!" ]; then
-    sed -i.bak "1s|.*/python|#!\$VIRTUAL_ENV/bin/python|" "\$f"
-    rm -f "\$f".bak
-  fi
-done
+# Create symlink to the specified Python version in the virtual environment
+python_symlink = os.path.join(virtual_env, 'bin', 'python')
 
-ln -sf "\$TEA_PYTHON" "\$VIRTUAL_ENV"/bin/python
+# Remove the symbolic link if it already exists
+if os.path.exists(python_symlink):
+    os.remove(python_symlink)
 
-exec "\$VIRTUAL_ENV"/bin/\$ARG0 "\$@"
+os.symlink(python_path, python_symlink)
+
+# Execute the corresponding script in the virtual environment
+os.execv(os.path.join(virtual_env, 'bin', arg0), sys.argv)
 
 EOF
 
