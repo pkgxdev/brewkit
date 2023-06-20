@@ -47,6 +47,8 @@ mkdir -p ../bin
 cat <<EOF > ../bin/"$CMD_NAME"
 #!/bin/sh
 
+set -e
+
 export VIRTUAL_ENV="\$(cd "\$(dirname "\$0")"/.. && pwd)/venv"
 export ARG0="\$(basename "\$0")"
 
@@ -59,10 +61,12 @@ include-system-site-packages = false
 executable = \$TEA_PYTHON
 EOSH
 
-find "\$VIRTUAL_ENV"/bin -maxdepth 1 -type f | xargs \\
-  sed -i.bak "1s|.*/python|#!\$VIRTUAL_ENV/bin/python|"
-
-rm "\$VIRTUAL_ENV"/bin/*.bak
+find "\$VIRTUAL_ENV"/bin -maxdepth 1 -type f | while read -r f; do
+  if file -i "\$f" | grep -q 'text'; then
+    sed -i.bak "1s|.*/python|#!\$VIRTUAL_ENV/bin/python|" "\$f"
+    rm -f "\$f".bak
+  fi
+done
 
 ln -sf "\$TEA_PYTHON" "\$VIRTUAL_ENV"/bin/python
 
