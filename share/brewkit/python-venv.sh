@@ -62,7 +62,12 @@ executable = \$TEA_PYTHON
 EOSH
 
 find "\$VIRTUAL_ENV"/bin -maxdepth 1 -type f | while read -r f; do
-  if file -i "\$f" | grep -q 'text'; then
+  exec 3< "\$f"
+  # reads first 2 characters
+  read -r -n 2 -u 3 cc
+  exec 3<&-
+
+  if [ "\$cc" = "#!" ]; then
     sed -i.bak "1s|.*/python|#!\$VIRTUAL_ENV/bin/python|" "\$f"
     rm -f "\$f".bak
   fi
