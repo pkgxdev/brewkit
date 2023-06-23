@@ -97,3 +97,10 @@ tea gh release create "v$V" --prerelease --generate-notes --title "v$V"
 
 
 [discussion]: https://github.com/orgs/teaxyz/discussions
+
+
+## Shellcheck
+
+```sh
+shellcheck --shell=dash --severity=warning **/*.sh bin/*
+```

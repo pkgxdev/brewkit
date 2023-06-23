@@ -38,7 +38,7 @@ else
   PRETTY="$WHERE/projects/$BLEND"
 fi
 
-if test $(git rev-parse --abbrev-ref HEAD) != new/$BLEND; then
+if test "$(git rev-parse --abbrev-ref HEAD)" != "new/$BLEND"; then
   git checkout -b "new/$BLEND" origin/main
 fi
 
