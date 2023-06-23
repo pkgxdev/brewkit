@@ -18,11 +18,17 @@ for(const pkg of pkgnames.map(parse)) {
   const { path, pkg: { version } } = await cellar.resolve(pkg)
   const versionMap = moustaches.tokenize.version(version)
 
+  // Ensure all `provides:` are present
+
   for (const provide of await pantry.project(pkg).provides()) {
     const name = moustaches.apply(provide, versionMap)
     const bin = path.join('bin', name)
     const sbin = path.join('sbin', name)
     if (!bin.isExecutableFile() && !sbin.isExecutableFile()) missing.push([pkg.project, name])
+  }
+
+  if (missing.length) {
+    fail(`error: missing executables:\n${missing.map(([pkg, provide]) => pkg + ' => ' + provide).join('\n')}`)
   }
 
   // Enforce some naming conventions
@@ -45,9 +51,6 @@ for(const pkg of pkgnames.map(parse)) {
   }
 }
 
-if (missing.length) {
-  fail(`error: missing executables:\n${missing.map(([pkg, provide]) => pkg + ' => ' + provide).join('\n')}`)
-}
 
 function fail(msg: string) {
   console.error(msg)
