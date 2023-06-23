@@ -7,18 +7,27 @@ if test -z "$TEA_PANTRY_PATH"; then
   exit 1
 fi
 
+WHERE="$(echo "$TEA_PANTRY_PATH" | cut -d: -f1)"
+GIT_DIR="$WHERE/.git"
+
+if ! test -d $GIT_DIR; then
+  echo "error: TEA_PANTRY_PATH is not a standard git repository" >&2
+  exit 1
+fi
+
+if ! git status --porcelain; then
+  echo "error: git working directory is not clean" >&2
+  exit 1
+fi
+
 d="$(cd "$(dirname "$0")"/.. && pwd)"
 PATH="$d/libexec:$PATH"
 
 if ! command -v ruby >/dev/null; then
-  RUBY=tea
+  RUBY="tea +ruby-lang.org"
 fi
 
-BLEND="$1"
-if test -z "$BLEND"; then
-  BLEND="wip/$($RUBY $d/libexec/sample-blend.rb)"
-fi
-WHERE="$(echo "$TEA_PANTRY_PATH" | cut -d: -f1)"
+BLEND="$($RUBY init.ts $1)"
 
 mkdir -p "$WHERE/projects/$BLEND"
 cp -i "$d/share/TEMPLATE.pkg.yml" "$WHERE/projects/$BLEND/package.yml"
@@ -27,6 +36,10 @@ if test "$WHERE" = "$PWD"; then
   PRETTY="./projects/$BLEND/package.yml"
 else
   PRETTY="$WHERE/projects/$BLEND"
+fi
+
+if test "$(git rev-parse --abbrev-ref HEAD)" != "new/$BLEND"; then
+  git checkout -b "new/$BLEND" origin/main
 fi
 
 tea gum format <<EOF
