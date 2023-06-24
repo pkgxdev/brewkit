@@ -102,5 +102,11 @@ tea gh release create "v$V" --prerelease --generate-notes --title "v$V"
 ## Shellcheck
 
 ```sh
-shellcheck --shell=dash --severity=warning **/*.sh bin/*
+for x in bin/*; do
+  if file $x | grep 'shell script'; then
+    tea shellcheck --shell=dash --severity=warning $x
+  fi
+done
+
+tea shellcheck --shell=dash --severity=warning **/*.sh
 ```
