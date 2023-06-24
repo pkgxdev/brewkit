@@ -1,5 +1,7 @@
 #!/usr/bin/env -S deno run
 
+import { swallow } from "../lib/utils.ts"
+
 const arg = Deno.args[0]
 
 let project: string
@@ -16,7 +18,3 @@ if (url) {
 }
 
 console.info(project)
-
-function swallow<T>(fn: () => T) {
-  try { return fn() } catch { /*noop*/ }
-}

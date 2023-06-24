@@ -24,3 +24,7 @@ Array.prototype.uniq = function<T>(): Array<T> {
     return x
   })
 }
+
+export function swallow<T>(fn: () => T) {
+  try { return fn() } catch { /*noop*/ }
+}
