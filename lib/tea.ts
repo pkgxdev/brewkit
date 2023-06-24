@@ -39,7 +39,6 @@ export enum Verbosity {
 
   function noop() {}
   if (verbosity < Verbosity.debug) console.debug = noop
-  if (verbosity < Verbosity.loud) console.log = noop
   if (verbosity < Verbosity.normal) {
     console.info = noop
     console.warn = noop

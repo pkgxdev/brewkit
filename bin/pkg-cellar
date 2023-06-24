@@ -1,0 +1,89 @@
+#!/usr/bin/env -S deno run -A --unstable --ext=ts
+
+import { hooks, semver, SemVer, utils } from "tea"
+import { Command } from "cliffy/command/mod.ts"
+const { useConfig, useCellar } = hooks
+import repair from "../lib/repair.ts"
+
+const { args: pkgnames, options: flags, cmd } = await new Command()
+  .name("tea pkg cellar")
+  .description("tea/brewkit cellar management")
+  .arguments("[pkgspecs...]")
+  .option("-R, --repair", "fixes the vx, v.x.y and v* symlinks (if necessary)")
+  .option("-p, --prune", "prune old versions")
+  .option("-d, --dryrun", "don’t do stuff, just print")
+  .example("tea pkg cellar -Rp", "prunes and repairs all installed pkgs")
+  .parse(Deno.args)
+
+if (!flags.prune && !flags.repair) {
+  cmd.showHelp()
+  Deno.exit(1)
+}
+
+if (flags.prune) {
+  const versions: Record<string, SemVer[]> = {}
+  for await (const {pkg: {project, version}} of ls()) {
+    versions[project] ??= []
+    versions[project].push(version)
+  }
+
+  for (const project in versions) {
+    switch (project) {
+    case 'python.org':
+    case 'node.org':
+    case 'haskell.org':
+      console.warn("not pruning", project, "due to laziness. PR welcome!")
+      break
+    default:
+      for (const version of versions[project].sort(semver.compare).slice(0, -1)) {
+        console.debug({ version, project })
+        const install = await useCellar().resolve({ project, version })
+        //TODO only print if needs pruning
+        console.error("pruning:", install.path)
+        if (!flags.dryrun) install.path.rm({ recursive: true })
+      }
+    }
+  }
+
+  if (flags.repair == undefined) {
+    flags.repair = true
+  }
+}
+
+if (flags.repair) {
+  for await (const {pkg: {project}} of ls()) {
+    //TODO only print (and obv. run repair) if needs to be repaired
+    console.error("repairing:", project)
+    if (!flags.dryrun) await repair(project)
+  }
+}
+
+async function* ls() {
+  if (pkgnames.length == 0) {
+    const stack = [useConfig().prefix]
+    while (stack.length > 0) {
+      const dir = stack.pop()!
+      for await (const {isDirectory, isSymlink, name} of Deno.readDir(dir.string)) {
+        const path = dir.join(name)
+
+        //TODO use pantry as template ffs
+        if (path.eq(useConfig().prefix.join("tea.xyz/var"))) continue // skip pantry and that
+        if (path.eq(useConfig().prefix.join("tea.xyz/brewkit/mnt"))) continue // skip pantry and that
+
+        if (isDirectory && !isSymlink) {
+          const version = semver.parse(name)
+          if (version) {
+            const project = path.parent().relative({ to: useConfig().prefix })
+            yield { pkg: { project, version }, path }
+          } else {
+            // only descend if not a vx.y.z dir
+            stack.push(path)
+          }
+        }
+      }
+    }
+  } else for (const pkgname of pkgnames) {
+    const rq = utils.pkg.parse(pkgname)
+    yield useCellar().resolve(rq)
+  }
+}
