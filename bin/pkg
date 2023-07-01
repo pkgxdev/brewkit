@@ -5,7 +5,8 @@ set -e
 if test -z "$1"; then
   echo available commands:
   echo
-  find bin -type f | sed -ne 's/^pkg-/pkg /p'
+  d="$(cd "$(dirname "$0")" && pwd)"
+  find "$d" -type f | sed -ne 's/^.*\/pkg-/pkg /p'
   exit 1
 fi
 
