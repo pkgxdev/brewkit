@@ -31,13 +31,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: fischerscode/tagger@v0
-        with:
-          prefix: v
+
+      - name: strip prerelease component
+        run: echo "v=${V%%-rc}" >> $GITHUB_OUTPUT
+        id: strip
+        env:
+          V: ${{ github.event.release.tag_name }}
+
       - name: Convert pre-release to release
         run: |
           curl -fX PATCH \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: Bearer ${{ github.token }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            -d '{"draft": false, "prerelease": false, "make_latest": true}' \
+            -d '{"draft": false, "prerelease": false, "make_latest": true, "tag_name": "${{ steps.strip.outputs.v }}"}' \
             "https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}"
+
+      - uses: fischerscode/tagger@v0
+        with:
+          prefix: v
