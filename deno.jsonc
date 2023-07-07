@@ -12,10 +12,6 @@
       "deno.land": "^1.32"
     }
   },
-  "test": {
-    "include": ["./tests"],
-    "exclude": ["./src"]
-  },
   "imports": {
     "is-what": "https://deno.land/x/is_what@v4.1.15/src/index.ts",
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",

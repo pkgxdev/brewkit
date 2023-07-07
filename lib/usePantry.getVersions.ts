@@ -1,4 +1,4 @@
-import { isPlainObject, isString, isArray, PlainObject } from "is-what"
+import { isPlainObject, isString, isArray, PlainObject, isNumber } from "is-what"
 import { SemVer, semver, hooks, utils } from "libtea"
 import useGitLabAPI from "./useGitLabAPI.ts"
 import useGitHubAPI from "./useGitHubAPI.ts"
@@ -8,14 +8,27 @@ const { validate } = utils
 export default async function getVersions(spec: { project: string }): Promise<SemVer[]> {
   const files = hooks.usePantry().project(spec)
   const versions = await files.yaml().then(x => x.versions)
+  return _parse(versions, spec.project)
+}
 
-  if (isArray(versions)) {
-    return versions.map(raw => new SemVer(validate.str(raw)))
-  } else if (isPlainObject(versions)) {
-    return handleComplexVersions(versions)
-  } else {
-    throw new Error(`couldn’t parse versions for ${spec.project}`)
+export async function _parse(versions: unknown, project?: string): Promise<SemVer[]> {
+  if (!isArray(versions)) {
+    versions = [versions]
   }
+
+  const rv: SemVer[] = []
+  for (let node of versions as unknown[]) {
+    if (isPlainObject(node)) {
+      rv.push(...await handleComplexVersions(node))
+    } else {
+      if (isNumber(node)) node = node.toString()
+      const v = isString(node) && semver.parse(node)
+      if (!v) throw new Error(`couldn’t parse versions for ${project}`)
+      rv.push(v)
+    }
+  }
+
+  return rv
 }
 
 //SRC https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
