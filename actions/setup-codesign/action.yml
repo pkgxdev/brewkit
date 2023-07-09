@@ -8,9 +8,6 @@ inputs:
   p12-password:
     description: Password for p12 file
     required: true
-  identity:
-    description: Identity to use for signing
-    required: true
 
 runs:
   using: composite
