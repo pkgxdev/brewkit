@@ -5,9 +5,6 @@ inputs:
   gpg-key-id:
     description: gpg key id
     required: true
-  gpg-key-passphrase:
-    description: gpg key passphrase
-    required: true
   built:
     description: packages to bottle
     required: true
@@ -34,4 +31,3 @@ runs:
       env:
         COMPRESSION: ${{ inputs.compression }}
         GPG_KEY_ID: ${{ inputs.gpg-key-id }}
-        GPG_PASSPHRASE: ${{ inputs.gpg-passphrase }}

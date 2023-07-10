@@ -33,7 +33,6 @@ const { panic } = utils
 if (import.meta.main) {
   const compression = Deno.env.get("COMPRESSION") == 'xz' ? 'xz' : 'gz'
   const gpgKey = Deno.env.get("GPG_KEY_ID") ?? panic("missing GPG_KEY_ID")
-  const gpgPassphrase = Deno.env.get("GPG_PASSPHRASE") ?? panic("missing GPG_PASSPHRASE")
   const checksums: string[] = []
   const signatures: string[] = []
   const bottles: Path[] = []
@@ -44,7 +43,7 @@ if (import.meta.main) {
     const installation = await cellar.resolve(pkg)
     const path = await bottle(installation, compression)
     const checksum = await sha256(path)
-    const signature = await gpg(path, { gpgKey, gpgPassphrase })
+    const signature = await gpg(path, gpgKey)
 
     console.info({ bottled: path })
 
@@ -76,12 +75,7 @@ export async function sha256(file: Path): Promise<string> {
     .then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
 }
 
-interface GPGCredentials {
-  gpgKey: string
-  gpgPassphrase: string
-}
-
-async function gpg(file: Path, { gpgKey, gpgPassphrase }: GPGCredentials): Promise<string> {
+async function gpg(file: Path, gpgKey: string): Promise<string> {
   const rv = await backticks({
     cmd: [
       "gpg",
@@ -91,8 +85,6 @@ async function gpg(file: Path, { gpgKey, gpgPassphrase }: GPGCredentials): Promi
       "-",
       "--local-user",
       gpgKey,
-      "--passphrase",
-      gpgPassphrase,
       file.string
     ]
   })
