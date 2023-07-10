@@ -88,6 +88,9 @@ if [ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]; then
   exit 1
 fi
 
+# ensure we have the latest version tags
+git fetch origin -pft
+
 V=$(git describe --tags --abbrev=0 --match "v[0-9]*.[0-9]*.[0-9]*")
 V=$(tea semverator bump $V $PRIORITY)
 

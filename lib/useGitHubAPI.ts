@@ -38,13 +38,13 @@ async function GET2<T>(url: URL | string, headers?: Headers): Promise<[T, Respon
 }
 
 
-async function *getVersions({ user, repo, type }: GetVersionsOptions): AsyncGenerator<string> {
-  for await (const { version } of getVersionsLong({ user, repo, type })) {
-    yield version
+async function *getVersions({ user, repo, type }: GetVersionsOptions): AsyncGenerator<{ version: string, tag?: string }> {
+  for await (const { version, tag } of getVersionsLong({ user, repo, type })) {
+    yield { version, tag }
   }
 }
 
-async function *getVersionsLong({ user, repo, type }: GetVersionsOptions): AsyncGenerator<{ version: string, date: Date | undefined }> {
+async function *getVersionsLong({ user, repo, type }: GetVersionsOptions): AsyncGenerator<{ version: string, tag?: string, date?: Date }> {
   //TODO set `Accept: application/vnd.github+json`
   //TODO we can use ETags to check if the data we have cached is still valid
 
@@ -58,6 +58,7 @@ async function *getVersionsLong({ user, repo, type }: GetVersionsOptions): Async
       if (!isArray(json)) throw new Error("unexpected json")
       for (const version of json.map(({ tag_name, name, created_at }) => ({
         version: type == 'releases/tags' ? tag_name : name,
+        tag: tag_name,
         date: created_at }))) {
         yield version
       }

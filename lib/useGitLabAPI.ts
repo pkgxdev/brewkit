@@ -27,9 +27,9 @@ async function GET2<T>(url: URL | string): Promise<[T, Response]> {
 }
 
 
-async function *getVersions({ server, project, type }: GetVersionsOptions): AsyncGenerator<string> {
+async function *getVersions({ server, project, type }: GetVersionsOptions): AsyncGenerator<{ version: string, tag?: string }> {
   for await (const { version } of getVersionsLong({ server, project, type })) {
-    yield version
+    yield {version}
   }
 }
 

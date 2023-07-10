@@ -148,14 +148,14 @@ function parseStrip(strip: string | string[] | undefined): (x: string) => string
 
 interface APIResponseParams {
   // deno-lint-ignore no-explicit-any
-  fetch: AsyncGenerator<string, any, unknown>
+  fetch: AsyncGenerator<{ version: string, tag?: string }, any, unknown>
   ignore: RegExp[]
   strip: (x: string) => string
 }
 
 async function handleAPIResponse({ fetch, ignore, strip }: APIResponseParams): Promise<SemVer[]> {
   const rv: SemVer[] = []
-  for await (const pre_strip_name of fetch) {
+  for await (const { version: pre_strip_name, tag } of fetch) {
     let name = strip(pre_strip_name)
 
     if (ignore.some(x => x.test(name))) {
@@ -183,7 +183,7 @@ async function handleAPIResponse({ fetch, ignore, strip }: APIResponseParams): P
       } else if (v.prerelease.length <= 0) {
         console.debug({ found: v.toString(), from: pre_strip_name });
         // used by some packages
-        (v as unknown as {tag: string}).tag = pre_strip_name
+        (v as unknown as {tag: string}).tag = tag ?? pre_strip_name
         rv.push(v)
       } else {
         console.debug({ignoring: pre_strip_name, reason: 'prerelease'})
