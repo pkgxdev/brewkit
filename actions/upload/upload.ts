@@ -178,6 +178,7 @@ for (const [index, pkg] of pkgs.entries()) {
     const srcKey = useOffLicense("s3").key({
       pkg: stowed.pkg,
       type: "src",
+      extname: "",
     })
     await put(`${dirname(srcKey)}/versions.txt`, "", dst, qaRequired)
   }
