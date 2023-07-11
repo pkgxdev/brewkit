@@ -173,6 +173,14 @@ for (const [index, pkg] of pkgs.entries()) {
     await put(srcKey, src, dst, qaRequired)
     await put(`${srcKey}.sha256sum`, `${srcChecksum}  ${basename(srcKey)}`, dst, qaRequired)
     await put(`${dirname(srcKey)}/versions.txt`, srcVersions.join("\n"), dst, qaRequired)
+  } else {
+    // no sources, but we still need to have a versions.txt
+    const srcKey = useOffLicense("s3").key({
+      pkg: stowed.pkg,
+      type: "src",
+      extname: "",
+    })
+    await put(`${dirname(srcKey)}/versions.txt`, "", dst, qaRequired)
   }
 
   if (qaRequired) {
