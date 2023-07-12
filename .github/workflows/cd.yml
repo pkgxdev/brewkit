@@ -57,3 +57,4 @@ jobs:
       - uses: fischerscode/tagger@v0
         with:
           prefix: v
+          tag: ${{ steps.strip.outputs.v }}
