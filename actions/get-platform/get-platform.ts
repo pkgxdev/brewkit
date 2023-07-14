@@ -59,7 +59,7 @@ const output: Output = (() => {
     // Some packages need macOS 12
     const os = (() => {
       if (packages?.some(pkg => requiresMacOS12.includes(pkg.project)))
-        return ["self-hosted", "macOS", "X64"]
+        return "macos-12"
       return "macos-11"
     })()
     return {
