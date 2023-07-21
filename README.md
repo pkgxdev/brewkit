@@ -64,8 +64,8 @@ This should be added to a `pkg doctor` type thing I reckon. E.g.
 
 ### Hacking on brewkit
 
-If you do `../brewkit/bin/pkg build` for example your local brewkit will be
-used rather than that which is installed.
+In a pantry clone, if you do `../brewkit/bin/pkg build` for example your local
+brewkit will be used rather than that which is installed.
 
 &nbsp;
 
