@@ -36,6 +36,7 @@ def main():
     parser.add_argument('executable', help='Executable')
     parser.add_argument('--extra', nargs='*', default=[], help='Adds a PEP 508 optional dependencies (aka extras)', action='extend')
     parser.add_argument('--requirements-txt', help='uses requirements.txt', action='store_const', const=True, default=False)
+    parser.add_argument('--no-binary', help='passes --no-binary to pip', action='store_const', const=True, default=False)
     args = parser.parse_args()
 
     cmd_name = os.path.basename(args.executable)
@@ -83,6 +84,9 @@ def main():
 
     if args.requirements_txt:
       pipcmd.extend(["-r", f"{srcroot}/requirements.txt"])
+
+    if args.no_binary:
+      pipcmd.extend(["--no-binary", ":all:"])
 
     pipcmd.extend([
       "--verbose",
