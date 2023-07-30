@@ -38,6 +38,10 @@ fi
 
 if test -z "$GITHUB_TOKEN"; then
   GITHUB_TOKEN=$(tea gh auth token)
+  if test -z "$GITHUB_TOKEN"; then
+    echo "error: builds need a GITHUB_TOKEN. Either export that or run \`gh auth login\`" >&2
+    exit 1
+  fi
   export GITHUB_TOKEN
 fi
 
