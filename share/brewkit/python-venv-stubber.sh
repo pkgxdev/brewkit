@@ -45,7 +45,7 @@ for filepath in glob.glob(os.path.join(virtual_env, 'bin', '*')):
           if first_two_chars == b'#!':
               old_first_line = first_two_chars + f.readline()  # Read the rest of the first line
 
-              if old_first_line != new_first_line:
+              if old_first_line.endswith(b"python") and old_first_line != new_first_line:
                   rest_of_file = f.read()
                   f.seek(0)
                   f.write(new_first_line + rest_of_file)
