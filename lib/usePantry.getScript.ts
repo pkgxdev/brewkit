@@ -25,7 +25,11 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
         }
 
         let run = obj['run']
-        if (!isString(run)) throw new Error('every node in a script YAML array must contain a `run` key')
+        if (isArray(run)) {
+          run = run.join("\n")
+        } else if (!isString(run)) {
+          throw new Error('every node in a script YAML array must contain a `run` key')
+        }
 
         let cd = obj['working-directory']
         if (cd) {
