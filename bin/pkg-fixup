@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env -S tea bash
+# shellcheck shell=bash
 
 set -e
 

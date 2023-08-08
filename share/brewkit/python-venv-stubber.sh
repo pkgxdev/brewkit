@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env -S tea bash
+# shellcheck shell=bash
+
 # python virtual-envs are not relocatable
 # our only working choice is to rewrite these files and symlinks every time
 # because we promise that tea is relocatable *at any time*
