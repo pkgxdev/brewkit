@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env -S tea bash
+# shellcheck shell=bash
 
 d="$(cd "$(dirname "$0")/.." && pwd)"
 exec "$d"/libexec/inventory.ts "$@"
