@@ -17,9 +17,9 @@
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
     "cliffy/": "https://deno.land/x/cliffy@v0.25.7/",
     "s3": "https://deno.land/x/s3@0.5.0/mod.ts",
-    "deno/": "https://deno.land/std@0.191.0/",
-    "libtea": "https://deno.land/x/libtea@v0.6.2/mod.ts",
-    "libtea/": "https://deno.land/x/libtea@v0.6.2/src/",
+    "deno/": "https://deno.land/std@0.196.0/",
+    "libtea": "https://deno.land/x/libtea@v0.11.2/mod.ts",
+    "libtea/": "https://deno.land/x/libtea@v0.11.2/src/",
     "tea": "./lib/tea.ts"
   }
 }
