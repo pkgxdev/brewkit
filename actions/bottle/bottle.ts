@@ -6,6 +6,7 @@ dependencies:
   tukaani.org/xz: ^5
   zlib.net: 1
   gnupg.org: ^2
+  deno.land: '>=1.32<1.36.1'
 args:
   - deno
   - run

@@ -11,6 +11,7 @@ args:
   - --allow-run=aws
 dependencies:
   aws.amazon.com/cli: ^2
+  deno.land: '>=1.32<1.36.1'
 ---*/
 
 import { Package, PackageRequirement, SemVer, Path, semver, hooks, utils } from "tea"

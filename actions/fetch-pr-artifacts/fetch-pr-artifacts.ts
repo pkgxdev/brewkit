@@ -1,6 +1,8 @@
 #!/usr/bin/env tea
 
 /*---
+dependencies:
+  deno.land: '>=1.32<1.36.1'
 args:
   - deno
   - run
