@@ -31,11 +31,10 @@ for CHANGED_FILE in $CHANGED_FILES; do
   then
     true # noop
   elif test "$1" = "--print-paths"; then
-    OUTPUT="$OUTPUT\n$CHANGED_FILE"
+    OUTPUT="$OUTPUT $CHANGED_FILE"
   else
-    OUTPUT="$OUTPUT\n$PROJECT"
+    OUTPUT="$OUTPUT $PROJECT"
   fi
 done
 
-# shellcheck disable=SC2046
-echo $(echo $OUTPUT | sort | uniq)
+echo "$OUTPUT" | tr ' ' '\n' | sort -u | tr '\n' ' '
