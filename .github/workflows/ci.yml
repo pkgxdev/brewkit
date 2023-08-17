@@ -19,6 +19,7 @@ jobs:
           - c-ares.org
           - vim.org
           - tea.xyz/gx/cc
+          - boost.org
           # FIXME? requires a darwin platform to run, and needs
           # macOS 12 to test. That'll require a more complex matrix
           # using get-platform.
