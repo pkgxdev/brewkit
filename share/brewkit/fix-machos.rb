@@ -164,11 +164,8 @@ class Fixer
         end
       elsif lib.start_with? '@rpath'
         path = Pathname.new(lib.sub(%r{^@rpath}, $tea_prefix))
-        if path.exist?
-          lib
-        else
-          puts "warn:#{@file.filename}:#{lib}"
-        end
+        puts "warn:#{@file.filename}:#{lib}" unless path.exist?
+        lib
       elsif lib.start_with? '@'
         puts "warn:#{@file.filename}:#{lib}"
         # noop
@@ -201,7 +198,13 @@ class Fixer
       s = s.relative_path_from(Pathname.new($tea_prefix))
       s = s.sub(%r{/v(\d+)\.(\d+\.)+\d+[a-z]?/}, '/v\1/')
 
-      abort "#{s} doesn’t exist!" unless File.exist?(File.join($tea_prefix, s))
+      # Some libs, like boost, have @rpath/filename.dylib. They lose the subpath.
+      # We can fix this.
+      if !File.exist?(File.join($tea_prefix, s))
+        lib = Pathname.new(@file.filename).parent.join(Pathname.new(s).basename)
+        abort "#{s} doesn’t exist!" unless lib.exist?
+        s = lib.relative_path_from(Pathname.new($tea_prefix))
+      end
 
       s = "@rpath/#{s}"
 
