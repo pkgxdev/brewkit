@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run -A
+#!/usr/bin/env -S tea deno run -A
 
 import { utils, Path } from "tea"
 import { S3 } from "s3"

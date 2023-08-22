@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run --allow-net --allow-env --allow-write=./artifacts.tgz
+#!/usr/bin/env -S tea deno run --allow-net --allow-env --allow-write=./artifacts.tgz
 
 /// Test
 /// ./scripts/fetch-pr-artifacts.ts e582b03fe6efedde80f9569403555f4513dbec91

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run -A
+#!/usr/bin/env -S tea deno run -A
 
 /// Test
 /// ./scripts/has-artifacts.ts e582b03fe6efedde80f9569403555f4513dbec91
