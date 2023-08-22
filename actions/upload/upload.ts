@@ -1,18 +1,4 @@
-#!/usr/bin/env tea
-
-/*---
-args:
-  - deno
-  - run
-  - --allow-net
-  - --allow-read
-  - --allow-env
-  - --allow-write
-  - --allow-run=aws
-dependencies:
-  aws.amazon.com/cli: ^2
-  deno.land: '>=1.32<1.36.1'
----*/
+#!/usr/bin/env -S tea +aws.amazon.com/cli deno run -A
 
 import { Package, PackageRequirement, SemVer, Path, semver, hooks, utils } from "tea"
 import { decode as base64Decode } from "deno/encoding/base64.ts"

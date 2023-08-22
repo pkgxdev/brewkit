@@ -1,10 +1,4 @@
-#!/usr/bin/env tea
-
-#---
-# dependencies:
-#   git-scm.org: ^2
-#   # ^^ required to set version tag used by setup tools
-#---
+#!/usr/bin/env -S tea +git-scm.org python
 
 import argparse
 import os

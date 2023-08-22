@@ -1,12 +1,6 @@
-#!/usr/bin/env tea
+#!/usr/bin/env -S tea +git-scm.org bash
 
-#---
-# dependencies:
-#   git-scm.org: ^2
-#   # ^^ required to set version tag used by setup tools
-#---
-
-set -ex
+set -eo pipefail
 
 CMD_NAME=$(basename "$1")
 PREFIX="$(dirname "$(dirname "$1")")"

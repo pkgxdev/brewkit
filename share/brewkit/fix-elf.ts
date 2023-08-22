@@ -1,19 +1,7 @@
-#!/usr/bin/env -S tea -E
+#!/usr/bin/env -S tea +nixos.org/patchelf=0.17.2 +darwinsys.com/file^5 deno run -A
 
-/*---
-args:
-  - deno
-  - run
-  - --allow-run
-  - --allow-env
-  - --allow-read
-  - --allow-write={{tea.prefix}}
-dependencies:
-  # FIXME: 0.18.0 has a regression that breaks libraries
-  # https://github.com/NixOS/patchelf/issues/492#issuecomment-1561912775
-  nixos.org/patchelf: =0.17.2
-  darwinsys.com/file: 5
----*/
+// FIXME ^^ patchelf 0.18.0 has a regression that breaks libraries
+//       https://github.com/NixOS/patchelf/issues/492#issuecomment-1561912775
 
 import { utils, PackageRequirement, Installation, Package, hooks, Path } from "tea"
 import { backticks } from "../../lib/utils.ts"

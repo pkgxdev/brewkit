@@ -1,15 +1,4 @@
-#!/usr/bin/env tea
-
-/*---
-dependencies:
-  deno.land: '>=1.32<1.36.1'
-args:
-  - deno
-  - run
-  - --allow-net
-  - --allow-env
-  - --allow-write=./artifacts.tgz
----*/
+#!/usr/bin/env -S deno run --allow-net --allow-env --allow-write=./artifacts.tgz
 
 /// Test
 /// ./scripts/fetch-pr-artifacts.ts e582b03fe6efedde80f9569403555f4513dbec91

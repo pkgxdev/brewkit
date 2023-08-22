@@ -1,15 +1,4 @@
-#!/usr/bin/env tea
-
-/*---
-dependencies:
-  deno.land: '>=1.32<1.36.1'
-args:
-  - deno
-  - run
-  - --allow-read
-  - --allow-env
-  - --allow-write
----*/
+#!/usr/bin/env -S deno run -A
 
 import { utils, hooks } from "tea"
 const { parse, str } = utils.pkg
