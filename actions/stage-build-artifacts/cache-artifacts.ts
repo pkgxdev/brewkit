@@ -1,15 +1,4 @@
-#!/usr/bin/env tea
-
-/*---
-dependencies:
-  deno.land: '>=1.32<1.36.1'
-args:
-  - deno
-  - run
-  - --allow-net
-  - --allow-read
-  - --allow-env
----*/
+#!/usr/bin/env -S deno run -A
 
 import { utils, Path } from "tea"
 import { S3 } from "s3"

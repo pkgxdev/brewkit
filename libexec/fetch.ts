@@ -1,23 +1,4 @@
-#!/usr/bin/env -S tea -E
-
-/*---
-args:
-  - deno
-  - run
-  - --allow-net
-  - --allow-run=curl,git,tar
-  - --allow-read
-  - --allow-write
-  - --allow-env
-  - --unstable
-dependencies:
-  curl.se: '*'
-  git-scm.org: '*'
-  gnu.org/tar: '*'
-  tukaani.org/xz: '*'
----*/
-
-//TODO verify the sha
+#!/usr/bin/env -S tea +curl.se +git-scm.org +gnu.org/tar +tukaani.org/xz deno run -A
 
 import { hooks, utils, Stowage, Path } from "tea"
 import { parseFlags } from "cliffy/flags/mod.ts"

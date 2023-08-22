@@ -1,21 +1,4 @@
-#!/usr/bin/env tea
-
-/* ---
-dependencies:
-  gnu.org/tar: ^1.34
-  tukaani.org/xz: ^5
-  zlib.net: 1
-  gnupg.org: ^2
-  deno.land: '>=1.32<1.36.1'
-args:
-  - deno
-  - run
-  - --allow-net
-  - --allow-run
-  - --allow-env
-  - --allow-read
-  - --allow-write
---- */
+#!/usr/bin/env -S tea deno +gnu.org/tar^1.34 +tukaani.org/xz^5 +zlib.net^1 +gnupg.org^2 +deno.land>=1.32<1.36.1 deno run -A
 
 import { encode as base64Encode } from "deno/encoding/base64.ts"
 import { Installation, Path, hooks, utils } from "tea"

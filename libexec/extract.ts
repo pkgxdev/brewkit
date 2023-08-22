@@ -1,23 +1,4 @@
-#!/usr/bin/env -S tea -E
-
-/*---
-dependencies:
-  gnu.org/tar: ^1
-  tukaani.org/xz: ^5
-  sourceware.org/bzip2: ^1
-  info-zip.org/unzip: ^6
-args:
-  - deno
-  - run
-  - --allow-net
-  - --allow-read
-  - --allow-run=tar,unzip
-  - --allow-write
-  - --allow-env
----*/
-
-//TODO verify the sha
-//TODO only allow writes to Deno.args[1]
+#!/usr/bin/env -S tea +curl.se +git-scm.org +gnu.org/tar +tukaani.org/xz deno run -A
 
 import { Package, PackageRequirement, Path, utils, hooks } from "tea"
 const { useSourceUnarchiver, usePantry } = hooks

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# using macOS provided ruby is complex, ocassionally breaks and that causes revlock
+# using macOS provided ∵ ruby is complex, ocassionally breaks and that causes revlock
 # ideally our tests would be thorough enough to guarantee more stability
 # we’ll get there…
 

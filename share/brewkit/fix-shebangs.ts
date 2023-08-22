@@ -1,14 +1,4 @@
-#!/usr/bin/env -S tea -E
-
-/* ---
-args:
-  - deno
-  - run
-  - --allow-run
-  - --allow-env
-  - --allow-read
-  - --allow-write={{tea.prefix}}
---- */
+#!/usr/bin/env -S deno run -A
 
 import { Path } from "tea"
 import undent from "outdent"
