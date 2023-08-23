@@ -1,4 +1,4 @@
-#!/usr/bin/env -S tea +curl.se +git-scm.org +gnu.org/tar +tukaani.org/xz deno run -A
+#!/usr/bin/env -S tea +curl.se +git-scm.org +gnu.org/tar +tukaani.org/xz +info-zip.org/unzip deno run -A
 
 import { Package, PackageRequirement, Path, utils, hooks } from "tea"
 const { useSourceUnarchiver, usePantry } = hooks
