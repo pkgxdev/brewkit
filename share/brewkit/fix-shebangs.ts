@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run -A
+#!/usr/bin/env -S tea deno run -A
 
 import { Path } from "tea"
 import undent from "outdent"
