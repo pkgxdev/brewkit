@@ -1,7 +1,8 @@
 on:
-  release:
-    types:
-      - created
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
 
 concurrency:
   group: ${{ github.event.release.tag_name }}
@@ -11,45 +12,42 @@ permissions:
   contents: read
 
 jobs:
-  verify-prerelease:
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          echo "we only publish pre-releases!" >&2
-          exit 1
-        if: ${{ ! github.event.release.prerelease }}
-
   qa:
-    needs: verify-prerelease
-    if: ${{ github.event.release.prerelease }}
     uses: ./.github/workflows/ci.yml
+  shellcheck:
+    uses: ./.github/workflows/shellcheck.yml
 
   publish:
-    needs: qa
+    needs: [qa, shellcheck]
     permissions:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
-      - name: strip prerelease component
-        run: echo "v=${V%%-rc}" >> $GITHUB_OUTPUT
-        id: strip
-        env:
-          V: ${{ github.event.release.tag_name }}
+      - uses: teaxyz/setup@v0
 
-      - name: Convert pre-release to release
+      - name: determine previous version
+        id: previous
         run: |
-          curl -fX PATCH \
-            -H "Authorization: Bearer ${{ github.token }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -d '{"draft": false, "prerelease": false, "make_latest": true, "tag_name": "${{ steps.strip.outputs.v }}"}' \
-            "https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}"
+          versions="$(git tag | grep '^v[0-9]\+\.[0-9]\+\.[0-9]\+')"
+          v_latest="$(npx -- semver $versions | tail -n1)"
+          echo "version=$v_latest" >> $GITHUB_OUTPUT
 
-      # delete pre-release tag
-      - run: |
-          git push origin :${{ github.event.release.tag_name }}
-          git tag -d ${{ github.event.release.tag_name }}
+      - name: sanity
+        run:
+          tea semverator lt ${{ steps.previous.outputs.version }} ${{ github.event.inputs.version }}
+
+      - run: gh release create
+          ${{ github.event.inputs.version }}
+          --latest
+          --generate-notes
+          --notes-start-tag=${{ steps.previous.outputs.version }}
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       # we need the new tag for the next step
       - run: git tag ${{ steps.strip.outputs.v }}

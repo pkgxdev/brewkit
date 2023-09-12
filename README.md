@@ -95,7 +95,8 @@ V=$(git describe --tags --abbrev=0 --match "v[0-9]*.[0-9]*.[0-9]*")
 V=$(tea semverator bump $V $PRIORITY)
 
 git push origin main
-tea gh release create "v$V"-rc --prerelease --generate-notes --title "v$V"
+
+gh workflow run cd.yml --raw-field version="$V"
 ```
 
 
