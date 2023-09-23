@@ -1,3 +1,4 @@
+import useConfig from "libtea/hooks/useConfig.ts"
 import { SupportedPlatforms } from "https://raw.githubusercontent.com/teaxyz/lib/v0.4.2/src/utils/host.ts"
 import { isArray, isString, isPlainObject, PlainObject } from "is-what"
 import { Package, Installation, hooks, utils, semver } from "libtea"
@@ -13,6 +14,9 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
   const mm = useMoustaches()
   const script = (input: unknown) => {
     const tokens = mm.tokenize.all(pkg, deps)
+    tokens.push({
+      from: "build.root", to: useConfig().prefix.string
+    })
     if (isArray(input)) input = input.map(obj => {
       if (isPlainObject(obj)) {
 

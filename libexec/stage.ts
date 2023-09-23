@@ -56,7 +56,12 @@ const pkg = await pantry.resolve(parse(pkgname))
 
 /// assemble build script
 const pantry_sh = await pantry.getScript(pkg, 'build', deps)
-const brewkit = new Path(new URL(import.meta.url).pathname).parent().parent().join("share/brewkit")
+const sup_PATH = [new Path(new URL(import.meta.url).pathname).parent().parent().join("share/brewkit")]
+
+if (!deps.find(({pkg}) => pkg.project == 'llvm.org' || pkg.project == 'gnu.org/gcc')) {
+  /// add our helper cc toolchain unless the package has picked its own toolchain
+  sup_PATH.push(new Path(new URL(import.meta.url).pathname).parent().parent().join("share/toolchain/bin"))
+}
 
 /// calc env
 const sh = useShellEnv()
@@ -86,7 +91,7 @@ const text = undent`
 
   mkdir -p "$HOME"
 
-  export PATH=${brewkit}:"$PATH"
+  export PATH=${sup_PATH.map(x => x.string).join(':')}:"$PATH"
   export CFLAGS="-w $CFLAGS"  # warnings are noise
 
   ${pantry_sh}
