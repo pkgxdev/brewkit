@@ -43,6 +43,11 @@ if (!yml.test) throw "no `test` node in package.yml"
 env['PATH'] ??= []
 env['PATH'].push("/usr/bin:/bin")
 
+if (!deps.find(({pkg}) => pkg.project == 'llvm.org' || pkg.project == 'gnu.org/gcc')) {
+  /// add our helper cc toolchain unless the package has picked its own toolchain
+  env['PATH'].push(new Path(new URL(import.meta.url).pathname).parent().parent().join("share/toolchain/bin").string)
+}
+
 let text = undent`
   #!/usr/bin/env bash
 
