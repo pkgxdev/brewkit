@@ -29,21 +29,16 @@ jobs:
 
       - uses: teaxyz/setup@v0
 
+      - name: prefetch deno deps
+        # this makes the output from the build step more legible
+        run: deno cache **/*.ts
+
       - name: install brewkit
         run: |
           mkdir -p "$HOME/.tea/tea.xyz/brewkit/v*"
           mv * "$HOME/.tea/tea.xyz/brewkit/v*"
 
-      - uses: actions/cache@v3
-        with:
-          path: ${{ env.HOME }}/.cache/deno
-          key: deno-get-platform-${{ hashFiles('deno.jsonc')}}
-
-      - name: prefetch deno deps
-        # this makes the output from the build step more legible
-        run: deno cache **/*.ts
-
-      - run: pkg build ${{matrix.pkgs}}
+      - run: tea pkg build ${{matrix.pkgs}}
         id: build
 
       - run: test -n '${{ steps.build.outputs.pkgs }}'
