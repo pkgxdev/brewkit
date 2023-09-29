@@ -25,16 +25,14 @@ jobs:
     container:
       image: debian:buster-slim
     steps:
-      - uses: teaxyz/setup@v0
-
       - uses: actions/checkout@v3
-        with:
-          path: co
+
+      - uses: teaxyz/setup@v0
 
       - name: install brewkit
         run: |
-          mkdir -p $HOME/.tea/tea.xyz/brewkit
-          mv co "$HOME/.tea/tea.xyz/brewkit/v*"
+          mkdir -p "$HOME/.tea/tea.xyz/brewkit/v*"
+          mv * "$HOME/.tea/tea.xyz/brewkit/v*"
 
       - uses: actions/cache@v3
         with:
