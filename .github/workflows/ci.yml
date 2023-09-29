@@ -18,7 +18,6 @@ jobs:
           - catb.org/wumpus
           - c-ares.org
           - vim.org
-          - tea.xyz/gx/cc
           # FIXME? requires a darwin platform to run, and needs
           # macOS 12 to test. That'll require a more complex matrix
           # using get-platform.
@@ -26,11 +25,11 @@ jobs:
     container:
       image: debian:buster-slim
     steps:
-      - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
 
-      - name: configure PATH
-        run: echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+      - uses: actions/checkout@v3
+        with:
+          path: ${{ env.HOME }}/.tea/tea.xyz/brewkit/v*
 
       - uses: actions/cache@v3
         with:
