@@ -26,12 +26,10 @@ jobs:
       image: debian:buster-slim
     steps:
       - uses: actions/checkout@v3
-
       - uses: teaxyz/setup@v0
 
-      - name: prefetch deno deps
-        # this makes the output from the build step more legible
-        run: deno cache **/*.ts
+      # prefetch dneo deps to make the output from the build step more legible
+      - run: deno cache **/*.ts
 
       - name: install brewkit
         run: |
@@ -52,8 +50,8 @@ jobs:
             echo "srcs=true" >> $GITHUB_OUTPUT
           fi
         id: srcs
-      -
-       run: test -n '${{ steps.build.outputs.srcs }}'
+
+      - run: test -n '${{ steps.build.outputs.srcs }}'
         if: steps.srcs.outputs.srcs == 'true'
 
       - run: test -n '${{ steps.build.outputs.srcs-relative-paths }}'
