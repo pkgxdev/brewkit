@@ -3,7 +3,8 @@
 tool=$(basename $0)
 
 if [ $(uname) != Darwin ]; then
-  exec tea +llvm.org $tool "$@"
+  d="$(cd "$(basename "$0")" && pwd)"
+  exec tea +llvm.org $d/symlinks/$tool "$@"
 fi
 
 case $tool in

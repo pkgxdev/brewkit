@@ -3,5 +3,5 @@
 if [ $(uname) = Darwin ]; then
   exec /usr/bin/make "$@"
 else
-  tea +gnu.org/make make "$@"
+  exec tea +gnu.org/make make "$@"
 fi
