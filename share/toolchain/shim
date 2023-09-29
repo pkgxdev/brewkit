@@ -2,10 +2,10 @@
 
 tool=$(basename $0)
 
-# if [ $(uname) != Darwin ]; then
+if [ $(uname) != Darwin ]; then
   d="$(cd "$(dirname "$0")/.." && pwd)"
-  exec tea +llvm.org $d/symlinks/$tool "$@"
-# fi
+  exec "$TEA_PREFIX/tea.xyz/v*/bin/tea" +llvm.org $d/symlinks/$tool "$@"
+fi
 
 case $tool in
 cc|gcc|clang|c++|g++|clang++)
