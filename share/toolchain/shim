@@ -32,8 +32,6 @@ esac
 # - for bottles we replace that in fix-machos.rb with a relocatable prefix
 # - in general usage we don’t, so if the user needs to distribute their artifacts,
 #   they will need to fix them first, but that's typical anyway.
-# - for tea-envs the user probably won’t use tea.xyz/gx/cc even though they *should*
-#   and thus we set LDFLAGS in the hope that they will be picked up and the rpath set
 
 $tea_prefix = ENV['TEA_PREFIX'] || (ENV['HOME'] + "/.tea")
 exe = File.basename($0)
