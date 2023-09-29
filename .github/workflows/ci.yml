@@ -35,7 +35,7 @@ jobs:
         run: |
           mkdir -p "$HOME/.tea/tea.xyz/brewkit/v*"
           mv * "$HOME/.tea/tea.xyz/brewkit/v*"
-          echo "$HOME/.tea/tea.xyz/brewkit/v*" >> $GITHUB_PATH
+          echo "$HOME/.tea/tea.xyz/brewkit/v*/bin" >> $GITHUB_PATH
 
       - run: pkg build ${{matrix.pkgs}}
         id: build
