@@ -1,5 +1,5 @@
 import { isArray } from "is-what"
-import { Path } from "tea"
+import { Path } from "pkgx"
 
 export async function backticks({ cmd }: { cmd: Path | (string | Path)[]}): Promise<string> {
   const args = isArray(cmd) ? cmd.map(x => `${x}`) : [cmd.string]

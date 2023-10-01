@@ -1,10 +1,10 @@
-#!/usr/bin/env -S tea deno run --allow-net --allow-env --allow-write=./artifacts.tgz
+#!/usr/bin/env -S pkgx deno run --allow-net --allow-env --allow-write=./artifacts.tgz
 
 /// Test
 /// ./scripts/fetch-pr-artifacts.ts e582b03fe6efedde80f9569403555f4513dbec91
 
 import undent from "outdent"
-import { utils } from "tea"
+import { utils } from "pkgx"
 const { panic } = utils
 import { S3 } from "s3"
 

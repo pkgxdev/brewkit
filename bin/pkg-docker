@@ -1,4 +1,4 @@
-#!/usr/bin/env -S tea bash
+#!/usr/bin/env -S pkgx bash
 # shellcheck shell=bash
 
 set -e
@@ -7,21 +7,18 @@ d="$(cd "$(dirname "$0")/.." && pwd)"
 
 arg0="$1"
 
-if test -z "$TEA_PREFIX"; then
-  echo "tea.xyz/brewkit: error: TEA_PREFIX unset" >&2
-  exit 1
-fi
+PKGX_DIR="${PKGX_DIR:-$HOME/.pkgx}"
 
 if test -z "$GITHUB_TOKEN"; then
-  GITHUB_TOKEN=$(tea gh auth token)
+  GITHUB_TOKEN=$(pkgx gh auth token)
 fi
 
 if test "$arg0" = docker; then
-  echo "tea.xyz/brewkit: error: invalid usage" >&2
+  echo "brewkit: error: invalid usage" >&2
   exit 1
 elif shift; then
   # ensure this brewkit is used
-  CMD="tea +deno.land ""$d/bin/pkg-$arg0"
+  CMD="pkgx +deno.land ""$d/bin/pkg-$arg0"
   ADDARGS="--volume ""$d"":""$d"
 else
   # we were invoked as `pkg -L` by itself
@@ -29,48 +26,46 @@ else
 fi
 
 STDARGS="
-  --name brewkit.tea.xyz
+  --name brewkit.pkgx.dev
   --rm
   --tty
   --env GITHUB_TOKEN=$GITHUB_TOKEN
   --env CLICOLOR_FORCE=1
   "
 
-if test "$TEA_PANTRY_PATH" = "$SRCROOT"; then
+if test "$PKGX_PANTRY_PATH" = "$SRCROOT"; then
   # we’re running in a pantry checkout
 
-  mkdir -p "$TEA_PANTRY_PATH/prefixes/linux"
+  mkdir -p "$PKGX_PANTRY_PATH/prefixes/linux"
 
-  tea gum format "# docker pull"
+  pkgx gum format "# docker pull"
 
-  docker image pull teaxyz/cli
+  docker image pull pkgxdev/pkgx
 
-  tea gum format "# docker run"
+  pkgx gum format "# docker run"
 
   docker run \
     $STDARGS \
     $ADDARGS \
-    --volume "$TEA_PANTRY_PATH":/work \
+    --volume "$PKGX_PANTRY_PATH":/work \
     --env SRCROOT=/work \
     --volume /root/pantry/prefixes \
-    --volume "$TEA_PANTRY_PATH"/prefixes/linux:/root/.tea \
-    --volume "$TEA_PREFIX/tea.xyz/var/www":/root/.tea/tea.xyz/var/www \
-    --volume "$TEA_PANTRY_PATH"/projects:/root/.tea/tea.xyz/var/pantry/projects \
-    --env DENO_DIR=/root/.tea/.local/.cache/deno \
-    teaxyz/cli \
+    --volume "$PKGX_PANTRY_PATH"/prefixes/linux:/root/.pkgx \
+    --volume "$PKGX_PANTRY_PATH"/projects:/root/.local/share/pkgx/pantry/projects \
+    --env DENO_DIR=/root/.pkgx/.cache/deno \
+    pkgxdev/pkgx \
     $CMD "$@"
 else
-  if test -n "$TEA_PANTRY_PATH"; then
-    ADDARGS="--volume ""$TEA_PANTRY_PATH"":/root/.tea/tea.xyz/var/pantry ""$ADDARGS"
+  if test -n "$PKGX_PANTRY_PATH"; then
+    ADDARGS="--volume ""$PKGX_PANTRY_PATH"":/root/.local/share/pkgx/pantry ""$ADDARGS"
   fi
 
-  docker image pull teaxyz/cli
+  docker image pull pkgxdev/pkgx
 
   docker run \
     $STDARGS \
-    --volume "$TEA_PREFIX/tea.xyz/var":/root/.tea/tea.xyz/var \
     $ADDARGS \
-    teaxyz/cli \
+    pkgxdev/pkgx \
     $CMD "$@"
 fi
 

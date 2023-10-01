@@ -16,9 +16,7 @@ require 'pathname'
 require 'macho'
 require 'find'
 
-#TODO lazy & memoized
-$tea_prefix = ENV['TEA_PREFIX'] || `tea --prefix`.chomp
-abort "set TEA_PREFIX" if $tea_prefix.empty?
+$PKGX_DIR = ENV['PKGX_DIR'] || ENV["HOME"] + "/.pkgx"
 
 $pkg_prefix = ARGV.shift
 abort "arg1 should be pkg-prefix" if $pkg_prefix.empty?
@@ -89,7 +87,7 @@ class Fixer
   end
 
   def fix_id
-    rel_path = Pathname.new(@file.filename).relative_path_from(Pathname.new($tea_prefix))
+    rel_path = Pathname.new(@file.filename).relative_path_from(Pathname.new($PKGX_DIR))
     id = "@rpath/#{rel_path}"
     if @file.dylib_id != id
       # only do work if we must
@@ -111,13 +109,13 @@ class Fixer
     File.chmod(stat.mode, @file.filename) if chmoded
   end
 
-  def links_to_other_tea_libs?
+  def links_to_other_pkgx_libs?
     @file.linked_dylibs.each do |lib|
       # starts_with? @rpath is not enough lol
       # this because we are setting `id` to @rpath now so it's a reasonable indication
-      # that we link to tea libs, but the build system for the pkg may well do this for its
+      # that we link to pkgx libs, but the build system for the pkg may well do this for its
       # own libs
-      return true if lib.start_with? $tea_prefix or lib.start_with? '@rpath'
+      return true if lib.start_with? $PKGX_DIR or lib.start_with? '@rpath'
     end
     return false
   end
@@ -126,12 +124,12 @@ class Fixer
     #TODO remove spurious rpaths
 
     dirty = false
-    rel_path = Pathname.new($tea_prefix).relative_path_from(Pathname.new(@file.filename).parent)
+    rel_path = Pathname.new($PKGX_DIR).relative_path_from(Pathname.new(@file.filename).parent)
     rpath = "@loader_path/#{rel_path}"
 
     # rewrite any rpaths the tool itself set to be relative
     @file.rpaths.each do |rpath|
-      if rpath.start_with? $tea_prefix
+      if rpath.start_with? $PKGX_DIR
         diff = Pathname.new(rpath).relative_path_from(Pathname.new(@file.filename).parent)
         new_rpath = "@loader_path/#{diff}"
         if @file.rpaths.include? new_rpath
@@ -143,13 +141,13 @@ class Fixer
       end
     end
 
-    if not @file.rpaths.include? rpath and links_to_other_tea_libs?
+    if not @file.rpaths.include? rpath and links_to_other_pkgx_libs?
       @file.add_rpath rpath
       dirty = true
     end
 
-    while @file.rpaths.include? $tea_prefix
-      @file.delete_rpath $tea_prefix
+    while @file.rpaths.include? $PKGX_DIR
+      @file.delete_rpath $PKGX_DIR
       dirty = true
     end
 
@@ -159,11 +157,11 @@ class Fixer
   def bad_install_names
     @file.linked_dylibs.map do |lib|
       if lib.start_with? '/'
-        if Pathname.new(lib).cleanpath.to_s.start_with? $tea_prefix
+        if Pathname.new(lib).cleanpath.to_s.start_with? $PKGX_DIR
           lib
         end
       elsif lib.start_with? '@rpath'
-        path = Pathname.new(lib.sub(%r{^@rpath}, $tea_prefix))
+        path = Pathname.new(lib.sub(%r{^@rpath}, $PKGX_DIR))
         if path.exist?
           lib
         else
@@ -182,7 +180,7 @@ class Fixer
     bad_names = bad_install_names
     return if bad_names.empty?
 
-    def fix_tea_prefix s
+    def fix_pkgx_prefix s
       s = Pathname.new(s)
       s = s.realpath if s.symlink?
 
@@ -198,10 +196,10 @@ class Fixer
 
       s = shortest if shortest  # if not then just try anyway
 
-      s = s.relative_path_from(Pathname.new($tea_prefix))
+      s = s.relative_path_from(Pathname.new($PKGX_DIR))
       s = s.sub(%r{/v(\d+)\.(\d+\.)+\d+[a-z]?/}, '/v\1/')
 
-      abort "#{s} doesn’t exist!" unless File.exist?(File.join($tea_prefix, s))
+      abort "#{s} doesn’t exist!" unless File.exist?(File.join($PKGX_DIR, s))
 
       s = "@rpath/#{s}"
 
@@ -213,10 +211,10 @@ class Fixer
         new_name = Pathname.new(old_name).relative_path_from(Pathname.new(@file.filename).parent)
         new_name = "@loader_path/#{new_name}"
       elsif old_name.start_with? '/'
-        new_name = fix_tea_prefix old_name
+        new_name = fix_pkgx_prefix old_name
       elsif old_name.start_with? '@rpath'
-        # so far we only feed bad @rpaths that are relative to the tea-prefix
-        new_name = fix_tea_prefix old_name.sub(%r{^@rpath}, $tea_prefix)
+        # so far we only feed bad @rpaths that are relative to the pkgx-prefix
+        new_name = fix_pkgx_prefix old_name.sub(%r{^@rpath}, $PKGX_DIR)
       else
         # assume they are meant to be relative to lib dir
         new_name = Pathname.new($pkg_prefix).join("lib").relative_path_from(Pathname.new(@file.filename).parent)

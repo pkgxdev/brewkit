@@ -1,5 +1,5 @@
-name: tea/pantry/fetch-pr-artifacts
-description: internal tea.xyz specific at this time
+name: pkgx/pantry/fetch-pr-artifacts
+description: internal pkgx.dev specific at this time
 
 inputs:
   platform:

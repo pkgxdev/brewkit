@@ -1,6 +1,6 @@
-#!/usr/bin/env -S tea deno run -A
+#!/usr/bin/env -S pkgx deno run -A
 
-import { utils, Path } from "tea"
+import { utils, Path } from "pkgx"
 import { S3 } from "s3"
 const { panic } = utils
 
@@ -10,7 +10,7 @@ const ref = Deno.args[1] ?? panic(usage);
 const dest = Deno.args[2] ?? panic(usage);
 const artifacts = Deno.args[3] ?? panic(usage);
 
-if (!repo.startsWith("teaxyz/")) throw new Error(`offical teaxyz repos only: ${repo}`)
+if (!repo.startsWith("pkgxdev/")) throw new Error(`offical pkgxdev repos only: ${repo}`)
 const pr = parseInt(ref.replace(/refs\/pull\/(\d+)\/merge/, "$1"))
 if (isNaN(pr)) throw new Error(`invalid ref: ${ref}`)
 

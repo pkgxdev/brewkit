@@ -1,5 +1,5 @@
-name: tea/brewkit/stage-build-artifacts
-description: internal tea.xyz specific at this time
+name: pkgx/brewkit/stage-build-artifacts
+description: internal pkgx.dev specific at this time
 
 inputs:
   platform:
@@ -22,9 +22,9 @@ runs:
       with:
         name: ${{ inputs.platform }}
 
-    - uses: teaxyz/setup@v0
+    - uses: pkgxdev/setup@v1
 
-    - uses: teaxyz/brewkit/actions/cache@v0
+    - uses: pkgxdev/brewkit/actions/cache@v0
       with:
         cache-name: stage
 

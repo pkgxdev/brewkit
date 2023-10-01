@@ -1,21 +1,21 @@
-#!/usr/bin/env -S tea bash
+#!/usr/bin/env -S pkgx bash
 # shellcheck shell=bash
 
 set -e
 
 if ! command -v git >/dev/null; then
-  GIT="tea git"
+  GIT="pkgx git"
 else
   GIT=git
 fi
 
 if ! d="$($GIT rev-parse --show-toplevel 2>/dev/null)"; then
-  echo "tea.xyz/brewkit: error: cwd is not inside a git repo" >&2
+  echo "brewkit: error: cwd is not inside a git repo" >&2
   exit 1
 fi
 
 if ! test -d "$d"/projects; then
-  echo "tea.xyz/brewkit: error: cwd is not a pantry" >&2
+  echo "brewkit: error: cwd is not a pantry" >&2
   exit 2
 fi
 

@@ -1,6 +1,6 @@
-#!/usr/bin/env -S tea +curl.se +git-scm.org +gnu.org/tar +tukaani.org/xz +info-zip.org/unzip deno run -A
+#!/usr/bin/env -S pkgx +curl +git +tar +xz +unzip +bzip2 deno run -A
 
-import { Package, PackageRequirement, Path, utils, hooks } from "tea"
+import { Package, PackageRequirement, Path, utils, hooks } from "pkgx"
 const { useSourceUnarchiver, usePantry } = hooks
 import { parseFlags } from "cliffy/flags/mod.ts"
 const { panic } = utils

@@ -1,6 +1,7 @@
-import { SupportedPlatforms } from "https://raw.githubusercontent.com/teaxyz/lib/v0.4.2/src/utils/host.ts"
+import useConfig from "libpkgx/hooks/useConfig.ts"
+import { SupportedPlatforms } from "libpkgx/utils/host.ts"
 import { isArray, isString, isPlainObject, PlainObject } from "is-what"
-import { Package, Installation, hooks, utils, semver } from "libtea"
+import { Package, Installation, hooks, utils, semver } from "libpkgx"
 import undent from "outdent"
 
 const { validate, host } = utils
@@ -13,6 +14,9 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
   const mm = useMoustaches()
   const script = (input: unknown) => {
     const tokens = mm.tokenize.all(pkg, deps)
+    tokens.push({
+      from: "build.root", to: useConfig().prefix.string
+    })
     if (isArray(input)) input = input.map(obj => {
       if (isPlainObject(obj)) {
 
@@ -53,9 +57,9 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
             OLD_${fixture_key}=$${fixture_key}
             ${fixture_key}=$(mktemp)
 
-            cat <<XYZ_TEA_EOF > $${fixture_key}
+            cat <<DEV_PKGX_EOF > $${fixture_key}
             ${fixture}
-            XYZ_TEA_EOF
+            DEV_PKGX_EOF
 
             ${run}
 

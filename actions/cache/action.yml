@@ -1,4 +1,4 @@
-name: tea/brewkit/actions/cache
+name: pkgx/brewkit/actions/cache
 description: cache deno deps
 
 inputs:

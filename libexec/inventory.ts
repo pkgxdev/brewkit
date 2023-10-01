@@ -1,7 +1,7 @@
-#!/usr/bin/env -S deno run --allow-net --allow-env --allow-read
+#!//usr/bin/env -S pkgx deno run --allow-net --allow-env --allow-read
 
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { hooks, utils, SemVer } from "tea"
+import { hooks, utils, SemVer } from "pkgx"
 const { useInventory } = hooks
 
 const { unknown: pkgnames } = parseFlags(Deno.args)

@@ -1,4 +1,4 @@
-import { hooks, semver, Installation, plumbing } from "tea"
+import { hooks, semver, Installation, plumbing } from "pkgx"
 const { useCellar } = hooks
 const { link } = plumbing
 

@@ -1,9 +1,9 @@
-#!/usr/bin/env -S tea bash
+#!/usr/bin/env -S pkgx bash
 # shellcheck shell=bash
 
 # python virtual-envs are not relocatable
 # our only working choice is to rewrite these files and symlinks every time
-# because we promise that tea is relocatable *at any time*
+# because we promise that pkgx is relocatable *at any time*
 #FIXME requiring sed is a bit lame
 
 if test -z "$VIRTUAL_ENV"; then

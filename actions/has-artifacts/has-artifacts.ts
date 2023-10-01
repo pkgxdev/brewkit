@@ -1,10 +1,10 @@
-#!/usr/bin/env -S tea deno run -A
+#!/usr/bin/env -S pkgx deno run -A
 
 /// Test
 /// ./scripts/has-artifacts.ts e582b03fe6efedde80f9569403555f4513dbec91
 
 import { find_pr } from "../fetch-pr-artifacts/fetch-pr-artifacts.ts"
-import { utils } from "tea"
+import { utils } from "pkgx"
 import { S3 } from "s3"
 const { panic } = utils
 

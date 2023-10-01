@@ -1,4 +1,4 @@
-#!/usr/bin/env -S tea +git-scm.org python
+#!/usr/bin/env -S pkgx +git-scm.org python
 
 import argparse
 import os
@@ -47,8 +47,8 @@ def main():
     logging.debug("+cd {}".format(srcroot))
     os.chdir(srcroot)
     run(["git", "init"])
-    run(["git", "config", "user.name", "tea[bot]"])
-    run(["git", "config", "user.email", "bot@tea.xyz"])
+    run(["git", "config", "user.name", "pkgx[bot]"])
+    run(["git", "config", "user.email", "bot@pkgx.dev"])
     run(["git", "commit", "-m", "nil", "--allow-empty"])
     run(["git", "tag", "-a", version, "-m", f"Version {version}", "--force"])
 
@@ -57,7 +57,7 @@ def main():
 
     # force tmp files to be somewhere useful for debugging purposes
     # also why we have --no-clean later
-    build_dir = os.path.join(srcroot, "xyz.tea.python.build")
+    build_dir = os.path.join(srcroot, "dev.pkgx.python.build")
 
     logging.debug("+mkdir -p {}".format(build_dir))
     os.makedirs(build_dir, exist_ok=True)
@@ -97,7 +97,7 @@ def main():
 
     # python virtual-envs are not relocatable
     # our only working choice is to rewrite these files and symlinks every time
-    # because we promise that tea is relocatable *at any time*
+    # because we promise that pkgx is relocatable *at any time*
     bin_dir = os.path.join(prefix, "bin")
     logging.debug("+mkdir -p {}".format(bin_dir))
     os.makedirs(bin_dir, exist_ok=True)
@@ -112,13 +112,13 @@ def main():
 export VIRTUAL_ENV="$(cd "$(dirname "$0")"/.. && pwd)/venv"
 export ARG0="$(basename "$0")"
 
-TEA_PYTHON="$(which python)"
-TEA_PYHOME="$(dirname "$TEA_PYTHON")"
+PKGX_PYTHON="$(which python)"
+PKGX_PYHOME="$(dirname "$PKGX_PYTHON")"
 
 cat <<EOSH > "$VIRTUAL_ENV/pyvenv.cfg"
-home = $TEA_PYHOME
+home = $PKGX_PYHOME
 include-system-site-packages = false
-executable = $TEA_PYTHON
+executable = $PKGX_PYTHON
 EOSH
 
 find "$VIRTUAL_ENV"/bin -maxdepth 1 -type f | xargs \\
@@ -126,7 +126,7 @@ find "$VIRTUAL_ENV"/bin -maxdepth 1 -type f | xargs \\
 
 rm "$VIRTUAL_ENV"/bin/*.bak
 
-ln -sf "$TEA_PYTHON" "$VIRTUAL_ENV"/bin/python
+ln -sf "$PKGX_PYTHON" "$VIRTUAL_ENV"/bin/python
 
 exec "$VIRTUAL_ENV"/bin/$ARG0 "$@"
 """

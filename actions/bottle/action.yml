@@ -1,5 +1,5 @@
-name: tea/brewkit/bottle
-description: internal tea.xyz specific at this time
+name: pkgx/brewkit/bottle
+description: internal pkgx.dev specific at this time
 
 inputs:
   gpg-key-id:

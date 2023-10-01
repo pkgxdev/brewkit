@@ -1,0 +1,17 @@
+#!/usr/bin/env -S pkgx +deno bash +exo pipefail
+
+cmd() {
+  deno run -A - <<EoTS
+    import parse_pkg_str from '../lib/run/parse-pkg-str.ts'
+    import { hooks } from 'pkgx'
+
+    const pkg = await parse_pkg_str('$1')
+    const entrypoint = await hooks.usePantry().project(pkg).yaml().then(x => x?.['entrypoint'])
+    if (!entrypoint) Deno.exit(1)
+    console.log(entrypoint)
+EoTS
+}
+
+eval "endpoint=($(cmd $1))"
+
+pkgx +$1 "$endpoint"

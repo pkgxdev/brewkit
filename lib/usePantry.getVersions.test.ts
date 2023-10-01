@@ -1,6 +1,6 @@
 import { assertEquals, assert } from "deno/testing/asserts.ts"
 import { _parse } from "./usePantry.getVersions.ts"
-import { SemVer } from "libtea"
+import { SemVer } from "libpkgx"
 
 Deno.test("versions array", async () => {
   const foo = await _parse([3, "1.2.3", "v2.3.4"])

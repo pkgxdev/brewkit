@@ -1,5 +1,5 @@
 import { isNumber, isPlainObject, isString, isArray, PlainObject } from "is-what"
-import { Package, PackageRequirement, semver, utils, hooks } from "libtea"
+import { Package, PackageRequirement, semver, utils, hooks } from "libpkgx"
 import { getScript } from "./usePantry.getScript.ts"
 import getVersions from "./usePantry.getVersions.ts"
 
@@ -124,7 +124,7 @@ function coerceNumber(input: any) {
   if (isNumber(input)) return input
 }
 
-//FIXME inefficient, should be in libtea as part of .project()
+//FIXME inefficient, should be in libpkgx as part of .project()
 async function filepath(project: string) {
   for await (const pkg of hooks.usePantry().ls()) {
     if (project == pkg.project) return pkg.path

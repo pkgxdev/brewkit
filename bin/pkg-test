@@ -1,4 +1,4 @@
-#!/usr/bin/env -S tea bash
+#!/usr/bin/env -S pkgx bash
 # shellcheck shell=bash
 
 set -e
@@ -7,11 +7,11 @@ d="$(cd "$(dirname "$0")"/.. && pwd)"
 PATH="$d/libexec:$PATH"
 
 if test -z "$1"; then
-  if test -z "$TEA_PANTRY_PATH"; then
-    echo "error: TEA_PANTRY_PATH is not set" >&2
+  if test -z "$PKGX_PANTRY_PATH"; then
+    echo "error: PKGX_PANTRY_PATH is not set" >&2
     exit 1
   fi
-  for x in $(echo "$TEA_PANTRY_PATH" | tr ':' '\n'); do
+  for x in $(echo "$PKGX_PANTRY_PATH" | tr ':' '\n'); do
     if test -d "$x"/.git; then
       PKGS="$(GIT_WORK_TREE="$x" peek.sh) $PKGS"
     fi
@@ -20,7 +20,7 @@ else
   PKGS="$*"
 fi
 
-if test -n "$TEA_DOCKER"; then
+if test -n "$PKGX_DOCKER"; then
   exec "$d"/bin/pkg-docker test "$PKGS"
 fi
 
@@ -30,7 +30,7 @@ if ! available.ts "$@"; then
 fi
 
 gum() {
-  tea gum format -- "$@"
+  pkgx gum format -- "$@"
 }
 
 for PKG in $PKGS; do
@@ -57,12 +57,12 @@ for PKG in $PKGS; do
   if command -v bash >/dev/null; then
     BASH=bash
   else
-    BASH="tea bash"
+    BASH="pkgx bash"
   fi
 
   gum "## running test"
 
-  env -i "$BASH" --noprofile --norc -e "$DSTDIR"/xyz.tea.test.sh
+  env -i "$BASH" --noprofile --norc -e "$DSTDIR"/dev.pkgx.test.sh
 
   gum "## running audit"
 

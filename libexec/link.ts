@@ -1,6 +1,6 @@
-#!/usr/bin/env -S deno run --allow-read --allow-write --allow-env --allow-run=/bin/ln
+#!//usr/bin/env -S pkgx deno run --allow-read --allow-write --allow-env --allow-run=/bin/ln
 
-import { PackageRequirement, Package, Path, utils, plumbing } from "tea"
+import { PackageRequirement, Package, Path, utils, plumbing } from "pkgx"
 const { link } = plumbing
 
 let pkg: Package | PackageRequirement = utils.pkg.parse(Deno.args[1])

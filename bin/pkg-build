@@ -1,10 +1,12 @@
-#!/usr/bin/env -S tea bash
+#!/usr/bin/env -S pkgx bash
 # shellcheck shell=bash
 
 set -e
 
+PKGX_DIR=${PKGX_DIR:-"$HOME/.pkgx"}
+
 if pwd | grep -q ' '; then
-  echo "tea.xyz/brewkit: warning: current directory contains spaces. builds *will* break!" >&2
+  echo "brewkit: warning: current directory contains spaces. builds *will* break!" >&2
 fi
 
 if test -n "$RUNNER_DEBUG" -a -n "$GITHUB_ACTIONS" -o -n "$VERBOSE"; then
@@ -15,11 +17,11 @@ d="$(cd "$(dirname "$0")"/.. && pwd)"
 PATH="$d/libexec:$PATH"
 
 if test -z "$1"; then
-  if test -z "$TEA_PANTRY_PATH"; then
-    echo "error: TEA_PANTRY_PATH is not set" >&2
+  if test -z "$PKGX_PANTRY_PATH"; then
+    echo "error: PKGX_PANTRY_PATH is not set" >&2
     exit 1
   fi
-  for x in $(echo "$TEA_PANTRY_PATH" | tr ':' '\n'); do
+  for x in $(echo "$PKGX_PANTRY_PATH" | tr ':' '\n'); do
     if test -d "$x"/.git; then
       PKGS="$(GIT_WORK_TREE="$x" peek.sh) $PKGS"
     fi
@@ -28,7 +30,7 @@ else
   PKGS="$*"
 fi
 
-if test -n "$TEA_DOCKER"; then
+if test -n "$PKGX_DOCKER"; then
   exec "$d"/bin/pkg-docker build "$PKGS"
 fi
 
@@ -38,7 +40,7 @@ if ! available.ts "$@"; then
 fi
 
 if test -z "$GITHUB_TOKEN"; then
-  GITHUB_TOKEN=$(tea gh auth token)
+  GITHUB_TOKEN=$(pkgx gh auth token)
   if test -z "$GITHUB_TOKEN"; then
     echo "error: builds need a GITHUB_TOKEN. Either export that or run \`gh auth login\`" >&2
     exit 1
@@ -51,7 +53,7 @@ PKGS="$(sort.ts $PKGS --delimiter ' ')"
 # ^^ ensures that pkgs build topologically
 
 gum() {
-  tea gum format -- "$@"
+  pkgx gum format -- "$@"
 }
 
 for PKG in $PKGS; do
@@ -80,7 +82,7 @@ for PKG in $PKGS; do
   DEPS=$(deps.ts "$PKG" --build)  # eg. nodejs.org^4
 
   # shellcheck disable=SC2086
-  DEPS=$(install.ts $DEPS)      # eg. ~/.tea/nodejs.org/v4.3.2
+  DEPS=$(install.ts $DEPS)      # eg. ~/.pkgx/nodejs.org/v4.3.2
 
   mkdir -p "$SRCDIR"
   BUILD_SCRIPT="$(stage.ts "$PKG" --srcdir "$SRCDIR" --prefix "$PREFIX" --deps "$DEPS" --build-dir "$BLDDIR")"
@@ -88,8 +90,10 @@ for PKG in $PKGS; do
   if command -v bash >/dev/null; then
     BASH=bash
   else
-    BASH="tea bash"
+    BASH="pkgx bash"
   fi
+
+  echo "build-dir=$BLDDIR" >> $GITHUB_OUTPUT
 
   gum "# running build"
 
@@ -116,11 +120,11 @@ for PKG in $PKGS; do
 
   if test -n "$GITHUB_ACTIONS"; then
     GH_PKGS="$GH_PKGS $PKG"
-    GH_RELATIVE_PATHS="$GH_RELATIVE_PATHS ${PREFIX#"$TEA_PREFIX"/}"
+    GH_RELATIVE_PATHS="$GH_RELATIVE_PATHS ${PREFIX#"$PKGX_DIR"/}"
 
     if test -f "$ZIP"; then
-      GH_SRCS="$GH_SRCS ${ZIP#"$TEA_PREFIX"/}"
-      GH_SRCS_RELATIVE_PATHS="$GH_SRCS_RELATIVE_PATHS ${ZIP#"$TEA_PREFIX"/}"
+      GH_SRCS="$GH_SRCS ${ZIP#"$PKGX_DIR"/}"
+      GH_SRCS_RELATIVE_PATHS="$GH_SRCS_RELATIVE_PATHS ${ZIP#"$PKGX_DIR"/}"
     else
       GH_SRCS="$GH_SRCS ~"
     fi

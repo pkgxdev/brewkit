@@ -1,4 +1,4 @@
-#!/usr/bin/env -S tea bash
+#!/usr/bin/env -S pkgx bash
 # shellcheck shell=bash
 
 d="$(cd "$(dirname "$0")/.." && pwd)"

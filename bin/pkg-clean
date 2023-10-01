@@ -1,4 +1,4 @@
-#!/usr/bin/env -S tea bash
+#!/usr/bin/env -S pkgx bash
 # shellcheck shell=bash
 
 set -e
@@ -7,11 +7,11 @@ d="$(cd "$(dirname "$0")"/.. && pwd)"
 PATH="$d/libexec:$PATH"
 
 if test -z "$1"; then
-  if test -z "$TEA_PANTRY_PATH"; then
-    echo "error: TEA_PANTRY_PATH is not set" >&2
+  if test -z "$PKGX_PANTRY_PATH"; then
+    echo "error: PKGX_PANTRY_PATH is not set" >&2
     exit 1
   fi
-  for x in $(echo "$TEA_PANTRY_PATH" | tr ':' '\n'); do
+  for x in $(echo "$PKGX_PANTRY_PATH" | tr ':' '\n'); do
     if test -d "$x"/.git; then
       PKGS="$(GIT_WORK_TREE="$x" peek.sh) $PKGS"
     fi
@@ -21,7 +21,7 @@ else
 fi
 
 if test -z "$GITHUB_TOKEN"; then
-  GITHUB_TOKEN=$(tea gh auth token)
+  GITHUB_TOKEN=$(pkgx gh auth token)
   export GITHUB_TOKEN
 fi
 

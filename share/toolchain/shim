@@ -1,0 +1,82 @@
+#!/bin/sh
+
+tool=$(basename $0)
+
+if [ $(uname) != Darwin ]; then
+  "${PKGX_DIR:-$HOME/.pkgx}/pkgx.sh/v*/bin/pkgx" --silent +llvm.org
+  exec "${SRCROOT:-$HOME}/dev.pkgx.bin/$tool" "$@"
+fi
+
+case $tool in
+cc|gcc|clang|c++|g++|clang++)
+  exec ruby "$0" "$@"
+  ;;
+ld|lld|lld-link|ld64.lld)
+  for word in "$@"; do
+    if test "$word" = -r; then
+      exec /usr/bin/"$tool" "$@"
+    fi
+  done
+
+  exec /usr/bin/$tool "$@" -rpath "${PKGX_DIR:-$HOME/.pkgx}"
+  ;;
+*)
+  exec /usr/bin/$tool "$@"
+  ;;
+esac
+
+
+#!/usr/bin/ruby
+
+# - we inject our rpath to ensure our libs our found
+# - for bottles we replace that in fix-machos.rb with a relocatable prefix
+# - in general usage we don’t, so if the user needs to distribute their artifacts,
+#   they will need to fix them first, but that's typical anyway.
+
+$pkgx_dir = ENV['PKGX_DIR'] || (ENV['HOME'] + "/.pkgx")
+exe = File.basename($0)
+
+# remove duplicates since this in fact embeds the rpath multiple times
+# and omit -nodefaultrpaths since it is not a valid flag for clang
+args = ARGV.map do |arg|
+  arg unless arg == "-Wl,-rpath,#$pkgx_dir" or arg == "-nodefaultrpaths"
+end.compact
+
+def is_pkgx? path
+  path = File.realpath path while File.symlink? path
+  return File.basename(path) == "pkgx"
+end
+
+# find next example of ourselves
+# this will either pick the Apple provided clang or the pkgx one
+exe_path = ENV['PATH'].split(":").filter { |path|
+  if path == File.dirname(__FILE__)
+    false
+  elsif path == File.join($pkgx_dir, ".local/bin")
+    false
+  elsif is_pkgx?(path)
+    false
+  else
+    true
+  end
+}.map { |path|
+  "#{path}/#{exe}"
+}.find { |path|
+  File.exist?(path)
+}
+
+abort "couldn’t find #{exe} in `PATH`" unless exe_path
+
+for arg in args do
+  # figuring out what “mode” we are operating in is hard
+  # we don’t want to add this linker command always because it causes a warning to be
+  # output if we are not outputing executables/dylibs and this warning can break
+  # configure scripts, however the below is not fully encompassing
+  # we aren't sure what the rules are TBH, possibly it is as simple as if the output (`-o`)
+  # is a .o then we don’t add the rpath
+  if arg.start_with? '-l' or arg.end_with? '.dylib'
+    exec exe_path, *args, "-Wl,-rpath,#$pkgx_dir"
+  end
+end
+
+exec exe_path, *args

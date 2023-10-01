@@ -1,6 +1,6 @@
 import { isArray, isString } from "is-what"
 import undent from "outdent"
-import { utils } from "tea"
+import { utils } from "pkgx"
 const { validate } = utils
 
 //TODO pagination

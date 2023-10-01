@@ -9,5 +9,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: teaxyz/setup@v0
-      - run: tea xc shellcheck
+      - uses: pkgxdev/setup@v1
+      - run: pkgx xc shellcheck

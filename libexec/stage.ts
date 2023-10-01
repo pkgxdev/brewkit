@@ -1,7 +1,7 @@
-#!/usr/bin/env -S deno run --allow-net --allow-read --allow-env --allow-write --allow-run=cp
+#!//usr/bin/env -S pkgx deno run --allow-net --allow-read --allow-env --allow-write --allow-run=cp
 
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { hooks, utils, Path } from "tea"
+import { hooks, utils, Path } from "pkgx"
 import undent from "outdent"
 
 const { useShellEnv, useCellar, useConfig, usePantry } = hooks
@@ -56,7 +56,42 @@ const pkg = await pantry.resolve(parse(pkgname))
 
 /// assemble build script
 const pantry_sh = await pantry.getScript(pkg, 'build', deps)
-const brewkit = new Path(new URL(import.meta.url).pathname).parent().parent().join("share/brewkit")
+const sup_PATH = [new Path(new URL(import.meta.url).pathname).parent().parent().join("share/brewkit")]
+
+if (!deps.find(({pkg}) => pkg.project == 'llvm.org' || pkg.project == 'gnu.org/gcc')) {
+  /// add our helper cc toolchain unless the package has picked its own toolchain
+  sup_PATH.push(new Path(new URL(import.meta.url).pathname).parent().parent().join("share/toolchain/bin"))
+
+  if (host().platform != "darwin") {
+    const symlink = (names: string[], {to}: {to: string}) => {
+      const d = blddir.join('dev.pkgx.bin').mkdir()
+      for (const name of names) {
+        const path = d.join(name)
+        if (path.exists()) continue
+        const target = prefix.join('llvm.org/v*/bin', to)
+        path.ln('s', { target })
+      }
+    }
+
+    symlink(["cc", "gcc", "clang"], {to: "clang"})
+    symlink(["c++", "g++", "clang++"], {to: "clang++"})
+    symlink(["cpp"], {to: "clang-cpp"})
+
+    symlink(["ld"], {to: "lld"})
+    symlink(["lld"], {to: "lld"})
+    symlink(["ld64.lld"], {to: "ld64.lld"})
+    symlink(["lld-link"], {to: "lld-link"})
+
+    symlink(["ar"], {to: "llvm-ar"})
+    symlink(["as"], {to: "llvm-as"})
+    symlink(["nm"], {to: "llvm-nm"})
+    symlink(["objcopy"], {to: "llvm-objcopy"})
+    symlink(["ranlib"], {to: "llvm-ranlib"})
+    symlink(["readelf"], {to: "llvm-readelf"})
+    symlink(["strings"], {to: "llvm-strings"})
+    symlink(["strip"], {to: "llvm-strip"})
+  }
+}
 
 /// calc env
 const sh = useShellEnv()
@@ -68,37 +103,42 @@ Deno.env.set("HOME", old_home!)
 if (host().platform == 'darwin') env['MACOSX_DEPLOYMENT_TARGET'] = ['11.0']
 
 env['PATH'] ??= []
-env['PATH'].push("/usr/bin", "/bin", "/usr/sbin", "/sbin", useConfig().prefix.join('tea.xyz/v*/bin').string)
+env['PATH'].push("/usr/bin", "/bin", "/usr/sbin", "/sbin", useConfig().prefix.join('pkgx.sh/v*/bin').string)
+
+if (host().platform == 'linux' && host().target == 'x86-64') {
+  env['LDFLAGS'] = [`${env['LDFLAGS']?.[0] ?? ''} -pie`.trim()]
+  env['CFLAGS'] = [`${env['CFLAGS']?.[0] ?? ''} -fPIC`.trim()]
+  env['CXXFLAGS'] = [`${env['CXXFLAGS']?.[0] ?? ''} -fPIC`.trim()]
+}
 
 const text = undent`
   #!/bin/bash
 
-  set -e
-  set -o pipefail
-  set -x
+  set -exo pipefail
+
   cd "${blddir}"
 
-  export HOME="${blddir}/xyz.tea.home"
+  export HOME="${blddir}/dev.pkgx.home"
   export SRCROOT="${blddir}"
   export PREFIX=${flags.prefix}
-  export TEA_PREFIX=${prefix.string}
+  export PKGX_DIR=${prefix.string}
   ${sh.expand(env)}
 
   mkdir -p "$HOME"
 
-  export PATH=${brewkit}:"$PATH"
+  export PATH=${sup_PATH.map(x => x.string).join(':')}:"$PATH"
   export CFLAGS="-w $CFLAGS"  # warnings are noise
 
   ${pantry_sh}
   `
 
 /// write out build script
-const script = blddir.join("xyz.tea.build.sh").write({ text, force: true }).chmod(0o755)
+const script = blddir.join("dev.pkgx.build.sh").write({ text, force: true }).chmod(0o755)
 
-/// write out tea.yaml so magic works
+/// write out pkgx.yaml so dev-env works
 import * as YAML from "deno/yaml/stringify.ts"
 
-blddir.join("tea.yaml").write({ text: YAML.stringify({
+blddir.join("pkgx.yaml").write({ text: YAML.stringify({
   env: sh.flatten(env),
   dependencies: deps.reduce((acc, {pkg}) => {
     acc[pkg.project] = `=${pkg.version}`

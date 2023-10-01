@@ -1,4 +1,4 @@
-name: tea/brewkit/setup-codesign
+name: pkgx/brewkit/setup-codesign
 description: Codesigns macOS binaries using Apple tools
 
 inputs:
@@ -25,7 +25,7 @@ runs:
     # encapulated separately.
     # FIXME: using an explicit commit in a PR isn't great, but the last release was almost 3 years
     # ago, and we need bugfixes.
-    # FIXME: replace this with a tea script based on https://localazy.com/blog/how-to-automatically-sign-macos-apps-using-github-actions
+    # FIXME: replace this with a pkgx script based on https://localazy.com/blog/how-to-automatically-sign-macos-apps-using-github-actions
     # github has a doc with similar content, but it's not returning to me atm.
 
     # apple-actions/import-codesign-certs will fail if the keychain already exists, so we prophylactically

@@ -1,6 +1,6 @@
-#!/usr/bin/env -S tea deno run -A
+#!/usr/bin/env -S pkgx deno run -A
 
-import { Path } from "tea"
+import { Path } from "pkgx"
 import undent from "outdent"
 
 const has_shebang = (() => {

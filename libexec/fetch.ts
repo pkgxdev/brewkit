@@ -1,6 +1,6 @@
-#!/usr/bin/env -S tea +curl.se +git-scm.org +gnu.org/tar +tukaani.org/xz deno run -A
+#!/usr/bin/env -S pkgx +curl.se +git-scm.org +gnu.org/tar +tukaani.org/xz deno run -A
 
-import { hooks, utils, Stowage, Path } from "tea"
+import { hooks, utils, Stowage, Path } from "pkgx"
 import { parseFlags } from "cliffy/flags/mod.ts"
 import usePantry from "../lib/usePantry.ts"
 
@@ -65,13 +65,14 @@ try {
   console.info(zipfile.string)
 } catch (err) {
   console.error(err.message)
-  console.error("tea expands the full semantic version, which may mean the URL you are")
+  console.error("pkgx expands the full semantic version, which may mean the URL you are")
   console.error("fetching is now incorrect. Try `version.raw`?")
   Deno.exit(1)
 }
 
 async function download({ dst, src }: { dst: Path, src: URL }) {
   if (Deno.env.get("GITHUB_ACTIONS")) {
+    dst.parent().mkdir('p')
     // using cURL as deno’s fetch fails for certain sourceforge URLs
     // seemingly due to SSL certificate issues. cURL basically always works ¯\_(ツ)_/¯
     const proc = new Deno.Command("curl", {

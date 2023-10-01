@@ -1,6 +1,6 @@
-#!/usr/bin/env -S deno run --allow-read --allow-env --allow-write --allow-net
+#!//usr/bin/env -S pkgx deno run --allow-read --allow-env --allow-write --allow-net
 
-import { utils, hooks, Package, PackageRequirement, Stowage, Path } from "tea"
+import { utils, hooks, Package, PackageRequirement, Stowage, Path } from "pkgx"
 const { host, flatmap, pkg: { parse, str } } = utils
 import { parseFlags } from "cliffy/flags/mod.ts"
 const { useCache, useCellar, usePantry } = hooks

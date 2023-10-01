@@ -1,15 +1,15 @@
-export * from "libtea"
+export * from "libpkgx"
 
 import usePantry from "./usePantry.ts"
 import useCache from "./useCache.ts"
 import useSourceUnarchiver from "./useSourceUnarchiver.ts"
-import { hooks as tea_hooks } from "libtea"
+import { hooks as vanilla_hooks } from "libpkgx"
 
 function usePrefix() {
-  return tea_hooks.useConfig().prefix
+  return vanilla_hooks.useConfig().prefix
 }
 
-const hooks = { ...tea_hooks, useSourceUnarchiver, usePantry, useCache, usePrefix }
+const hooks = { ...vanilla_hooks, useSourceUnarchiver, usePantry, useCache, usePrefix }
 export { hooks }
 
 

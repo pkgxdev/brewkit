@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ $(uname) = Darwin ]; then
+  exec /usr/bin/make "$@"
+else
+  exec pkgx +gnu.org/make make "$@"
+fi

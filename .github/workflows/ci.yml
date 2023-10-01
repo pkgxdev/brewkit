@@ -18,7 +18,7 @@ jobs:
           - catb.org/wumpus
           - c-ares.org
           - vim.org
-          - tea.xyz/gx/cc
+          - curl.se
           # FIXME? requires a darwin platform to run, and needs
           # macOS 12 to test. That'll require a more complex matrix
           # using get-platform.
@@ -26,26 +26,21 @@ jobs:
     container:
       image: debian:buster-slim
     steps:
-      - uses: actions/checkout@v3
-      - uses: teaxyz/setup@v0
+      - uses: actions/checkout@v4
+      - uses: ./actions/setup-brewkit
 
-      - name: configure PATH
-        run: echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
-
-      - uses: actions/cache@v3
-        with:
-          path: ${{ env.HOME }}/.cache/deno
-          key: deno-get-platform-${{ hashFiles('deno.jsonc')}}
-
-      - name: prefetch deno deps
-        # this makes the output from the build step more legible
-        run: deno cache **/*.ts
+      # prefetch deno deps to make the output from the build step more legible
+      - run: pkgx deno cache **/*.ts
 
       - run: pkg build ${{matrix.pkgs}}
         id: build
 
+      - if: always()
+        run: cat ${{ steps.build.outputs.build-dir }}/config.log || true
+
       - run: test -n '${{ steps.build.outputs.pkgs }}'
       - run: test -n '${{ steps.build.outputs.relative-paths }}'
+
       - run: |
           if pkg query ${{ steps.build.outputs.pkgs }} --src 2>&1 | grep -E '^warn: pkg has no srcs:'; then
             echo "srcs=false" >> $GITHUB_OUTPUT
@@ -53,8 +48,10 @@ jobs:
             echo "srcs=true" >> $GITHUB_OUTPUT
           fi
         id: srcs
+
       - run: test -n '${{ steps.build.outputs.srcs }}'
         if: steps.srcs.outputs.srcs == 'true'
+
       - run: test -n '${{ steps.build.outputs.srcs-relative-paths }}'
         if: steps.srcs.outputs.srcs == 'true'
 
@@ -63,13 +60,13 @@ jobs:
   typecheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: teaxyz/setup@v0
+      - uses: actions/checkout@v4
+      - uses: pkgxdev/dev@main
       - run: deno task typecheck
 
   unit-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: teaxyz/setup@v0
+      - uses: actions/checkout@v4
+      - uses: pkgxdev/dev@main
       - run: deno test --allow-env

@@ -1,21 +1,22 @@
-![tea](https://tea.xyz/banner.png)
+![pkgx](https://pkgx.dev/banner.png)
 
 # BrewKit
 
-BrewKit is build infrastructure for tea.
+BrewKit is build infrastructure for `pkgx`.
 
 ```sh
-tea pkg build zlib.net
-# ^^ same as tea +tea.xyz/brewkit pkg build zlib.net
+$ env +brewkit
+$ pkg build zlib.net
 ```
 
-If you are inside a pantry and tea magic is installed, you can omit the `tea`
-preamble and package names; BrewKit will figure out what packages you are
+If you are inside a pantry then BrewKit will figure out what packages you are
 editing and build them.
 
 ```sh
+$ cd pantry
+$ dev
 $ pkg build
-tea.xyz/brewkit: building zlib.net
+brewkit: building zlib.net
 ```
 
 You can build for Linux (via Docker) using `-L`, e.g.:
@@ -26,18 +27,18 @@ pkg -L build
 
 ## Outside a Pantry Checkout
 
-Outside a pantry checkout we operate against your tea installation
-(which defaults to `~/.tea`). Builds occur in a temporary directory rather
+Outside a pantry checkout we operate against your `pkgx` installation
+(which defaults to `~/.pkgx`). Builds occur in a temporary directory rather
 than local to your pantry checkout.
 
 ```sh
-tea pkg build zlib.net
+pkgx +brewkit pkg build zlib.net
 ```
 
 
 ## Additions
 
-This repo is for tooling built on top of the tea primitives with the purpose
+This repo is for tooling built on top of the `pkgx` primitives with the purpose
 of generalized building and testing of open source packages.
 
 If you have an idea for an addition open a [discussion]!
@@ -75,31 +76,13 @@ brewkit will be used rather than that which is installed.
 
 ## Bump
 
+Priority is one of `major|minor|patch|prerelease|VERSION`
+
 Inputs: PRIORITY
 
 ```sh
-if ! git diff-index --quiet HEAD --; then
-  echo "error: dirty working tree" >&2
-  exit 1
-fi
-
-if [ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]; then
-  echo "error: requires main branch" >&2
-  exit 1
-fi
-
-# ensure we have the latest version tags
-git fetch origin -pft
-
-V=$(git describe --tags --abbrev=0 --match "v[0-9]*.[0-9]*.[0-9]*")
-V=$(tea semverator bump $V $PRIORITY)
-
-git push origin main
-tea gh release create "v$V"-rc --prerelease --generate-notes --title "v$V"
+./scripts/publish-release.sh $PRIORITY
 ```
-
-
-[discussion]: https://github.com/orgs/teaxyz/discussions
 
 
 ## Shellcheck
@@ -107,9 +90,12 @@ tea gh release create "v$V"-rc --prerelease --generate-notes --title "v$V"
 ```sh
 for x in bin/*; do
   if file $x | grep 'shell script'; then
-    tea shellcheck --shell=dash --severity=warning $x
+    pkgx shellcheck --shell=dash --severity=warning $x
   fi
 done
 
-tea shellcheck --shell=dash --severity=warning **/*.sh
+pkgx shellcheck --shell=dash --severity=warning **/*.sh
 ```
+
+
+[discussion]: https://github.com/orgs/pkgxdev/discussions

@@ -1,8 +1,8 @@
-#!/usr/bin/env -S deno run --allow-env --allow-read --allow-net
+#!//usr/bin/env -S pkgx deno run --allow-env --allow-read --allow-net
 
 import { parseFlags } from "cliffy/flags/mod.ts"
 const { usePantry, useInventory } = hooks
-import { hooks, semver } from "tea"
+import { hooks, semver } from "pkgx"
 
 const { unknown: [query] } = parseFlags(Deno.args)
 const pantry = usePantry()

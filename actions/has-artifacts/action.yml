@@ -1,4 +1,4 @@
-name: tea/brewkit/has-artifacts
+name: pkgx/brewkit/has-artifacts
 description: Determines if PR artifacts exist for a given SHA
 
 inputs:
@@ -32,11 +32,9 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: teaxyz/setup@v0
-      with:
-        srcroot: null
+    - uses: pkgxdev/setup@v1
 
-    - uses: teaxyz/brewkit/actions/cache@v0
+    - uses: pkgxdev/brewkit/actions/cache@v0
       with:
         cache-name: has-artifacts
 

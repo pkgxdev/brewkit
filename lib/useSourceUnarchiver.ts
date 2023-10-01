@@ -1,5 +1,5 @@
 import { Unarchiver, TarballUnarchiver, ZipUnarchiver } from "./Unarchiver.ts"
-import { Path } from "tea"
+import { Path } from "pkgx"
 
 //FIXME assuming strip 1 on components is going to trip people up
 

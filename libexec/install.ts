@@ -1,6 +1,6 @@
-#!/usr/bin/env -S deno run --allow-read --allow-write --allow-run=tar,/bin/ln --allow-net --allow-env --unstable
+#!//usr/bin/env -S pkgx deno run --allow-read --allow-write --allow-run=tar,/bin/ln --allow-net --allow-env --unstable
 
-import { utils, hooks, plumbing, Installation } from "tea"
+import { utils, hooks, plumbing, Installation } from "pkgx"
 const { pkg: { parse, str }, panic } = utils
 const { useCellar, useInventory } = hooks
 const { install, link } = plumbing

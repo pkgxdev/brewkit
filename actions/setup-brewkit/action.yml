@@ -1,45 +1,53 @@
-name: tea/brewkit/setup
-description: sets up tea, tea.xyz/brewkit & caching
-
-# inputs and outputs are `teaxyz/setup` passthrough
+name: pkgx/brewkit/setup
+description: sets up pkgx, brewkit & caching
 
 inputs:
   prefix:
     description: >
-      Where tea stows its packages.
-      Defaults to `$HOME/.tea`.
+      Where pkgx stows its packages.
+      Defaults to `$HOME/.pkgx`.
     required: false
   version:
     description: >
-      The version of tea to install.
+      The version of pkgx to install.
       Defaults to `latest`.
     required: false
+  pkgs:
+    description: additional pkgs
+    required: false
 outputs:
-  version:
-    description: Your project’s version.
-    value: ${{ steps.tea.outputs.version }}
-  prefix:
-    description: The prefix you specified.
-    value: ${{ steps.tea.outputs.prefix }}
+  PKGX_DIR:
+    description: See PKGX_DIR in our docs.
+    value: ${{ steps.foo.outputs.prefix }}
 
 runs:
   using: composite
   steps:
-    - uses: teaxyz/setup@v0
-      id: tea
+    - uses: pkgxdev/setup@v1
+      id: pkgx
       with:
-        prefix: ${{ inputs.prefix }}
+        PKGX_DIR: ${{ inputs.prefix }}
         version: ${{ inputs.version }}
-        +: tea.xyz/brewkit
-        # prevent pantry from reassigning TEA_PANTRY_PATH
-        srcroot: null
+        +: ${{inputs.pkgs }}
 
-    - uses: teaxyz/brewkit/actions/cache@v0
+    - name: install brewkit
+      run: |
+        d="${PKGX_DIR:-$HOME/.pkgx}/tea.xyz/brewkit"
+        mkdir -p "$d"
+        cp -R $GITHUB_ACTION_PATH/../.. "$d/v0"
+        echo "$d/v0/bin" >> $GITHUB_PATH
+      shell: bash
+
+    - uses: pkgxdev/brewkit/actions/cache@v0
       with:
         cache-name: setup
 
     - run: |
         if test -d "${{ github.workspace }}"/projects; then
-          echo "TEA_PANTRY_PATH=${{ github.workspace }}" >> $GITHUB_ENV
+          echo "PKGX_PANTRY_PATH=${{ github.workspace }}" >> $GITHUB_ENV
         fi
-      shell: sh
+      shell: bash
+
+    - run: echo "PKGX_DIR=${PKGX_DIR:-$HOME/.pkgx}" >> $GITHUB_OUTPUT
+      id: foo
+      shell: bash

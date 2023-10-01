@@ -1,9 +1,9 @@
-#!/usr/bin/env -S tea +nixos.org/patchelf=0.17.2 +darwinsys.com/file^5 deno run -A
+#!/usr/bin/env -S pkgx +nixos.org/patchelf=0.17.2 +darwinsys.com/file^5 deno run -A
 
 // FIXME ^^ patchelf 0.18.0 has a regression that breaks libraries
 //       https://github.com/NixOS/patchelf/issues/492#issuecomment-1561912775
 
-import { utils, PackageRequirement, Installation, Package, hooks, Path } from "tea"
+import { utils, PackageRequirement, Installation, Package, hooks, Path } from "pkgx"
 import { backticks } from "../../lib/utils.ts"
 const { host, pkg: pkgutils } = utils
 const { useCellar } = hooks
@@ -25,8 +25,8 @@ if (import.meta.main) {
 export default async function fix_rpaths(installation: Installation, pkgs: (Package | PackageRequirement)[]) {
   const skip_rpaths = [
     "go.dev", // skipping because for some reason patchelf breaks the go binary resulting in the only output being: `Segmentation Fault`
-    "tea.xyz", // this causes tea to pass -E/--version (and everything else?) directly to deno, making it _too_ much of a wrapper.
-    "render.com", // same as `tea.xyz`
+    "pkgx.sh", // this causes pkgx to pass -E/--version (and everything else?) directly to deno, making it _too_ much of a wrapper.
+    "render.com", // same as `pkgx.sh`
   ]
   if (skip_rpaths.includes(installation.pkg.project)) {
     console.info(`skipping rpath fixes for ${installation.pkg.project}`)

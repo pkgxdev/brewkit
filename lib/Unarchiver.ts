@@ -1,4 +1,4 @@
-import { PackageRequirement, Path, semver } from "tea"
+import { PackageRequirement, Path, semver } from "pkgx"
 
 interface Options {
   dstdir: Path

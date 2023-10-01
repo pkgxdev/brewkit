@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run
+#!//usr/bin/env -S pkgx deno run
 
 import { swallow } from "../lib/utils.ts"
 

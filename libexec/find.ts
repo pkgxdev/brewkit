@@ -1,6 +1,6 @@
-#!/usr/bin/env -S deno run --allow-read --allow-env
+#!//usr/bin/env -S pkgx deno run --allow-read --allow-env
 
-import { hooks } from "tea"
+import { hooks } from "pkgx"
 const { usePantry } = hooks
 
 const pantry = usePantry()

@@ -1,6 +1,6 @@
-#!/usr/bin/env -S tea +aws.amazon.com/cli +deno.land>=1.32<1.36.1 deno run -A
+#!/usr/bin/env -S pkgx +aws.amazon.com/cli +deno.land>=1.32<1.36.1 deno run -A
 
-import { Package, PackageRequirement, SemVer, Path, semver, hooks, utils } from "tea"
+import { Package, PackageRequirement, SemVer, Path, semver, hooks, utils } from "pkgx"
 import { decode as base64Decode } from "deno/encoding/base64.ts"
 const { useOffLicense, useCache } = hooks
 import { basename, dirname } from "deno/path/mod.ts"

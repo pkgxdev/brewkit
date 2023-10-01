@@ -1,6 +1,6 @@
-#!/usr/bin/env -S tea deno run -A
+#!/usr/bin/env -S pkgx deno run -A
 
-import { utils, hooks } from "tea"
+import { utils, hooks } from "pkgx"
 const { parse, str } = utils.pkg
 const { usePantry } = hooks
 const { panic } = utils

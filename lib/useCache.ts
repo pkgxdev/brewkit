@@ -1,5 +1,5 @@
-import { SupportedArchitecture, SupportedPlatform } from "libtea/utils/host.ts"
-import { hooks, SemVer, Stowed, Path } from "libtea"
+import { SupportedArchitecture, SupportedPlatform } from "libpkgx/utils/host.ts"
+import { hooks, SemVer, Stowed, Path } from "libpkgx"
 const { useCache } = hooks
 
 export default function() {

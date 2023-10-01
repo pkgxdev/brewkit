@@ -1,5 +1,5 @@
-name: tea/brewkit/upload
-description: internal tea.xyz specific at this time
+name: pkgx/brewkit/upload
+description: internal pkgxdev specific at this time
 
 inputs:
   pkgs:
@@ -43,7 +43,7 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: teaxyz/brewkit/actions/cache@v0
+    - uses: pkgxdev/brewkit/actions/cache@v0
       with:
         cache-name: upload
 

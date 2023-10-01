@@ -1,5 +1,5 @@
 import { assertEquals } from "deno/testing/asserts.ts"
-import { hooks, Path, SemVer } from "tea"
+import { hooks, Path, SemVer } from "pkgx"
 const { useCache } = hooks
 
 Deno.test("decode", async test => {

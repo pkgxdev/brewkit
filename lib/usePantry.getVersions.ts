@@ -1,5 +1,5 @@
 import { isPlainObject, isString, isArray, PlainObject, isNumber } from "is-what"
-import { SemVer, semver, hooks, utils } from "libtea"
+import { SemVer, semver, hooks, utils } from "libpkgx"
 import useGitLabAPI from "./useGitLabAPI.ts"
 import useGitHubAPI from "./useGitHubAPI.ts"
 const { validate } = utils
