@@ -31,10 +31,14 @@ runs:
         +: ${{inputs.pkgs }}
 
     - name: install brewkit
+      # If v0 is not a symlink, then brewkit cannot
+      # build itself. This is a workaround for
+      # https://github.com/pkgxdev/libpkgx/pull/46
       run: |
         d="${PKGX_DIR:-$HOME/.pkgx}/tea.xyz/brewkit"
         mkdir -p "$d"
-        cp -R $GITHUB_ACTION_PATH/../.. "$d/v0"
+        cp -R $GITHUB_ACTION_PATH/../.. "$d/gha-temp"
+        ln -s gha-temp "$d/v0"
         echo "$d/v0/bin" >> $GITHUB_PATH
       shell: bash
 
