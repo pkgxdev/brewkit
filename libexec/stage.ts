@@ -105,7 +105,7 @@ if (host().platform == 'darwin') env['MACOSX_DEPLOYMENT_TARGET'] = ['11.0']
 env['PATH'] ??= []
 env['PATH'].push("/usr/bin", "/bin", "/usr/sbin", "/sbin", useConfig().prefix.join('pkgx.sh/v*/bin').string)
 
-if (host().platform == 'linux' && host().target == 'x86-64') {
+if (host().platform == 'linux' && host().arch == 'x86-64') {
   env['LDFLAGS'] = [`${env['LDFLAGS']?.[0] ?? ''} -pie`.trim()]
   env['CFLAGS'] = [`${env['CFLAGS']?.[0] ?? ''} -fPIC`.trim()]
   env['CXXFLAGS'] = [`${env['CXXFLAGS']?.[0] ?? ''} -fPIC`.trim()]
