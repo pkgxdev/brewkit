@@ -68,9 +68,12 @@ if (!deps.find(({pkg}) => pkg.project == 'llvm.org' || pkg.project == 'gnu.org/g
     const symlink = (names: string[], {to}: {to: string}) => {
       for (const name of names) {
         const path = d.join(name)
-        if (path.exists()) continue
-        const target = prefix.join('llvm.org/v*/bin', to)
-        path.ln('s', { target })
+        try {
+          const target = prefix.join('llvm.org/v*/bin', to)
+          path.ln('s', { target })
+        } catch {
+          //noop already exists and our Path lib .exists() checks the symlink DESTINATION
+        }
       }
     }
 
