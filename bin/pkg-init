@@ -28,7 +28,7 @@ if ! command -v ruby >/dev/null; then
   RUBY="pkgx +ruby"
 fi
 
-BLEND="$($RUBY init.ts "$1")"
+BLEND="$(init.ts "$1")"
 
 mkdir -p "$WHERE/projects/$BLEND"
 cp -i "$d/share/TEMPLATE.pkg.yml" "$WHERE/projects/$BLEND/package.yml"

@@ -55,9 +55,9 @@ gh release create \
   --prerelease=$is_prerelease \
   --generate-notes \
   --notes-start-tag=v$v_latest \
-  --title=$v_new
+  --title=v$v_new
 
-gh workflow run cd.yml --raw-field version="$v_new"
+gh workflow run ci.yml
 # ^^ infuriatingly does not tell us the ID of the run
 
 gum spin --title 'sleeping 5s because GitHub API is slow' -- sleep 5
