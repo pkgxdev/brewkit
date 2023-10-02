@@ -99,6 +99,9 @@ async function clone({ dst, src, ref }: { dst: Path, src: URL, ref?: string }) {
     return dst
   }
 
+  // ensure the parent dir exists
+  dst.parent().mkdir('p')
+
   const tmp = Path.mktemp({})
 
   const args = [
