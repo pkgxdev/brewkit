@@ -4,7 +4,7 @@ tool=$(basename $0)
 
 if [ $(uname) != Darwin ]; then
   "${PKGX_DIR:-$HOME/.pkgx}/pkgx.sh/v*/bin/pkgx" --silent +llvm.org
-  exec "${SRCROOT:-$HOME}/dev.pkgx.bin/$tool" "$@"
+  exec "${XDG_CACHE_HOME:-$HOME/.cache}/pkgx/shims/$tool" "$@"
 fi
 
 case $tool in

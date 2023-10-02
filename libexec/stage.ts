@@ -5,7 +5,7 @@ import { hooks, utils, Path } from "pkgx"
 import undent from "outdent"
 
 const { useShellEnv, useCellar, useConfig, usePantry } = hooks
-const { host, pkg: { parse } } = utils
+const { host, pkg: { parse }, flatmap } = utils
 const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
     name: "srcdir",
@@ -63,8 +63,9 @@ if (!deps.find(({pkg}) => pkg.project == 'llvm.org' || pkg.project == 'gnu.org/g
   sup_PATH.push(new Path(new URL(import.meta.url).pathname).parent().parent().join("share/toolchain/bin"))
 
   if (host().platform != "darwin") {
+    const d = (flatmap(Deno.env.get("XDG_CACHE_HOME"), Path.abs) ?? Path.home()).join('pkgx/shims').mkdir('p')
+
     const symlink = (names: string[], {to}: {to: string}) => {
-      const d = blddir.join('dev.pkgx.bin').mkdir()
       for (const name of names) {
         const path = d.join(name)
         if (path.exists()) continue

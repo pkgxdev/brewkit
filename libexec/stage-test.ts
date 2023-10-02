@@ -5,7 +5,7 @@ import { hooks, utils, Path } from "pkgx"
 import undent from "outdent"
 
 const { usePantry, useCellar, useConfig, useShellEnv } = hooks
-const { pkg: pkgutils, panic } = utils
+const { pkg: pkgutils, panic, flatmap, host } = utils
 
 const { flags, unknown: [pkgname] } = parseFlags(Deno.args, {
   flags: [{
@@ -47,32 +47,35 @@ if (!deps.find(({pkg}) => pkg.project == 'llvm.org' || pkg.project == 'gnu.org/g
   /// add our helper cc toolchain unless the package has picked its own toolchain
   env['PATH'].unshift(new Path(new URL(import.meta.url).pathname).parent().parent().join("share/toolchain/bin").string)
 
-  //COPY PASTA from stage.ts
-  const d = dstdir.join('dev.pkgx.bin').mkdir()
-  const symlink = (names: string[], {to}: {to: string}) => {
-    for (const name of names) {
-      const path = d.join(name)
-      if (path.exists()) continue
-      const target = useConfig().prefix.join('llvm.org/v*/bin', to)
-      path.ln('s', { target })
-    }
-  }
+  if (host().platform != "darwin") {
+    //COPY PASTA from stage.ts
+    const d = (flatmap(Deno.env.get("XDG_CACHE_HOME"), Path.abs) ?? Path.home()).join('pkgx/shims').mkdir('p')
 
-  symlink(["ar"], {to: "llvm-ar"})
-  symlink(["as"], {to: "llvm-as"})
-  symlink(["cc", "gcc", "clang"], {to: "clang"})
-  symlink(["c++", "g++", "clang++"], {to: "clang++"})
-  symlink(["cpp"], {to: "clang-cpp"})
-  symlink(["ld"], {to: "lld"})
-  symlink(["lld"], {to: "lld"})
-  symlink(["ld64.lld"], {to: "ld64.lld"})
-  symlink(["lld-link"], {to: "lld-link"})
-  symlink(["objcopy"], {to: "llvm-objcopy"})
-  symlink(["readelf"], {to: "llvm-readelf"})
-  symlink(["strip"], {to: "llvm-strip"})
-  symlink(["nm"], {to: "llvm-nm"})
-  symlink(["ranlib"], {to: "llvm-ranlib"})
-  symlink(["strings"], {to: "llvm-strings"})
+    const symlink = (names: string[], {to}: {to: string}) => {
+      for (const name of names) {
+        const path = d.join(name)
+        if (path.exists()) continue
+        const target = useConfig().prefix.join('llvm.org/v*/bin', to)
+        path.ln('s', { target })
+      }
+    }
+
+    symlink(["ar"], {to: "llvm-ar"})
+    symlink(["as"], {to: "llvm-as"})
+    symlink(["cc", "gcc", "clang"], {to: "clang"})
+    symlink(["c++", "g++", "clang++"], {to: "clang++"})
+    symlink(["cpp"], {to: "clang-cpp"})
+    symlink(["ld"], {to: "lld"})
+    symlink(["lld"], {to: "lld"})
+    symlink(["ld64.lld"], {to: "ld64.lld"})
+    symlink(["lld-link"], {to: "lld-link"})
+    symlink(["objcopy"], {to: "llvm-objcopy"})
+    symlink(["readelf"], {to: "llvm-readelf"})
+    symlink(["strip"], {to: "llvm-strip"})
+    symlink(["nm"], {to: "llvm-nm"})
+    symlink(["ranlib"], {to: "llvm-ranlib"})
+    symlink(["strings"], {to: "llvm-strings"})
+  }
 }
 
 let text = undent`
