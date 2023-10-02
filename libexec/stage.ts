@@ -63,7 +63,7 @@ if (!deps.find(({pkg}) => pkg.project == 'llvm.org' || pkg.project == 'gnu.org/g
   sup_PATH.push(new Path(new URL(import.meta.url).pathname).parent().parent().join("share/toolchain/bin"))
 
   if (host().platform != "darwin") {
-    const d = (flatmap(Deno.env.get("XDG_CACHE_HOME"), Path.abs) ?? Path.home()).join('pkgx/shims').mkdir('p')
+    const d = (flatmap(Deno.env.get("XDG_CACHE_HOME"), Path.abs) ?? Path.home().join(".cache")).join('pkgx/shims').mkdir('p')
 
     const symlink = (names: string[], {to}: {to: string}) => {
       for (const name of names) {
