@@ -14,8 +14,8 @@
     "cliffy/": "https://deno.land/x/cliffy@v0.25.7/",
     "s3": "https://deno.land/x/s3@0.5.0/mod.ts",
     "deno/": "https://deno.land/std@0.196.0/",
-    "libpkgx": "https://deno.land/x/libpkgx@v0.14.0/mod.ts",
-    "libpkgx/": "https://deno.land/x/libpkgx@v0.14.0/src/",
+    "libpkgx": "https://deno.land/x/libpkgx@v0.14.1/mod.ts",
+    "libpkgx/": "https://deno.land/x/libpkgx@v0.14.1/src/",
     "pkgx": "./lib/pkgx.ts"
   }
 }
