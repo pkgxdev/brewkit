@@ -93,7 +93,9 @@ for PKG in $PKGS; do
     BASH="pkgx bash"
   fi
 
-  echo "build-dir=$BLDDIR" >> $GITHUB_OUTPUT
+  if test -n "$GITHUB_ACTIONS"; then
+    echo "build-dir=$BLDDIR" >> $GITHUB_OUTPUT
+  fi
 
   gum "# running build"
 
