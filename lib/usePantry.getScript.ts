@@ -1,5 +1,5 @@
 import useConfig from "libpkgx/hooks/useConfig.ts"
-import { SupportedPlatforms } from "libpkgx/utils/host.ts"
+import { SupportedPlatforms, SupportedArchitectures } from "libpkgx/utils/host.ts"
 import { isArray, isString, isPlainObject, PlainObject } from "is-what"
 import { Package, Installation, hooks, utils, semver } from "libpkgx"
 import undent from "outdent"
@@ -23,6 +23,14 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
         const condition = obj["if"]
         if (condition) {
           if (SupportedPlatforms.includes(condition) && host().platform != condition) return ''
+          if (SupportedArchitectures.includes(condition) && host().arch != condition) return ''
+          if (condition.includes("/")) {
+            const [platform, arch] = condition.split("/")
+            if (SupportedPlatforms.includes(platform) &&
+                SupportedArchitectures.includes(arch) &&
+                (host().platform != platform ||
+                host().arch != arch)) return ''
+          }
 
           const range = semver.Range.parse(condition)
           if (range && !range.satisfies(pkg.version)) return ''
