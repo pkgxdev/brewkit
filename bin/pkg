@@ -16,8 +16,8 @@ shift
 
 if test "$arg" = "-v" || test "$arg" = "--version"; then
   d="$(cd "$(dirname "$0")"/.. && pwd)"
-  if echo "$d" | grep -q "${PKGX_DIR:-$HOME/.pkgx}/tea.xyz/brewkit"; then
-    V="${d#"${PKGX_DIR:-$HOME/.pkgx}"/tea.xyz/brewkit/}"
+  if echo "$d" | grep -q "${PKGX_DIR:-$HOME/.pkgx}/pkgx.sh/brewkit"; then
+    V="${d#"${PKGX_DIR:-$HOME/.pkgx}"/pkgx.sh/brewkit/}"
   else
     V="$(git describe --tags --abbrev=0 --match "v[0-9]*.[0-9]*.[0-9]*")-dev"
   fi

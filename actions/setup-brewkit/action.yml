@@ -35,7 +35,7 @@ runs:
       # build itself. This is a workaround for
       # https://github.com/pkgxdev/libpkgx/pull/46
       run: |
-        d="${PKGX_DIR:-$HOME/.pkgx}/tea.xyz/brewkit"
+        d="${PKGX_DIR:-$HOME/.pkgx}/pkgx.sh/brewkit"
         mkdir -p "$d"
         cp -R $GITHUB_ACTION_PATH/../.. "$d/gha-temp"
         ln -s gha-temp "$d/v0"
