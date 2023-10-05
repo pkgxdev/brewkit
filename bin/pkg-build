@@ -1,7 +1,5 @@
-#!/usr/bin/env -S pkgx bash
+#!/usr/bin/env -S pkgx bash -eo pipefail
 # shellcheck shell=bash
-
-set -e
 
 PKGX_DIR=${PKGX_DIR:-"$HOME/.pkgx"}
 
@@ -27,14 +25,14 @@ if test -z "$1"; then
     fi
   done
 else
-  PKGS="$*"
+  PKGS="$(find.ts $@)"
 fi
 
 if test -n "$PKGX_DOCKER"; then
   exec "$d"/bin/pkg-docker build "$PKGS"
 fi
 
-if ! available.ts "$@"; then
+if ! available.ts "$PKGS"; then
   echo "warning: not supported on current platform" >&2
   exit 0
 fi
@@ -53,7 +51,7 @@ PKGS="$(sort.ts $PKGS --delimiter ' ')"
 # ^^ ensures that pkgs build topologically
 
 gum() {
-  pkgx gum format -- "$@"
+  pkgx gum format -- "$PKGS"
 }
 
 for PKG in $PKGS; do

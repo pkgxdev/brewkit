@@ -6,7 +6,7 @@ BrewKit is build infrastructure for `pkgx`.
 
 ```sh
 $ env +brewkit
-$ pkg build zlib.net
+$ pkg build node
 ```
 
 If you are inside a pantry then BrewKit will figure out what packages you are
@@ -15,8 +15,10 @@ editing and build them.
 ```sh
 $ cd pantry
 $ dev
+$ pkg edit openssl
+# make some edits…
 $ pkg build
-brewkit: building zlib.net
+brewkit: building openssl.org
 ```
 
 You can build for Linux (via Docker) using `-L`, e.g.:
@@ -32,7 +34,7 @@ Outside a pantry checkout we operate against your `pkgx` installation
 than local to your pantry checkout.
 
 ```sh
-pkgx +brewkit pkg build zlib.net
+env "$(pkgx +brewkit)" pkg build zlib.net
 ```
 
 

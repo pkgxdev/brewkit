@@ -1,7 +1,5 @@
-#!/usr/bin/env -S pkgx bash
+#!/usr/bin/env -S pkgx bash -eo pipefail
 # shellcheck shell=bash
-
-set -e
 
 d="$(cd "$(dirname "$0")"/.. && pwd)"
 PATH="$d/libexec:$PATH"
@@ -30,7 +28,7 @@ if test -z "$1"; then
     fi
   done
 else
-  PKGS="$1"
+  PKGS="$(find.ts $1)"
 fi
 
 if test -z "$GITHUB_TOKEN"; then

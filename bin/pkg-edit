@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pkgx bash
+#!/usr/bin/env -S pkgx bash -eo pipefail
 # shellcheck shell=bash
 
 set -e
@@ -17,9 +17,8 @@ if test -z "$1"; then
       PKGS="$(GIT_WORK_TREE="$x" peek.sh --print-paths)"
     fi
   done
-elif ! PKGS="$(find.ts $1)"; then
-  echo "error: \`$1\` not found in \`\$PKGX_PANTRY_PATH\`" >&2
-  exit 1
+else
+  PKGS="$(_PATHS=1 find.ts $1)"
 fi
 
 if test -z "$EDITOR"; then

@@ -1,20 +1,23 @@
-#!//usr/bin/env -S pkgx deno run --allow-read --allow-env
+#!/usr/bin/env -S pkgx deno run --allow-read --allow-env
 
 import { hooks } from "pkgx"
-const { usePantry } = hooks
+const { find } = hooks.usePantry()
 
-const pantry = usePantry()
-const arg = Deno.args[0]
+for (const arg of Deno.args) {
+  const rv = await find(arg)
 
-for await (const entry of pantry.ls()) {
-  if (entry.project === arg) {
-    console.info(entry.path.string)
-    Deno.exit(0)
+  if (rv.length > 1) {
+    console.error("multiple matches: " + rv.map(({project}) => project).join(' '))
+    Deno.exit(1)
   }
-  if ((await pantry.project(entry).provides()).includes(arg)) {
-    console.info(entry.path.string)
-    Deno.exit(0)
+  if (rv.length == 0) {
+    console.error("no matches for: " + arg)
+    Deno.exit(2)
+  }
+
+  if (Deno.env.get("_PATHS")) {
+    console.info(rv[0].path.string)
+  } else {
+    console.info(rv[0].project)
   }
 }
-
-Deno.exit(1)
