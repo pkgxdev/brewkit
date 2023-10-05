@@ -3,6 +3,7 @@
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { hooks, utils, Path } from "pkgx"
 import undent from "outdent"
+import host from "libpkgx/utils/host.ts";
 
 const { usePantry, useCellar, useConfig, useShellEnv } = hooks
 const { pkg: pkgutils, panic } = utils
@@ -31,9 +32,19 @@ const deps = await (() => {
   return Promise.all(pp)
 })()
 const dstdir = new Path(flags.dstdir)
-const yml = await pantry.project(pkg).yaml()
+const project = pantry.project(pkg)
+const yml = await project.yaml()
 const installations = [...deps]
 if (deps.find(x => x.pkg.project == self.pkg.project) === undefined) installations.push(self)
+
+/// try to find `pkgx` since we deliberately withold it from the PATH for tests
+/// since it needs to be an explicit dependency
+const pkgx = (PATH => {
+  for (const path of PATH.split(":")) {
+    const f = Path.abs(path)?.join("pkgx").isExecutableFile()
+    if (f) return f.string
+  }
+})(Deno.env.get("PATH") ?? '') ?? 'pkgx'
 
 Deno.env.set("HOME", dstdir.string)  //lol side-effects beware!
 const env = await useShellEnv().map({ installations })
@@ -43,44 +54,20 @@ if (!yml.test) throw "no `test` node in package.yml"
 env['PATH'] ??= []
 env['PATH'].push("/usr/bin:/bin")
 
-if (!deps.find(({pkg}) => pkg.project == 'llvm.org' || pkg.project == 'gnu.org/gcc')) {
-  /// add our helper cc toolchain unless the package has picked its own toolchain
-  env['PATH'].unshift(new Path(new URL(import.meta.url).pathname).parent().parent().join("share/toolchain/bin").string)
-
-  //COPY PASTA from stage.ts
-  const d = dstdir.join('dev.pkgx.bin').mkdir()
-  const symlink = (names: string[], {to}: {to: string}) => {
-    for (const name of names) {
-      const path = d.join(name)
-      if (path.exists()) continue
-      const target = useConfig().prefix.join('llvm.org/v*/bin', to)
-      path.ln('s', { target })
-    }
-  }
-
-  symlink(["ar"], {to: "llvm-ar"})
-  symlink(["as"], {to: "llvm-as"})
-  symlink(["cc", "gcc", "clang"], {to: "clang"})
-  symlink(["c++", "g++", "clang++"], {to: "clang++"})
-  symlink(["cpp"], {to: "clang-cpp"})
-  symlink(["ld"], {to: "lld"})
-  symlink(["lld"], {to: "lld"})
-  symlink(["ld64.lld"], {to: "ld64.lld"})
-  symlink(["lld-link"], {to: "lld-link"})
-  symlink(["objcopy"], {to: "llvm-objcopy"})
-  symlink(["readelf"], {to: "llvm-readelf"})
-  symlink(["strip"], {to: "llvm-strip"})
-  symlink(["nm"], {to: "llvm-nm"})
-  symlink(["ranlib"], {to: "llvm-ranlib"})
-  symlink(["strings"], {to: "llvm-strings"})
-}
-
 let text = undent`
-  #!/usr/bin/env bash
+  #!/usr/bin/env -S pkgx bash
 
-  set -e
-  set -o pipefail
-  set -x
+  set -exo pipefail
+
+  command_not_found_handle() {
+    echo "::warning::\\\`$1\\\` is not an explicit dependency!"
+    case $1 in
+    cc|c++|ld)
+      ${pkgx} +llvm.org -- "$@";;
+    *)
+      ${pkgx} -- "$@";;
+    esac
+  }
 
   export PKGX_DIR="${useConfig().prefix}"
   export HOME="${dstdir}"
