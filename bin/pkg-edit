@@ -18,7 +18,7 @@ if test -z "$1"; then
     fi
   done
 else
-  PKGS="$(_PATHS=1 find.ts $1)"
+  PKGS="$(_PATHS=1 find.ts $@)"
 fi
 
 if test -z "$EDITOR"; then
@@ -45,7 +45,7 @@ if test -z "$PKGS"; then
   exit 1
 elif test "$EDITOR" = code; then
   # shellcheck disable=2086
-  exec $EDITOR $PKGX_PANTRY_PATH $PKGS
+  exec $EDITOR "$PKGX_PANTRY_PATH" $PKGS
   # ^^ be more useful
 else
   # shellcheck disable=2086
