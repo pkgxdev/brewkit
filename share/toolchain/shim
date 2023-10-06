@@ -17,19 +17,7 @@ if [ $(uname) != Darwin ]; then
   set -a
   eval "$("$pkgx" +llvm.org 2>/dev/null)"
 
-  #FIXME like, we shouldn’t do this more than once lol
-  # clang can act pretty convincingly like gcc/g++ provided its called that
-  # so make a symlink and invoke rather than install gcc
-  case $tool in
-  gcc)
-    ln -s "${PKGX_DIR:-$HOME/.pkgx}/llvm.org/v*/bin/clang" "${PKGX_DIR:-$HOME/.pkgx}/llvm.org/v*/bin/gcc"
-    ;;
-  g++)
-    ln -s "${PKGX_DIR:-$HOME/.pkgx}/llvm.org/v*/bin/clang++" "${PKGX_DIR:-$HOME/.pkgx}/llvm.org/v*/bin/g++"
-    ;;
-  esac
-
-  exec $tool "$@"
+  exec "$SRCROOT/dev.pkgx.bin/$tool" "$@"
 fi
 
 case $tool in

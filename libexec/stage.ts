@@ -61,6 +61,36 @@ const sup_PATH = [new Path(new URL(import.meta.url).pathname).parent().parent().
 if (!deps.find(({pkg}) => pkg.project == 'llvm.org' || pkg.project == 'gnu.org/gcc')) {
   /// add our helper cc toolchain unless the package has picked its own toolchain
   sup_PATH.push(new Path(new URL(import.meta.url).pathname).parent().parent().join("share/toolchain/bin"))
+
+  if (host().platform != "darwin") {
+    const symlink = (names: string[], {to}: {to: string}) => {
+      const d = blddir.join('dev.pkgx.bin').mkdir()
+      for (const name of names) {
+        const path = d.join(name)
+        if (path.exists()) continue
+        const target = prefix.join('llvm.org/v*/bin', to)
+        path.ln('s', { target })
+      }
+    }
+
+    symlink(["cc", "gcc", "clang"], {to: "clang"})
+    symlink(["c++", "g++", "clang++"], {to: "clang++"})
+    symlink(["cpp"], {to: "clang-cpp"})
+
+    symlink(["ld"], {to: "lld"})
+    symlink(["lld"], {to: "lld"})
+    symlink(["ld64.lld"], {to: "ld64.lld"})
+    symlink(["lld-link"], {to: "lld-link"})
+
+    symlink(["ar"], {to: "llvm-ar"})
+    symlink(["as"], {to: "llvm-as"})
+    symlink(["nm"], {to: "llvm-nm"})
+    symlink(["objcopy"], {to: "llvm-objcopy"})
+    symlink(["ranlib"], {to: "llvm-ranlib"})
+    symlink(["readelf"], {to: "llvm-readelf"})
+    symlink(["strings"], {to: "llvm-strings"})
+    symlink(["strip"], {to: "llvm-strip"})
+  }
 }
 
 /// calc env
