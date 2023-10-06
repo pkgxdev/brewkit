@@ -1,5 +1,7 @@
-#!/usr/bin/env -S pkgx bash -eo pipefail
+#!/usr/bin/env -S pkgx bash
 # shellcheck shell=bash
+
+set -eo pipefail
 
 PKGX_DIR=${PKGX_DIR:-"$HOME/.pkgx"}
 
@@ -32,7 +34,7 @@ if test -n "$PKGX_DOCKER"; then
   exec "$d"/bin/pkg-docker build "$PKGS"
 fi
 
-if ! available.ts "$PKGS"; then
+if ! available.ts $PKGS; then
   echo "warning: not supported on current platform" >&2
   exit 0
 fi

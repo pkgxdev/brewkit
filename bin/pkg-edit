@@ -1,7 +1,7 @@
-#!/usr/bin/env -S pkgx bash -eo pipefail
+#!/usr/bin/env -S pkgx bash
 # shellcheck shell=bash
 
-set -e
+set -eo pipefail
 
 d="$(cd "$(dirname "$0")"/.. && pwd)"
 PATH="$d/libexec:$PATH"

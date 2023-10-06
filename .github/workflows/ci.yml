@@ -35,9 +35,6 @@ jobs:
       - run: pkg build ${{matrix.pkgs}}
         id: build
 
-      - if: always()
-        run: cat ${{ steps.build.outputs.build-dir }}/config.log || true
-
       - run: test -n '${{ steps.build.outputs.pkgs }}'
       - run: test -n '${{ steps.build.outputs.relative-paths }}'
 

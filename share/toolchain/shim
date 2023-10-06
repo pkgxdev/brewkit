@@ -1,10 +1,23 @@
-#!/bin/sh
+#!/bin/bash
 
 tool=$(basename $0)
 
 if [ $(uname) != Darwin ]; then
-  "${PKGX_DIR:-$HOME/.pkgx}/pkgx.sh/v*/bin/pkgx" --silent +llvm.org
-  exec "${SRCROOT:-$HOME}/dev.pkgx.bin/$tool" "$@"
+  if [ -x /usr/local/bin/pkgx ]; then
+    # removed from PATH deliberately
+    #TODO like, probs we should set PKGX or something before removing it from PATH
+    pkgx=/usr/local/bin/pkgx
+  else
+    # if not the above probs this is running in pkgx CI/CD
+    pkgx="${PKGX_DIR:-$HOME/.pkgx}/pkgx.sh/v*/bin/pkgx"
+  fi
+  # prevent fork bombs (shouldn't be possible but who knows)
+  export PATH="/usr/bin:/bin:/usr/sbin:/sbin"
+
+  set -a
+  eval "$("$pkgx" +llvm.org 2>/dev/null)"
+
+  exec "$SRCROOT/dev.pkgx.bin/$tool" "$@"
 fi
 
 case $tool in

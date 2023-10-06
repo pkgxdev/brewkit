@@ -112,7 +112,7 @@ if (host().platform == 'linux' && host().arch == 'x86-64') {
 }
 
 const text = undent`
-  #!/bin/bash
+  #!/usr/bin/env -S pkgx bash
 
   set -exo pipefail
 
