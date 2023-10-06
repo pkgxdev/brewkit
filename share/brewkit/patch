@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [ -x /usr/local/bin/pkgx ]; then
+  # removed from PATH deliberately
+  pkgx=/usr/local/bin/pkgx
+else
+  # probs this is running in pkgx CI/CD
+  pkgx="${PKGX_DIR:-$HOME/.pkgx}/pkgx.sh/v*/bin/pkgx"
+fi
+
+exec "$pkgx" +gnu.org/patch patch "$@"
