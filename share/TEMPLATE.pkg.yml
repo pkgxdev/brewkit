@@ -23,6 +23,12 @@ distributable:
   url: git+https://github.com/user/repo
   ref: v{{version}}}
 
+# if omitted, most tools will work by looking at either the provides: list, or require the
+# fully-qualified name of the package. providing a display-name looks better in `pkgxdev/ossapp`
+# and allows simpler commands like `pkgx install common-package-name`. this _should never_ conflict
+# with any other display-name, or we will become upset and probably yell and stuff.
+display-name: common-package-name
+
 # if there’s a github then we can parse the versions
 versions:
   # if the repo has a github then we can parse versions
