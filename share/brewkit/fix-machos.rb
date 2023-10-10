@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!pkgx +gem ruby
 
 # using macOS provided ∵ ruby is complex, ocassionally breaks and that causes revlock
 # ideally our tests would be thorough enough to guarantee more stability
