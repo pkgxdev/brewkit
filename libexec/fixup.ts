@@ -20,8 +20,8 @@ const pkg_prefix = new Path(unknown[0])
 
 switch (host().platform) {
 case 'darwin': {
-  const { success } = await Deno.run({
-    cmd: [
+  const cmd = new Deno.Command(Deno.execPath(), {
+    args: [
       'fix-machos.rb',
       pkg_prefix.string,
       ...['bin', 'sbin', 'tbin', 'lib', 'libexec'].compact(x => pkg_prefix.join(x).isDirectory()?.string)
@@ -29,22 +29,22 @@ case 'darwin': {
     env: {
       GEM_HOME: useConfig().prefix.join('.local/share/ruby/gem').string
     }
-  }).status()
-  if (!success) throw new Error("failed to fix machos")
+  })
+  if (!cmd.output) throw new Error("failed to fix machos")
 } break
 
 case 'linux': {
   const raw = flags.deps == true ? '' : flags.deps as string
   const installs = await Promise.all(raw.split(/\s+/).map(path => cellar.resolve(new Path(path))))
   const deps = installs.map(({ pkg }) => str(pkg))
-  const { success } = await Deno.run({
-    cmd: [
+  const cmd = new Deno.Command(Deno.execPath(), {
+    args: [
       'fix-elf.ts',
       pkg_prefix.string,
       ...deps
-    ]
-  }).status()
-  if (!success) Deno.exit(1)
+    ],
+  })
+  if (!cmd.output) Deno.exit(1)
   break
 }}
 
