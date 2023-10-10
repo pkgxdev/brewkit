@@ -27,6 +27,17 @@ You can build for Linux (via Docker) using `-L`, e.g.:
 pkg -L build
 ```
 
+## Some Details
+
+* The `pkg build` environment ensures you have a c/c++ compiler and `make`
+  * We do this to ensure builds on Mac and Linux have a consistent base layer
+    of tooling
+  * We also provide shims so use of tools like `pkg-config` just work
+  * We shim `sed` since Mac comes with BSD sed and Linux typically comes with
+    GNU sed and they are subtly different
+* The `pkg test` environment automatically adds pkgs when called
+  * We emit a warning for this since sometimes these deps should be  explicit
+
 ## Outside a Pantry Checkout
 
 Outside a pantry checkout we operate against your `pkgx` installation
