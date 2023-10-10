@@ -1,4 +1,4 @@
-#!pkgx +gem ruby
+#!/usr/bin/env -S pkgx +gem ruby
 
 # using pkgx ruby to try and avoid macos Ruby complexity
 
