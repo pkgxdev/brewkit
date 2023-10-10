@@ -1,8 +1,6 @@
 #!pkgx +gem ruby
 
-# using macOS provided ∵ ruby is complex, ocassionally breaks and that causes revlock
-# ideally our tests would be thorough enough to guarantee more stability
-# we’ll get there…
+# using pkgx ruby to try and avoid macos Ruby complexity
 
 require 'bundler/inline'
 
