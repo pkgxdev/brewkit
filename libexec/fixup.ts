@@ -20,9 +20,8 @@ const pkg_prefix = new Path(unknown[0])
 
 switch (host().platform) {
 case 'darwin': {
-  const { output } = new Deno.Command(Deno.execPath(), {
+  const { output } = new Deno.Command('fix-machos.rb', {
     args: [
-      'fix-machos.rb',
       pkg_prefix.string,
       ...['bin', 'sbin', 'tbin', 'lib', 'libexec'].compact(x => pkg_prefix.join(x).isDirectory()?.string)
     ],
