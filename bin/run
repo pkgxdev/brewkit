@@ -1,8 +1,10 @@
 #!/usr/bin/env -S pkgx +deno bash +exo pipefail
 
 cmd() {
+  d="$(cd "$(dirname "$0")"/.. && pwd)
+
   deno run -A - <<EoTS
-    import parse_pkg_str from '../lib/run/parse-pkg-str.ts'
+    import parse_pkg_str from '$d/lib/run/parse-pkg-str.ts'
     import { hooks } from 'pkgx'
 
     const pkg = await parse_pkg_str('$1')

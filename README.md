@@ -27,6 +27,11 @@ You can build for Linux (via Docker) using `-L`, e.g.:
 pkg -L build
 ```
 
+To run `pkg` without shellcode you can do eg. `pkgx +brewkit -- pkg build`,
+this is necessary because `pkg` is not listed as a provided program by brewkit
+since many other projects have decided to provide `pkg` and we didn’t want
+to trump them.
+
 ## Some Details
 
 * The `pkg build` environment ensures you have a c/c++ compiler and `make`
