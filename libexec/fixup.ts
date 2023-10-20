@@ -22,7 +22,7 @@ const yml = await usePantry().project(pkg).yaml()
 
 switch (host().platform) {
 case 'darwin': {
-  if (yml.build['skip-machos']) {
+  if (yml.build.skip === 'fix-machos' || yml.build.skip?.includes('fix-machos')) {
     console.info(`skipping rpath fixes for ${pkg.project}`)
     break
   }
@@ -39,8 +39,8 @@ case 'darwin': {
   if (!success) throw new Error("failed to fix machos")
 } break
 
-case 'linux': {
-  if (yml.build['skip-patchelf']) {
+case 'linux': { 
+  if (yml.build.skip === 'fix-patchelf' || yml.build.skip?.includes('fix-patchelf')) {
     console.info(`skipping rpath fixes for ${pkg.project}`)
     break
   }
