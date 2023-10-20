@@ -39,7 +39,7 @@ case 'darwin': {
   if (!success) throw new Error("failed to fix machos")
 } break
 
-case 'linux': { 
+case 'linux': {
   if (yml.build['skip-patchelf']) {
     console.info(`skipping rpath fixes for ${pkg.project}`)
     break
