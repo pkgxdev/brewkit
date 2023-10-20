@@ -17,9 +17,17 @@ const { flags, unknown } = parseFlags(Deno.args, {
 
 const cellar = useCellar()
 const pkg_prefix = new Path(unknown[0])
+const parts = unknown[0].split('/')
+const pkgName = parts[parts.length - 2]
+const pkg = parse(pkgName)
+const yml = await usePantry().project(pkg).yaml()
 
 switch (host().platform) {
 case 'darwin': {
+  if (yml.build['skip-machos']) {
+    console.info(`skipping rpath fixes for ${pkg.project}`)
+    break
+  }
   const { success } = await Deno.run({
     cmd: [
       'fix-machos.rb',
@@ -33,12 +41,7 @@ case 'darwin': {
   if (!success) throw new Error("failed to fix machos")
 } break
 
-case 'linux': {
-  const parts = unknown[0].split('/')
-  const pkgName = parts[parts.length - 2]
-  const pkg = parse(pkgName)
-  const yml = await usePantry().project(pkg).yaml()
-  
+case 'linux': { 
   if (yml.build['skip-patchelf']) {
     console.info(`skipping rpath fixes for ${pkg.project}`)
     break
