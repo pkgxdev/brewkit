@@ -16,10 +16,8 @@ const { flags, unknown } = parseFlags(Deno.args, {
 })
 
 const cellar = useCellar()
-const pkg_prefix = new Path(unknown[0])
-const parts = unknown[0].split('/')
-const pkgName = parts[parts.length - 2]
-const pkg = parse(pkgName)
+const pkg_prefix = new Path(unknown[1])
+const pkg = parse(unknown[0])
 const yml = await usePantry().project(pkg).yaml()
 
 switch (host().platform) {
