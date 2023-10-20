@@ -3,8 +3,8 @@
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { hooks, utils, Path } from "pkgx"
 
-const { useCellar, useConfig } = hooks
-const { pkg: { str }, host } = utils
+const { useCellar, useConfig, usePantry } = hooks
+const { pkg: { str, parse }, host } = utils
 
 const { flags, unknown } = parseFlags(Deno.args, {
   flags: [{
@@ -34,6 +34,16 @@ case 'darwin': {
 } break
 
 case 'linux': {
+  const parts = unknown[0].split('/')
+  const pkgName = parts[parts.length - 2]
+  const pkg = parse(pkgName)
+  const yml = await usePantry().project(pkg).yaml()
+  
+  if (yml.build['skip-patchelf']) {
+    console.info(`skipping rpath fixes for ${pkg.project}`)
+    break
+  }
+
   const raw = flags.deps == true ? '' : flags.deps as string
   const installs = await Promise.all(raw.split(/\s+/).map(path => cellar.resolve(new Path(path))))
   const deps = installs.map(({ pkg }) => str(pkg))
