@@ -28,5 +28,5 @@ for PKG in $PKGS; do
   # shellcheck disable=SC2086
   DEPS=$(install.ts $DEPS)
 
-  PATH="$d/share/brewkit:$PATH" fixup.ts "$PREFIX" --deps "$DEPS"
+  PATH="$d/share/brewkit:$PATH" fixup.ts "$PKG" "$PREFIX" --deps "$DEPS"
 done

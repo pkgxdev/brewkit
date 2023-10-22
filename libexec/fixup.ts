@@ -3,8 +3,8 @@
 import { parseFlags } from "cliffy/flags/mod.ts"
 import { hooks, utils, Path } from "pkgx"
 
-const { useCellar, useConfig } = hooks
-const { pkg: { str }, host } = utils
+const { useCellar, useConfig, usePantry } = hooks
+const { pkg: { str, parse }, host } = utils
 
 const { flags, unknown } = parseFlags(Deno.args, {
   flags: [{
@@ -16,10 +16,16 @@ const { flags, unknown } = parseFlags(Deno.args, {
 })
 
 const cellar = useCellar()
-const pkg_prefix = new Path(unknown[0])
+const pkg_prefix = new Path(unknown[1])
+const pkg = parse(unknown[0])
+const yml = await usePantry().project(pkg).yaml()
 
 switch (host().platform) {
 case 'darwin': {
+  if (yml.build.skip === 'fix-machos' || yml.build.skip?.includes('fix-machos')) {
+    console.info(`skipping rpath fixes for ${pkg.project}`)
+    break
+  }
   const { success } = await Deno.run({
     cmd: [
       'fix-machos.rb',
@@ -33,7 +39,12 @@ case 'darwin': {
   if (!success) throw new Error("failed to fix machos")
 } break
 
-case 'linux': {
+case 'linux': { 
+  if (yml.build.skip === 'fix-patchelf' || yml.build.skip?.includes('fix-patchelf')) {
+    console.info(`skipping rpath fixes for ${pkg.project}`)
+    break
+  }
+
   const raw = flags.deps == true ? '' : flags.deps as string
   const installs = await Promise.all(raw.split(/\s+/).map(path => cellar.resolve(new Path(path))))
   const deps = installs.map(({ pkg }) => str(pkg))

@@ -112,7 +112,7 @@ for PKG in $PKGS; do
   DEPS="$(deps.ts "$PKG")"  # needs to be runtime deps AND include self
   # shellcheck disable=SC2086
   DEPS=$(install.ts $DEPS)
-  PATH="$d/share/brewkit:$PATH" fixup.ts "$PREFIX" --deps "$DEPS"
+  PATH="$d/share/brewkit:$PATH" fixup.ts "$PKG" "$PREFIX" --deps "$DEPS"
 
   find "$PREFIX" -type f -name \*.la -delete
 
