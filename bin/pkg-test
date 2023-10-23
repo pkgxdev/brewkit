@@ -54,15 +54,9 @@ for PKG in $PKGS; do
 
   stage-test.ts "$PKG" --deps "$DEPS" --dstdir "$DSTDIR"
 
-  if command -v bash >/dev/null; then
-    BASH=bash
-  else
-    BASH="pkgx bash"
-  fi
-
   gum "## running test"
 
-  env -i "$BASH" --noprofile --norc -e "$DSTDIR"/dev.pkgx.test.sh
+  "$DSTDIR"/dev.pkgx.test.sh
 
   gum "## running audit"
 
