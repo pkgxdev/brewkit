@@ -1,19 +1,29 @@
 #!/usr/bin/env -S pkgx +deno bash +exo pipefail
 
-cmd() {
-  d="$(cd "$(dirname "$0")"/.. && pwd)
+d="$(cd "$(dirname "$0")"/.. && pwd)"
 
-  deno run -A - <<EoTS
+get_parameters() {
+  deno run --config="$d/deno.jsonc" -A - <<EoTS
     import parse_pkg_str from '$d/lib/run/parse-pkg-str.ts'
     import { hooks } from 'pkgx'
 
     const pkg = await parse_pkg_str('$1')
     const entrypoint = await hooks.usePantry().project(pkg).yaml().then(x => x?.['entrypoint'])
     if (!entrypoint) Deno.exit(1)
-    console.log(entrypoint)
+    const prefix = (await hooks.useCellar().resolve(pkg)).path.string
+    console.log(pkg.project, prefix, entrypoint)
 EoTS
 }
 
-eval "endpoint=($(cmd $1))"
+run() {
+  project=$1
+  shift
+  cd "$1"
+  shift
+  eval "$(pkgx --shellcode)"
+  env +$project
+  "$@"
+}
 
-pkgx +$1 "$endpoint"
+params=($(get_parameters $1))
+run "${params[@]}"
