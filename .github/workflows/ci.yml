@@ -67,3 +67,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pkgxdev/dev@main
       - run: deno test --allow-env --allow-net
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
