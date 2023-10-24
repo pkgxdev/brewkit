@@ -25,10 +25,9 @@ export async function _parse(
 ): Promise<SemVer[]> {
   if (!isArray(versions)) versions = [versions];
 
-  const result: SemVer[] = [];
+  const result: Set<SemVer> = new Set<SemVer>();
 
-  for (let i = 0; i < (versions as unknown[]).length; i++) {
-    let v = (versions as unknown[])[i];
+  for (let v of versions as unknown[]) {
     let tempres: SemVer[] = [];
     if (isPlainObject(v)) {
       if (v.github) {
@@ -42,19 +41,18 @@ export async function _parse(
         const first = keys.length > 0 ? keys[0] : "undefined";
         throw new Error(`Could not parse version scheme for ${first}`)
       }
-      for (let x = 0; x < tempres.length; x++) {
-        const ver: SemVer = tempres[x];
-        if (result.indexOf(ver) === -1) result.push(ver);
+      for (const ver of tempres) {
+        result.add(ver);
       }
     } else {
       if (isNumber(v)) v = v.toString();
       const rv = isString(v) && semver.parse(v);
       if (!rv) throw new Error(`Could not parse versions for ${project}`);
-      if (result.indexOf(rv) == -1) result.push(rv);
+      result.add(rv);
     }
   }
 
-  return result
+  return Array.from(result);
 }
 
 //SRC https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
