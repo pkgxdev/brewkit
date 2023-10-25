@@ -2,7 +2,8 @@ name: cd·vx
 
 on:
   release:
-    types: created
+    types:
+      - published
 
 concurrency:
   group: cd/vx/${{ github.event.release.tag_name }}
