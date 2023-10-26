@@ -25,5 +25,8 @@ run() {
   "$@"
 }
 
-params=($(get_parameters $1))
-run "${params[@]}"
+pkg=$1
+shift
+
+params=($(get_parameters $pkg))
+run "${params[@]}" "$@"
