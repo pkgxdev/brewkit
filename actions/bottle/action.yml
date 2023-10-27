@@ -11,6 +11,9 @@ inputs:
   compression:
     description: compression to use (gz or xz)
     required: true
+  platform:
+    description: eg. darwin+aarch64
+    required: false
 outputs:
   bottles:
     description: bottle files
@@ -31,3 +34,4 @@ runs:
       env:
         COMPRESSION: ${{ inputs.compression }}
         GPG_KEY_ID: ${{ inputs.gpg-key-id }}
+        PLATFORM: ${{ inputs.platform }}

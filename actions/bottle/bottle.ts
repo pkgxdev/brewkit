@@ -44,7 +44,9 @@ if (import.meta.main) {
 
 //------------------------------------------------------------------------- funcs
 export async function bottle({ path: kegdir, pkg }: Installation, compression: 'gz' | 'xz'): Promise<Path> {
-  const tarball = useCache().path({ pkg, type: 'bottle', compression })
+  const [platform, arch] = Deno.env.get("PLATFORM")?.split('+') ?? []
+  const host = platform && arch ? {platform, arch} as any : undefined
+  const tarball = useCache().path({ pkg, type: 'bottle', compression, host })
   const z = compression == 'gz' ? 'z' : 'J'
   const cwd = usePrefix()
   const cmd = ["tar", `c${z}f`, tarball, kegdir.relative({ to: cwd })].map(x => x.toString())
