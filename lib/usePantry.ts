@@ -116,10 +116,26 @@ const getDistributable = async (pkg: Package) => {
 
     if (isPlainObject(dist)) {
       if (dist.rewrite?.match) {
-        v.raw = v.raw.replace(
+        const v_raw = v.raw.replace(
           new RegExp(dist.rewrite["match"], "gi"),
           dist.rewrite["with"],
         );
+        v = {
+        raw: v_raw,
+        major: pkg.version.major,
+        minor: pkg.version.minor,
+        patch: pkg.version.patch,
+        components: pkg.version.components,
+        prerelease: pkg.version.prerelease,
+        build: pkg.version.build,
+        eq: pkg.version.eq,
+        neq: pkg.version.neq,
+        gt: pkg.version.gt,
+        gte: pkg.version.gte,
+        lt: pkg.version.lt,
+        lte: pkg.version.lte,
+        compare: pkg.version.compare,
+      }
       }
 
       if (dist.if) {
