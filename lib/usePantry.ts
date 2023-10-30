@@ -60,17 +60,17 @@ const getPlatforms = async (pkg: Package | PackageRequirement) => {
   return rv
 }
 
-const getRawDistributableURL = (yml: PlainObject) => {
-  if (isPlainObject(yml.distributable)) {
-    return validate.str(yml.distributable.url)
-  } else if (isString(yml.distributable)) {
-    return yml.distributable
-  } else if (yml.distributable === null || yml.distributable === undefined) {
-    return
+const getRawDistributableURL = (dist: PlainObject) => {
+  if (isPlainObject(dist)) {
+    return validate.str(dist.url);
+  } else if (isString(dist)) {
+    return dist;
+  } else if (dist === null || dist === undefined) {
+    return;
   } else {
-    throw new Error(`invalid distributable node: ${yml.distributable}`)
+    throw new Error(`invalid distributable node: ${dist}`);
   }
-}
+};
 
 const getGitDistribution = ({ pkg, url: urlstr, ref }: { pkg: Package, url: string, ref: string }) => {
   if (!ref) {
@@ -90,33 +90,78 @@ const getGitDistribution = ({ pkg, url: urlstr, ref }: { pkg: Package, url: stri
 }
 
 const getDistributable = async (pkg: Package) => {
-  const moustaches = useMoustaches()
+  const moustaches = useMoustaches();
 
-  const yml = await hooks.usePantry().project(pkg).yaml()
-
-  if (yml.distributable?.git) {
-    console.warn("brewkit: using distributable.git instead of distributable.url is deprecated")
-    return getGitDistribution({ pkg, ...yml.distributable})
+  const yml = await hooks.usePantry().project(pkg).yaml();
+  let final_url = "";
+  let dists = yml.distributable;
+  let stripComponents: number | undefined;
+  if (!isArray(dists)) dists = [dists];
+  for (const dist of dists) {
+    //FIXME: Add check for Git dists as well
+    if (dist.git) {
+      console.warn(
+        "brewkit: using distributable.git instead of distributable.url is deprecated",
+      );
+      return getGitDistribution({ pkg, ...dist });
+    }
+    if (dist.url?.startsWith("git")) {
+      return getGitDistribution({ pkg, ...dist });
+    }
+    let urlstr = getRawDistributableURL(dist);
+    let raw_v = "";
+    let matched = true;
+    if (!urlstr) continue;
+    let tmp_stripComponents: number | undefined;
+    if (isPlainObject(dist)) {
+      tmp_stripComponents = flatmap(dist["strip-components"], coerceNumber);
+      if (Object.keys(dist.rewrite).length) {
+        raw_v = pkg.version.raw.replace(
+          new RegExp(dist.rewrite["match"], "gi"),
+          dist.rewrite["with"],
+        );
+      }
+      if (dist?.if) {
+        matched = new RegExp(dist.if).test(pkg.version.raw);
+      }
+    }
+    let v: SemVer;
+    if (raw_v) {
+      v = {
+        raw: raw_v,
+        major: pkg.version.major,
+        minor: pkg.version.minor,
+        patch: pkg.version.patch,
+        components: pkg.version.components,
+        prerelease: pkg.version.prerelease,
+        build: pkg.version.build,
+        eq: pkg.version.eq,
+        neq: pkg.version.neq,
+        gt: pkg.version.gt,
+        gte: pkg.version.gte,
+        lt: pkg.version.lt,
+        lte: pkg.version.lte,
+        compare: pkg.version.compare,
+      };
+    } else {
+      v = pkg.version;
+    }
+    urlstr = moustaches.apply(urlstr, [
+      ...moustaches.tokenize.version(v),
+      ...moustaches.tokenize.host(),
+    ]);
+    if (!matched) continue;
+    const rsp = await fetch(urlstr, { method: "HEAD" });
+    if (rsp.status == 200) {
+      final_url = urlstr;
+      stripComponents = tmp_stripComponents;
+      break;
+    }
   }
-  if (yml.distributable?.url?.startsWith("git")) {
-    return getGitDistribution({ pkg, ...yml.distributable})
-  }
+  if (!final_url) return;
+  const url = new URL(final_url);
 
-  let urlstr = getRawDistributableURL(yml)
-  if (!urlstr) return
-  let stripComponents: number | undefined
-  if (isPlainObject(yml.distributable)) {
-    stripComponents = flatmap(yml.distributable["strip-components"], coerceNumber)
-  }
-
-  urlstr = moustaches.apply(urlstr, [
-    ...moustaches.tokenize.version(pkg.version),
-    ...moustaches.tokenize.host()
-  ])
-
-  const url = new URL(urlstr)
-
-  return { url, ref: undefined, stripComponents, type: 'url' }
+  return { url, ref: undefined, stripComponents, type: "url" }
 }
 
 // deno-lint-ignore no-explicit-any
