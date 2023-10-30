@@ -94,8 +94,8 @@ const getDistributable = async (pkg: Package) => {
 
   const yml = await hooks.usePantry().project(pkg).yaml();
   const dists = isArray(yml.distributable) ? yml.distributable : [yml.distributable]
-  if (!dists) return;
   for (const dist of dists) {
+    if (!dist) continue;
     //FIXME: Add check for Git dists as well
     if (dist.git) {
       console.warn(
