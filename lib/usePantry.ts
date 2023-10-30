@@ -95,6 +95,7 @@ const getDistributable = async (pkg: Package) => {
   const yml = await hooks.usePantry().project(pkg).yaml();
   let final_url = "";
   let dists = yml.distributable;
+  if (!dists) dists = [];
   let stripComponents: number | undefined;
   if (!isArray(dists)) dists = [dists];
   for (const dist of dists) {
