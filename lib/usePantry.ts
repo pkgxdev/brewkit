@@ -111,7 +111,7 @@ const getDistributable = async (pkg: Package) => {
     let urlstr = getRawDistributableURL(dist);
     if (!urlstr) continue;
 
-    const v = pkg.version
+    let v = pkg.version
     const stripComponents = flatmap(dist["strip-components"], coerceNumber)
 
     if (isPlainObject(dist)) {
