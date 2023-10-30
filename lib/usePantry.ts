@@ -94,6 +94,7 @@ const getDistributable = async (pkg: Package) => {
 
   const yml = await hooks.usePantry().project(pkg).yaml();
   const dists = isArray(yml.distributable) ? yml.distributable : [yml.distributable]
+  if (!dists) = [];
   for (const dist of dists) {
     //FIXME: Add check for Git dists as well
     if (dist.git) {
@@ -121,7 +122,7 @@ const getDistributable = async (pkg: Package) => {
         );
       }
 
-      if (dist?.if) {
+      if (dist.if) {
         const matched = new RegExp(dist.if).test(pkg.version.raw);
         if (!matched) continue
       }
