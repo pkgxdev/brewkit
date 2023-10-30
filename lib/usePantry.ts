@@ -157,6 +157,8 @@ const getDistributable = async (pkg: Package) => {
       final_url = urlstr;
       stripComponents = tmp_stripComponents;
       break;
+    } else {
+      console.warn(`brewkit: Could not fetch ${urlstr} [${rsp.status}]`)
     }
   }
   if (!final_url) return;
