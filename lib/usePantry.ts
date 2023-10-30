@@ -93,11 +93,7 @@ const getDistributable = async (pkg: Package) => {
   const moustaches = useMoustaches();
 
   const yml = await hooks.usePantry().project(pkg).yaml();
-  let final_url = "";
-  let dists = yml.distributable;
-  if (!dists) dists = [];
-  let stripComponents: number | undefined;
-  if (!isArray(dists)) dists = [dists];
+  const dists = isArray(yml.distributable) ? yml.distributable : [yml.distributable]
   for (const dist of dists) {
     //FIXME: Add check for Git dists as well
     if (dist.git) {
@@ -106,65 +102,46 @@ const getDistributable = async (pkg: Package) => {
       );
       return getGitDistribution({ pkg, ...dist });
     }
+
     if (dist.url?.startsWith("git")) {
       return getGitDistribution({ pkg, ...dist });
     }
+
     let urlstr = getRawDistributableURL(dist);
-    let raw_v = "";
-    let matched = true;
     if (!urlstr) continue;
-    let tmp_stripComponents: number | undefined;
+
+    const v = pkg.version
+    const stripComponents = flatmap(dist["strip-components"], coerceNumber)
+
     if (isPlainObject(dist)) {
-      tmp_stripComponents = flatmap(dist["strip-components"], coerceNumber);
       if (dist.rewrite?.match) {
-        raw_v = pkg.version.raw.replace(
+        v.raw = v.raw.replace(
           new RegExp(dist.rewrite["match"], "gi"),
           dist.rewrite["with"],
         );
       }
+
       if (dist?.if) {
-        matched = new RegExp(dist.if).test(pkg.version.raw);
+        const matched = new RegExp(dist.if).test(pkg.version.raw);
+        if (!matched) continue
       }
     }
-    let v: SemVer;
-    if (raw_v) {
-      v = {
-        raw: raw_v,
-        major: pkg.version.major,
-        minor: pkg.version.minor,
-        patch: pkg.version.patch,
-        components: pkg.version.components,
-        prerelease: pkg.version.prerelease,
-        build: pkg.version.build,
-        eq: pkg.version.eq,
-        neq: pkg.version.neq,
-        gt: pkg.version.gt,
-        gte: pkg.version.gte,
-        lt: pkg.version.lt,
-        lte: pkg.version.lte,
-        compare: pkg.version.compare,
-      };
-    } else {
-      v = pkg.version;
-    }
+
     urlstr = moustaches.apply(urlstr, [
       ...moustaches.tokenize.version(v),
       ...moustaches.tokenize.host(),
     ]);
-    if (!matched) continue;
+
     const rsp = await fetch(urlstr, { method: "HEAD" });
+
     if (rsp.status == 200) {
-      final_url = urlstr;
-      stripComponents = tmp_stripComponents;
-      break;
+      const url = new URL(urlstr);
+      return { url, ref: undefined, stripComponents, type: "url" }
     } else {
       console.warn(`brewkit: Could not fetch ${urlstr} [${rsp.status}]`)
     }
   }
-  if (!final_url) return;
-  const url = new URL(final_url);
-
-  return { url, ref: undefined, stripComponents, type: "url" }
+  return;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -178,4 +155,4 @@ async function filepath(project: string) {
     if (project == pkg.project) return pkg.path
   }
   throw new Error(`package.yml not found: ${project}`)
-}
+    }
