@@ -19,8 +19,7 @@ const { flags: { outputDir, pkg: pkgname }, unknown } = parseFlags(Deno.args, {
 
 const pantry = usePantry()
 
-let pkg: Package | PackageRequirement = utils.pkg.parse(pkgname)
-pkg = { project: pkg.project, version: pkg.constraint.single() ?? panic() }
+const pkg: Package | PackageRequirement = await usePantry().resolve(utils.pkg.parse(pkgname)) ?? panic
 
 const dstdir = Path.cwd().join(outputDir)
 
