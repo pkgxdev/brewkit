@@ -1,5 +1,5 @@
 import { isNumber, isPlainObject, isString, isArray, PlainObject } from "is-what"
-import { Package, PackageRequirement, semver, utils, hooks } from "libpkgx"
+import { Package, PackageRequirement, SemVer, semver, utils, hooks } from "libpkgx"
 import { getScript } from "./usePantry.getScript.ts"
 import getVersions from "./usePantry.getVersions.ts"
 
