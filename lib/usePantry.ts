@@ -115,7 +115,7 @@ const getDistributable = async (pkg: Package) => {
     let tmp_stripComponents: number | undefined;
     if (isPlainObject(dist)) {
       tmp_stripComponents = flatmap(dist["strip-components"], coerceNumber);
-      if (Object.keys(dist.rewrite).length) {
+      if (dist.rewrite?.match) {
         raw_v = pkg.version.raw.replace(
           new RegExp(dist.rewrite["match"], "gi"),
           dist.rewrite["with"],
