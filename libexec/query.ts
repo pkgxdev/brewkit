@@ -40,7 +40,7 @@ if (versions) {
   Deno.exit(0)
 }
 
-const version = pkg.constraint.single() ?? panic()
+const {version} = await usePantry().resolve(pkg) ?? panic()
 pkg = {project: pkg.project, version }
 
 if (src) {
