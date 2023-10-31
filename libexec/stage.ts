@@ -122,6 +122,7 @@ const text = undent`
   export SRCROOT="${blddir}"
   export PREFIX=${flags.prefix}
   export PKGX_DIR=${prefix.string}
+  export XDG_DATA_HOME="$HOME/.local/share"
   ${sh.expand(env)}
 
   mkdir -p "$HOME"
