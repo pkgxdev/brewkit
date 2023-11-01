@@ -118,7 +118,7 @@ const text = undent`
 
   cd "${blddir}"
 
-  export HOME="${blddir}/dev.pkgx.home"
+  export HOME="${blddir.parent().parent().join("homes", blddir.basename()).mkdir('p')}"
   export SRCROOT="${blddir}"
   export PREFIX=${flags.prefix}
   export PKGX_DIR=${prefix.string}
