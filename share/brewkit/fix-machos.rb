@@ -165,10 +165,15 @@ class Fixer
         if path.exist?
           lib
         else
-          puts "warn:#{@file.filename}:#{lib}"
+          file = Pathname.new($pkg_prefix).join('lib', lib.sub(%r{^@rpath/}, ''))
+          if file.exist?
+            lib
+          else
+            puts "::warning file=#{@file.filename} ::skipping #{lib}"
+          end
         end
       elsif lib.start_with? '@'
-        puts "warn:#{@file.filename}:#{lib}"
+        puts "::warning file=#{@file.filename} ::skipping #{lib}"
         # noop
       else
         lib
@@ -213,8 +218,15 @@ class Fixer
       elsif old_name.start_with? '/'
         new_name = fix_pkgx_prefix old_name
       elsif old_name.start_with? '@rpath'
-        # so far we only feed bad @rpaths that are relative to the pkgx-prefix
-        new_name = fix_pkgx_prefix old_name.sub(%r{^@rpath}, $PKGX_DIR)
+        # this code is now awful, we check in bad_install_names for this conditional and then cannot communicate that to here
+        # a package we needed this for was grpc.io
+        libname = old_name.sub(%r{^@rpath/}, '')
+        if Pathname.new($pkg_prefix).join('lib', libname).exist?
+          new_name = Pathname.new($pkg_prefix).join("lib").relative_path_from(Pathname.new(@file.filename).parent)
+          new_name = "@loader_path/#{new_name}/#{libname}"
+        else
+          new_name = fix_pkgx_prefix old_name.sub(%r{^@rpath}, $PKGX_DIR)
+        end
       else
         # assume they are meant to be relative to lib dir
         new_name = Pathname.new($pkg_prefix).join("lib").relative_path_from(Pathname.new(@file.filename).parent)
