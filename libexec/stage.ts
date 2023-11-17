@@ -58,7 +58,9 @@ const pkg = await pantry.resolve(parse(pkgname))
 const pantry_sh = await pantry.getScript(pkg, 'build', deps)
 const sup_PATH = [new Path(new URL(import.meta.url).pathname).parent().parent().join("share/brewkit")]
 
-if (!deps.find(({pkg}) => pkg.project == 'llvm.org' || pkg.project == 'gnu.org/gcc')) {
+const use_cc_shims = !deps.find(({pkg}) => pkg.project == 'llvm.org' || pkg.project == 'gnu.org/gcc')
+
+if (use_cc_shims) {
   /// add our helper cc toolchain unless the package has picked its own toolchain
   sup_PATH.push(new Path(new URL(import.meta.url).pathname).parent().parent().join("share/toolchain/bin"))
 
@@ -109,6 +111,10 @@ if (host().platform == 'linux' && host().arch == 'x86-64') {
   env['LDFLAGS'] = [`${env['LDFLAGS']?.[0] ?? ''} -pie`.trim()]
   env['CFLAGS'] = [`${env['CFLAGS']?.[0] ?? ''} -fPIC`.trim()]
   env['CXXFLAGS'] = [`${env['CXXFLAGS']?.[0] ?? ''} -fPIC`.trim()]
+}
+if (host().platform == 'darwin' && !use_cc_shims) {
+  // our shims inject this but if we aren’t using them we need to add it manually or everything breaks
+  env['LDFLAGS'] = [`${env['LDFLAGS']?.[0] ?? ''} -Wl,-rpath,${useConfig().prefix}`.trim()]
 }
 
 const text = undent`
