@@ -1,5 +1,7 @@
 #!/usr/bin/env -S pkgx +deno bash +exo pipefail
 
+eval "$(pkgx --shellcode)"
+
 d="$(cd "$(dirname "$0")"/.. && pwd)"
 
 get_parameters() {
@@ -10,23 +12,29 @@ get_parameters() {
     const pkg = await parse_pkg_str('$1')
     const entrypoint = await hooks.usePantry().project(pkg).yaml().then(x => x?.['entrypoint'])
     if (!entrypoint) Deno.exit(1)
-    const prefix = (await hooks.useCellar().resolve(pkg)).path.string
-    console.log(pkg.project, prefix, entrypoint)
+    console.log(pkg.project, entrypoint)
 EoTS
 }
 
-run() {
-  project=$1
-  shift
-  cd "$1"
-  shift
-  eval "$(pkgx --shellcode)"
-  env +$project
-  "$@"
+get_keg() {
+  deno run --config="$d/deno.jsonc" -A - <<EoTS
+    import { hooks, semver } from 'pkgx'
+    const pkg = {project: '$1', constraint: new semver.Range('*') }
+    const prefix = (await hooks.useCellar().resolve(pkg)).path.string
+    console.log(prefix)
+EoTS
 }
 
 pkg=$1
 shift
 
+# get project and entrypoint
 params=($(get_parameters $pkg))
-run "${params[@]}" "$@"
+
+# install and add env
+env +${params[0]}
+
+cd "$(get_keg ${params[0]})"
+
+# run entrypoint
+"${params[@]:1}" "$@"
