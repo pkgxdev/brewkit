@@ -40,7 +40,10 @@ if (versions) {
   Deno.exit(0)
 }
 
-const version = pkg.constraint.single() ?? panic()
+//FIXME: There might be a better way of doing this. It retains the current behaviour for normal cases and fixes the version.raw for those which don't match
+const pkg_version = pkg.constraint.single() ?? panic()
+const pantry_ver = await usePantry().resolve(pkg) ?? panic()
+const version = (pkg_version.raw == pantry_ver.version.raw) ? pkg_version : pantry_ver.version
 pkg = {project: pkg.project, version }
 
 if (src) {
