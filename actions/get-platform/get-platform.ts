@@ -24,7 +24,7 @@ type Output = {
   available: string
 }
 
-type OS = string | string[]
+type OS = string | string[] | { group: string }
 
 const platform = Deno.env.get("PLATFORM") ?? panic("$PLATFORM not set")
 
@@ -80,10 +80,13 @@ const output: Output = (() => {
   }
   case "linux+x86-64": {
     // buildOs: sizedUbuntu(packages),
-    const os = "ubuntu-latest"
+    // const os = "ubuntu-latest"
+    const os = { group: "linux-x86-64" } // runner group
     return {
       os,
-      buildOs: ["self-hosted", "linux", "X64"],
+      // buildOs: ["self-hosted", "linux", "X64"],
+      buildOs: os,
+      container: "pkgxdev/pkgx:latest",
       testMatrix: [
         { os, container: "ubuntu:latest", 'name-extra': "(ubuntu latest)" },
         { os, container: "ubuntu:focal", 'name-extra': "(ubuntu focal)" },
