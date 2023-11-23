@@ -75,8 +75,8 @@ if (use_cc_shims) {
       }
     }
 
-    symlink(["cc", "clang"], {to: "clang"})
-    symlink(["c++", "clang++"], {to: "clang++"})
+    symlink(["cc", "gcc", "clang"], {to: "clang"})
+    symlink(["c++", "g++", "clang++"], {to: "clang++"})
     symlink(["cpp"], {to: "clang-cpp"})
 
     if (host().platform == "linux") {
