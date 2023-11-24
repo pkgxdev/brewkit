@@ -23,6 +23,6 @@ runs:
         path: |
           ~/.deno
           ${{ steps.os-cache.outputs.cache }}
-        # This isn't perfect (can't hash stuff outside github.workspace, and if the there scripts change, the hash won't)
+        # This isn't perfect (can't hash stuff outside $GITHUB_WORKSPACE, and if the there scripts change, the hash won't)
         # but it's good enough for now. It's slightly conservative, since it monitors all .ts files, but that's fine.
         key: ${{ runner.os }}-deno-${{ inputs.cache-name }}-${{ hashFiles('**/deno.jsonc', '**/*.ts') }}

@@ -46,4 +46,4 @@ runs:
       env:
         PLATFORM: ${{ inputs.platform }}
         PROJECTS: ${{ inputs.projects }}
-        PKGX_PANTRY_PATH: ${{ github.workspace }}
+        PKGX_PANTRY_PATH: ${{ env.GITHUB_WORKSPACE }}
