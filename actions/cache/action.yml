@@ -15,10 +15,13 @@ runs:
         else
           echo "cache=~/.cache/deno" >> $GITHUB_OUTPUT
         fi
+        echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_OUTPUT
       id: os-cache
       shell: sh
 
     - uses: actions/cache@v3
+      # in containers this has issues because github.workspace != $GITHUB_WORKSPACE
+      if: ${{ github.workspace }} == ${{ steps.os-cache.outputs.GITHUB_WORKSPACE }}
       with:
         path: |
           ~/.deno
