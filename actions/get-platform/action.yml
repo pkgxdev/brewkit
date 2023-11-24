@@ -40,10 +40,14 @@ runs:
 
     - uses: actions/checkout@v4
 
+    - run: echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_OUTPUT
+      id: workspace
+      shell: sh
+
     - run: ${{github.action_path}}/get-platform.ts
       shell: sh
       id: platform
       env:
         PLATFORM: ${{ inputs.platform }}
         PROJECTS: ${{ inputs.projects }}
-        PKGX_PANTRY_PATH: ${{ env.GITHUB_WORKSPACE }}
+        PKGX_PANTRY_PATH: ${{ steps.workspace.outputs.GITHUB_WORKSPACE }}
