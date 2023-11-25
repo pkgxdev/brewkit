@@ -65,7 +65,7 @@ let text = undent`
     cc|c++|ld)
       ${pkgx} +llvm.org -- "$@";;
     *)
-      ${pkgx} -- "$@";;
+      ${pkgx} "$@";;
     esac
   }
 

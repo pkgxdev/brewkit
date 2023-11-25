@@ -15,14 +15,18 @@ runs:
         else
           echo "cache=~/.cache/deno" >> $GITHUB_OUTPUT
         fi
+        echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_OUTPUT
       id: os-cache
       shell: sh
 
     - uses: actions/cache@v3
+      # in containers this has issues because github.workspace != $GITHUB_WORKSPACE
+      if: github.workspace == steps.os-cache.outputs.GITHUB_WORKSPACE
       with:
         path: |
           ~/.deno
           ${{ steps.os-cache.outputs.cache }}
         # This isn't perfect (can't hash stuff outside github.workspace, and if the there scripts change, the hash won't)
+        # additionally, in containerized runs, github.workspace != $GITHUB_WORKSPACE, so we can't use this at all, hence the if above.
         # but it's good enough for now. It's slightly conservative, since it monitors all .ts files, but that's fine.
         key: ${{ runner.os }}-deno-${{ inputs.cache-name }}-${{ hashFiles('**/deno.jsonc', '**/*.ts') }}

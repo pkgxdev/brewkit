@@ -46,9 +46,11 @@ runs:
       with:
         cache-name: setup
 
+    # $GITHUB_WORKSPACE is correct when using a container
+    # ${{ github.workspace }} is the runner
     - run: |
-        if test -d "${{ github.workspace }}"/projects; then
-          echo "PKGX_PANTRY_PATH=${{ github.workspace }}" >> $GITHUB_ENV
+        if test -d "$GITHUB_WORKSPACE"/projects; then
+          echo "PKGX_PANTRY_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
         fi
       shell: bash
 
