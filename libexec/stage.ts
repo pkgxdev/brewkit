@@ -79,9 +79,13 @@ if (use_cc_shims) {
     symlink(["c++", "g++", "clang++"], {to: "clang++"})
     symlink(["cpp"], {to: "clang-cpp"})
 
-    symlink(["ld"], {to: "lld"})
-    symlink(["lld"], {to: "lld"})
-    symlink(["ld64.lld"], {to: "ld64.lld"})
+    if (host().platform == "linux") {
+      symlink(["ld"], {to: "ld.lld"})
+    } else if (host().platform == "windows") {
+      symlink(["ld"], {to: "lld-link"})
+    }
+
+    symlink(["ld.lld"], {to: "ld.lld"})
     symlink(["lld-link"], {to: "lld-link"})
 
     symlink(["ar"], {to: "llvm-ar"})
