@@ -1,0 +1,18 @@
+distributable: null
+
+versions:
+  - 1.0.0
+
+dependencies:
+  python.org: ^3.11
+
+build: |
+  mv props/* .
+  rmdir props
+  python-venv.py {{prefix}}/bin/myapp
+
+provides:
+  - bin/myapp
+
+test:
+  myapp

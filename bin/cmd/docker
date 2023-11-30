@@ -1,0 +1,33 @@
+#!/usr/bin/env -S pkgx +docker bash
+
+set -eo pipefail
+
+if [ ! -d "$PKGX_PANTRY_PATH" ]; then
+  echo "error: \`brewkit docker\` can only be run from a pantry checkout" >&2
+  exit 64
+fi
+
+d="$(cd "$(dirname "$0")/../.." && pwd)"
+
+if [ -z "$GITHUB_TOKEN" ]; then
+  GITHUB_TOKEN=$(pkgx gh auth token)
+fi
+
+CMD=$1
+shift
+
+mkdir -p "$PKGX_PANTRY_PATH/prefixes/linux"
+
+exec docker run \
+  --name brewkit.pkgx.dev \
+  --rm \
+  --tty \
+  --volume "$d:/brewkit" \
+  --volume "$PKGX_PANTRY_PATH:/work" \
+  --volume "${XDG_CACHE_HOME:-$HOME/Library/Caches/pkgx}:/root/.cache/pkgx" \
+  --env PKGX_PANTRY_PATH=/work \
+  --env GITHUB_TOKEN=$GITHUB_TOKEN \
+  --env CLICOLOR_FORCE=1 \
+  --workdir /work \
+  pkgxdev/pkgx \
+  /brewkit/bin/cmd/$CMD "$@"

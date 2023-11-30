@@ -1,0 +1,77 @@
+name: pkgx/brewkit/download-build-artifacts
+description: |
+  Downloads a single previously uploaded build artifact to a
+  temporary location and sets `outputs.filename`.
+
+  Artifacts are *uncompressed* tarballs with format:
+
+      platform+arch.tar   # eg. darwin+aarch64.tar
+
+  By default will download the tarball for the active platform. This can
+  be overridden with `inputs.platform`.
+
+  By default extracts the artifact to `${PKGX_DIR:-$HOME/.pkgx}`.
+  This can be disabled.
+
+  > ![NOTE]
+  > This means you can only build one package per workflow. This is a
+  > limitation designed to simplify our implementation and your usage. We are
+  > open to discussing removing this limitation.
+
+inputs:
+  platform:
+    required: false
+    description: eg. `darwin+aarch64` or `linux+x86-64`
+  extract:
+    required: true
+    default: true
+
+outputs:
+  filename:
+    description: >
+      if you specified a platform this will be set to the downloaded artifact.
+      if you didn’t specify a platform it will be unset as there will likely
+      be multiple artifacts for each platform you built.
+    value: ${{steps.download.outputs.download-path}}/${{steps.github-suck.outputs.filename}}
+
+runs:
+  using: composite
+  steps:
+    - run: |
+        if ! pkgx --sync; then
+          echo "::error::you must use: pkgxdev/setup before using this action"
+          exit 1
+        fi
+      shell: bash
+
+    - name: fetch deno deps
+      shell: bash
+      run: |
+        echo "::group::fetch deno deps"
+        pkgx deno cache ${GITHUB_ACTION_PATH}/../lib/actions/*.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
+        echo "::endgroup::"
+
+    - name: prep
+      run: |
+        echo "tmpdir=$(mktemp -d)" >> $GITHUB_OUTPUT
+        key=$(${GITHUB_ACTION_PATH}/../lib/actions/platform-key.ts)
+        echo "platform=$key" >> $GITHUB_OUTPUT
+      id: prep
+      shell: bash
+
+    - uses: actions/download-artifact@v3
+      id: download
+      with:
+        name: ${{ inputs.platform || steps.prep.outputs.platform }}
+        path: ${{steps.prep.outputs.tmpdir}}
+
+    - name: github-make-shit-things
+      id: github-suck
+      shell: bash
+      run: |
+        echo filename=$(ls ${{steps.download.outputs.download-path}}) >> $GITHUB_OUTPUT
+
+    - name: untar
+      if: ${{ inputs.extract == 'true' }}
+      run: tar xf ${{steps.download.outputs.download-path}}/${{steps.github-suck.outputs.filename}} -C "${PKGX_DIR:-$HOME/.pkgx}"
+      shell: bash

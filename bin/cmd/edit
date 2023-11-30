@@ -1,0 +1,61 @@
+#!/usr/bin/env -S pkgx +deno bash
+
+set -eo pipefail
+
+if test -z "$1"; then
+  if test -z "$PKGX_PANTRY_PATH"; then
+    echo "error: PKGX_PANTRY_PATH is not set" >&2
+    exit 1
+  fi
+  d="$(cd "$(dirname "$0")" && pwd)"
+  for x in $(echo "$PKGX_PANTRY_PATH" | tr ':' '\n'); do
+    if test -z "$PKGS" -a -d "$x"/.git; then
+      #^^^^^^^^^^^^^^^ stop at first match
+      PKGS=($(GIT_WORK_TREE="$x" "$d/status" --print-paths))
+    fi
+  done
+else
+  PKGS=($(deno run --allow-read --allow-env - <<EoTS
+    import { hooks } from "pkgx";
+    const pp = Deno.args.map(arg => hooks.usePantry().find(arg).then(x => x.map(y => y.path.string)));
+    const paths = await Promise.all(pp);
+    console.log(paths.flatMap(x => x).join("\n"));
+    Deno.exit(0);
+EoTS
+  ))
+
+  echo "${PKGS[@]}"
+fi
+
+if test -z "$EDITOR"; then
+  if command -v code >/dev/null; then
+    EDITOR="code"
+  elif command -v vim >/dev/null; then
+    EDITOR="vim"
+  elif command -v vi >/dev/null; then
+    EDITOR="vi"
+  elif command -v emacs >/dev/null; then
+    EDITOR="emacs"
+  else
+    echo "error: \`\$EDITOR\` is not set" >&2
+    exit 1
+  fi
+elif test "$EDITOR" = code_wait; then
+  # this is for mxcl who generally prefers his editor to wait
+  # but not in this case. #perks-of-making-the-thing
+  EDITOR=code
+fi
+
+if test -z "$PKGS"; then
+  if [ -n "$PKGX_PANTRY_PATH" ]; then
+    echo "error: no new packages in \`\$PKGX_PANTRY_PATH\`" >&2
+  else
+    echo "usage: bk edit <pkgspec>" >&2
+  fi
+  exit 1
+elif test "$EDITOR" = code; then
+  exec $EDITOR "$PKGX_PANTRY_PATH" "${PKGS[@]}"
+  # ^^ be more useful
+else
+  exec $EDITOR "${PKGS[@]}"
+fi

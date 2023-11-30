@@ -1,0 +1,138 @@
+on:
+  pull_request:
+  workflow_call:
+
+env:
+  # FIXME
+  # we must set this or pkgx won’t find the main pantry after $HOME is changed
+  # because the default is based on $HOME and we don’t sync if $PKGX_PANTRY_PATH is set
+  # FIXME add PKGX_HOME to libpkgx
+  XDG_DATA_HOME: ${{github.workspace}}/.data
+
+jobs:
+  build:
+    runs-on: ${{ matrix.platform.os }}
+    outputs:
+      pkgspec: ${{ steps.build.outputs.pkgspec }}
+    env:
+      PKGX_PANTRY_PATH: ${{github.workspace}}/co
+    strategy:
+      matrix:
+        platform:
+          - os: ubuntu-latest
+            name: linux
+          - os: macos-latest
+            name: darwin
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: co  # test that things working isn’t just a coincident of PWD == BREKWIT_DIR
+
+      - uses: pkgxdev/setup@v2
+
+      - uses: ./co/build
+        id: build
+        with:
+          pkg: stark.com/foo
+
+      - run: test ${{ steps.build.outputs.pkgspec }} = stark.com/foo=2.3.4
+      - run: test ${{ steps.build.outputs.project }} = stark.com/foo
+      - run: test ${{ steps.build.outputs.version }} = 2.3.4
+      - run: test ${{ steps.build.outputs.platform }} = ${{ matrix.platform.name }}
+      - run: test ${{ steps.build.outputs.arch }} = x86-64
+      - run: test -d ${{ steps.build.outputs.prefix }}
+      - run: test $BREWKIT_PKGSPEC = ${{ steps.build.outputs.pkgspec }}
+      - run: test $BREWKIT_PREFIX = ${{ steps.build.outputs.prefix }}
+
+      - uses: ./co/upload-build-artifact
+
+  test:
+    needs: build
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    env:
+      PKGX_PANTRY_PATH: ${{github.workspace}}/co
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: co  # test that things working isn’t just a coincident of PWD == BREKWIT_DIR
+      - uses: pkgxdev/setup@v2
+      - uses: ./co/download-build-artifact
+      - uses: ./co/test
+        with:
+          pkg: ${{ needs.build.outputs.pkgspec }}
+
+  audit:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    env:
+      PKGX_PANTRY_PATH: ${{github.workspace}}/co
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: co  # test that things working isn’t just a coincident of PWD == BREKWIT_DIR
+      - uses: pkgxdev/setup@v2
+      - uses: ./co/download-build-artifact
+      - uses: ./co/audit
+        with:
+          pkg: ${{ needs.build.outputs.pkgspec }}
+
+  bottle:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compression: [xz, gz]
+        platform:
+          - darwin+x86-64
+          - linux+x86-64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: co  # test that things working isn’t just a coincident of PWD == BREKWIT_DIR
+
+      - uses: pkgxdev/setup@v2
+
+      - uses: ./co/download-build-artifact
+        id: dl
+        with:
+          extract: false
+          platform: ${{ matrix.platform }}
+
+      - uses: ./co/bottle
+        id: bottle
+        with:
+          file: ${{ steps.dl.outputs.filename }}
+          compression: ${{matrix.compression}}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path:  ${{ steps.bottle.outputs.filename }}
+          name:  ${{ steps.bottle.outputs.name }}
+
+  unavailable:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pkgxdev/setup@v2
+
+      - uses: ./build
+        id: build
+        with:
+          pkg: unavailable.com
+        env:
+          PKGX_PANTRY_PATH: ${{github.workspace}}
+
+      - run: echo ${{steps.build.outputs.noop}}
+
+      - run: exit 1
+        if: ${{steps.build.outputs.noop != 'true'}}

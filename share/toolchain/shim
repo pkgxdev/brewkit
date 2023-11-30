@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 tool=$(basename $0)
 
@@ -14,10 +14,13 @@ if [ $(uname) != Darwin ]; then
   # prevent fork bombs (shouldn't be possible but who knows)
   export PATH="/usr/bin:/bin:/usr/sbin:/sbin"
 
+  # NOTE this slows down configure scripts a shit tonne
+  # 1. a fix is speeding up pkgx resolution by caching the pantry
+  # 2. or do this once and store the env to a file that we can then source
   set -a
-  eval "$("$pkgx" +llvm.org 2>/dev/null)"
+  eval "$("$pkgx" +llvm.org)"
 
-  exec "$SRCROOT/dev.pkgx.bin/$tool" "$@"
+  exec "$HOME/toolchain/$tool" "$@"
 fi
 
 case $tool in

@@ -1,0 +1,22 @@
+distributable:
+  url: https://github.com/pkgxdev/brewkit/archive/refs/tags/v{{ version }}.tar.gz
+  strip-components: 1
+
+versions:
+  github: pkgxdev/brewkit
+
+dependencies:
+  pkgx.sh: ^1
+
+build:
+  - working-directory: ${{prefix}}/bin
+    run: |
+      echo '#!/bin/sh' >> stark
+      echo 'echo not_much_u' >> stark
+      chmod +x stark
+
+provides:
+  - bin/stark
+
+test:
+  test $(stark) = not_much_u

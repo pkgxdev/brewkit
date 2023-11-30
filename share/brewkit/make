@@ -10,4 +10,4 @@ else
   pkgx="${PKGX_DIR:-$HOME/.pkgx}/pkgx.sh/v*/bin/pkgx"
 fi
 
-exec "$pkgx" +gnu.org/make make "$@"
+exec "$pkgx" +gnu.org/make -- make "$@"

@@ -1,0 +1,84 @@
+on:
+  pull_request:
+  workflow_call:
+
+env:
+  GITHUB_TOKEN: ${{github.token}}
+  PKGX_PANTRY_PATH: ${{github.workspace}}
+  # FIXME
+  # we must set this or pkgx won’t find the main pantry after $HOME is changed
+  # because the default is based on $HOME and we don’t sync if $PKGX_PANTRY_PATH is set
+  # FIXME add PKGX_HOME to libpkgx
+  XDG_DATA_HOME: ${{github.workspace}}/.data
+
+jobs:
+  integration-tests:
+    name: ${{matrix.pkg}} (${{matrix.platform.tag}})
+    strategy:
+      matrix:
+        platform:
+          - os: ubuntu-latest
+            img: debian:buster-slim
+            tag: linux
+          - os: macos-latest
+            tag: mac
+        pkg:
+          - stark.com/foo
+          - toolchain.com
+          - pyapp.com/1
+          - pyapp.com/2
+          - stark.com/foo@1.2.3
+    runs-on: ${{ matrix.platform.os }}
+    container: ${{ matrix.platform.img }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pkgxdev/setup@v2
+
+      - name: precache  # makes it easier to read the real output
+        run: |          # we have to make symlinks because deno cache doesn’t take a --ext=ts flag
+          ln -s bin/cmd/build build.ts
+          ln -s bin/cmd/test test.ts
+          pkgx deno cache *.ts
+          rm *.ts
+
+      - run: bin/bk build ${{matrix.pkg}}
+      - run: bin/bk test ${{matrix.pkg}}
+      - run: bin/bk audit ${{matrix.pkg}}
+
+  local-edit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pkgxdev/setup@v2
+      - run: pkgx --sync  #FIXME bug where shebangs don’t cause an auto-sync
+      - uses: fregante/setup-git-user@v2
+      - run: git update-ref refs/remotes/origin/main HEAD
+      - run: '! bin/bk status'
+      - run: cp package-mod.yml package.yml
+        working-directory: projects/stark.com/foo
+      - run: test $(bin/bk status) = stark.com/foo
+      - run: bin/bk build
+      - run: bin/bk test
+      - run: test $(pkgx +stark.com/foo -- stark) = not_much_u
+      - run: bin/bk audit
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    env:
+      PKGX_PANTRY_PATH: null
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pkgxdev/dev@main
+      - run: deno test --allow-env --allow-net --ignore=.data
+
+  unavailable:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pkgxdev/setup@v2
+      - run: pkgx --sync  # FIXME PKGX_PANTRY_PATH causes auto sync to fail
+      - name: build
+        run: |
+          set +e
+          bin/bk build unavailable.com
+          test $? -eq 2

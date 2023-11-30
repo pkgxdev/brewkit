@@ -1,0 +1,57 @@
+#!/usr/bin/env -S pkgx +shuf bash>=4
+# shellcheck shell=bash
+
+set -eo pipefail
+
+if test -z "$PKGX_PANTRY_PATH"; then
+  echo "error: PKGX_PANTRY_PATH is not set" >&2
+  exit 1
+fi
+
+WHERE="$(echo "$PKGX_PANTRY_PATH" | cut -d: -f1)"
+GIT_DIR="$WHERE/.git"
+
+if ! test -d "$GIT_DIR"; then
+  echo "error: PKGX_PANTRY_PATH is not a standard git repository" >&2
+  exit 1
+fi
+
+if ! git status --porcelain; then
+  echo "error: git working directory is not clean" >&2
+  exit 1
+fi
+
+d="$(cd "$(dirname "$0")"/.. && pwd)"
+
+if [ -f /usr/share/dict/words ]; then
+  BLEND=$(paste <(shuf -n 1 /usr/share/dict/words) <(shuf -n 1 /usr/share/dict/words) -d '-')
+else
+  BLEND=example.com
+fi
+
+mkdir -p "$WHERE/projects/$BLEND"
+cp -i "$d/share/TEMPLATE.pkg.yml" "$WHERE/projects/$BLEND/package.yml"
+
+if test "$WHERE" = "$PWD"; then
+  PRETTY="./projects/$BLEND/package.yml"
+else
+  PRETTY="$WHERE/projects/$BLEND"
+fi
+
+if test "$(git rev-parse --abbrev-ref HEAD)" != "new/$BLEND"; then
+  git checkout -b "new/$BLEND" origin/main
+  git branch --unset-upstream  # ask jacob why
+fi
+
+pkgx gum format <<EOF
+# created \`$PRETTY\`
+
+Now type \`edit\` to open the yaml in your \`\$EDITOR\`
+
+the package will need renaming before we can merge it.
+we typically name packages after their homepage.
+
+if you aren’t sure about the name you can submit and we’ll assist.
+EOF
+
+exec "$d/edit" $BLEND

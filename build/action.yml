@@ -1,0 +1,71 @@
+name: pkgx/brewkit/build
+
+inputs:
+  pkg:
+    description: >
+      eg. pkgx.sh@1.1
+    required: true
+  token:
+    default: ${{github.token}}
+    required: true
+
+outputs:
+  pkgspec:
+    description: >
+      the precise pkg and version we built, eg. pkgx.sh@1.1.1
+    value: ${{ steps.build.outputs.pkgspec }}
+  prefix:
+    description: >
+      the path to the built and installed pkg
+    value: ${{ steps.build.outputs.prefix }}
+  noop:
+    description: >
+      the build is a noop if it cannot be built and run on this platform
+    value: ${{ steps.build.outputs.noop }}
+  project:
+    value: ${{ steps.build.outputs.project }}
+  version:
+    value: ${{ steps.build.outputs.version }}
+  platform:
+    value: ${{ steps.build.outputs.platform }}
+  arch:
+    value: ${{ steps.build.outputs.arch }}
+
+runs:
+  using: composite
+  steps:
+    - name: prep
+      run: |
+        if ! pkgx --sync; then
+          echo "::error::you must use: pkgxdev/setup before using this action"
+          exit 1
+        fi
+      shell: bash
+
+    - name: fetch deno deps
+      shell: bash
+      run: |
+        echo "::group::fetch deno deps"
+        tmpdir=$(mktemp -d)
+        ln -s ${GITHUB_ACTION_PATH}/../bin/cmd/build $tmpdir/build.ts
+        pkgx deno cache $tmpdir/build.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
+        echo "::endgroup::"
+
+    - name: build
+      run: |
+        if [ -d projects -a -z "$PKGX_PANTRY_PATH" ]; then
+          export PKGX_PANTRY_PATH="$PWD/projects"
+        fi
+
+        set +e
+        ${GITHUB_ACTION_PATH}/../bin/cmd/build ${{ inputs.pkg }}
+        status=$?
+        if [ $status -eq 2 ]; then
+          echo noop=true >> $GITHUB_OUTPUT
+        else
+          exit $status
+        fi
+      id: build
+      env:
+        GITHUB_TOKEN: ${{inputs.token}}
+      shell: bash
