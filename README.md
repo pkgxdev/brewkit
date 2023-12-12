@@ -2,118 +2,55 @@
 
 # BrewKit
 
-BrewKit is build infrastructure for `pkgx`.
+## Usage
 
 ```sh
-$ env +brewkit
-$ pkg build node
+$ bk build zlib.net
+$ bk test zlib.net
 ```
 
-If you are inside a pantry then BrewKit will figure out what packages you are
-editing and build them.
+> ![TIP]
+> If you’re inside a pantry clone then the
 
-```sh
-$ cd pantry
-$ dev
-$ pkg edit openssl
-# make some edits…
-$ pkg build
-brewkit: building openssl.org
-```
+## Build Process Details
 
-You can build for Linux (via Docker) using `-L`, e.g.:
+> ![NOTE]
+> `$BREWROOT` is either your pantry clone or
+> `${XDG_DATA_HOME:-$HOME/.local/share}/brewkit`.
 
-```sh
-pkg -L build
-```
+> ![NOTE]
+> `$PKGSLUG` is the pkg project name with slashes replaced with unicode
+> slashes and the version appended in `-1.2.3` form.
 
-To run `pkg` without shellcode you can do eg. `pkgx +brewkit -- pkg build`,
-this is necessary because `pkg` is not listed as a provided program by brewkit
-since many other projects have decided to provide `pkg` and we didn’t want
-to trump them.
+1. srcs are placed at `$BREWROOT/srcs/$PKGSLUG`
+   * if the source type is a tarball, it is stored as `$BREWROOT/srcs/$PKGSLUG.ext`
+2. if the src type is not source control a git repository is initialized for
+   the sources and all files are added to the git stage.
+   * this is so you can make modifications and get a diff with `git diff` that
+     you can then save for use in your build script
+3. the sources are cloned to `$BREWROOT/builds/$PKGSLUG` via rsync
+4. the build script is generated and placed at `$BREWROOT/builds/$PKGSLUG.sh`
+   * the build script uses pkgx machinery to work, check it out
+5. a `pkgx.yaml` is generated to `$BREWROOT/builds/$PKGSLUG`
+   * this way if you step into that directory and `dev` you get the full build
+     environment for your pkg
+6. the build script is run
+   * the prefix your build script is fed is `$BREWROOT/installs/$PKGSLUG`
+7. `$BREWROOT/builds/$PKGSLUG` is moved to `${PKGX_DIR:-$HOME/.pkgx}`
+   * without this step you would not be able to use the package from within
+     your pantry clone
+8. Some key tools are always provided by brewkit (via shims that install on
+   demand). These are:
+   * `cc`, and the associated build toolchain (specifically latest LLVM)
+     * if you want a specific LLVM or GCC then specify the dep and that will
+       be used instead
+   * `make`
+   * `patch`
+   * GNU `install`
+   * `pkg-config`
+   * GNU `sed`
 
-## Some Details
+## Apologies
 
-* The `pkg build` environment ensures you have a c/c++ compiler and `make`
-  * We do this to ensure builds on Mac and Linux have a consistent base layer
-    of tooling
-  * We also provide shims so use of tools like `pkg-config` just work
-  * We shim `sed` since Mac comes with BSD sed and Linux typically comes with
-    GNU sed and they are subtly different
-* The `pkg test` environment automatically adds pkgs when called
-  * We emit a warning for this since sometimes these deps should be  explicit
-
-## Outside a Pantry Checkout
-
-Outside a pantry checkout we operate against your `pkgx` installation
-(which defaults to `~/.pkgx`). Builds occur in a temporary directory rather
-than local to your pantry checkout.
-
-```sh
-env "$(pkgx +brewkit)" pkg build zlib.net
-```
-
-
-## Additions
-
-This repo is for tooling built on top of the `pkgx` primitives with the purpose
-of generalized building and testing of open source packages.
-
-If you have an idea for an addition open a [discussion]!
-
-
-### Stuff That Needs to be Added
-
-Getting the `rpath` out of a macOS binary:
-
-```sh
-lsrpath() {
-    otool -l "$@" |
-    awk '
-        /^[^ ]/ {f = 0}
-        $2 == "LC_RPATH" && $1 == "cmd" {f = 1}
-        f && gsub(/^ *path | \(offset [0-9]+\)$/, "") == 2
-    '
-}
-```
-
-This should be added to a `pkg doctor` type thing I reckon. E.g.
-`pkg doctor zlib.net -Q:rpath`.
-
-
-### Hacking on brewkit
-
-In a pantry clone, if you do `../brewkit/bin/pkg build` for example your local
-brewkit will be used rather than that which is installed.
-
-&nbsp;
-
-
-
-# Tasks
-
-## Bump
-
-Priority is one of `major|minor|patch|prerelease|VERSION`
-
-Inputs: PRIORITY
-
-```sh
-./scripts/publish-release.sh $PRIORITY
-```
-
-
-## Shellcheck
-
-```sh
-for x in bin/*; do
-  if file $x | grep 'shell script'; then
-    pkgx shellcheck --shell=dash --severity=warning $x
-  fi
-done
-
-pkgx shellcheck --shell=dash --severity=warning **/*.sh
-```
-
-
-[discussion]: https://github.com/orgs/pkgxdev/discussions
+This repo is optimized for the GitHub Actions calling site and not for
+readability. I hate this but it’s the right choice for our users.

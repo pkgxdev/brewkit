@@ -1,71 +1,8 @@
 on:
-  pull_request:
   workflow_dispatch:
 
 jobs:
-  integration-tests:
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ github.token }}
-    strategy:
-      fail-fast: false
-      matrix:
-        pkgs:
-          - zlib.net
-          - openssl.org^1.1 curl.se/ca-certs
-          - pipenv.pypa.io
-          - poppler.freedesktop.org/poppler-data
-          - catb.org/wumpus
-          - c-ares.org
-          - vim.org
-          - curl.se
-          # FIXME? requires a darwin platform to run, and needs
-          # macOS 12 to test. That'll require a more complex matrix
-          # using get-platform.
-          # - github.com/realm/SwiftLint
-    container:
-      image: debian:buster-slim
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./actions/setup-brewkit
-
-      # prefetch deno deps to make the output from the build step more legible
-      - run: pkgx deno cache **/*.ts
-
-      - run: pkg build ${{matrix.pkgs}}
-        id: build
-
-      - run: test -n '${{ steps.build.outputs.pkgs }}'
-      - run: test -n '${{ steps.build.outputs.relative-paths }}'
-
-      - run: |
-          if pkg query ${{ steps.build.outputs.pkgs }} --src 2>&1 | grep -E '^warn: pkg has no srcs:'; then
-            echo "srcs=false" >> $GITHUB_OUTPUT
-          else
-            echo "srcs=true" >> $GITHUB_OUTPUT
-          fi
-        id: srcs
-
-      - run: test -n '${{ steps.build.outputs.srcs }}'
-        if: steps.srcs.outputs.srcs == 'true'
-
-      - run: test -n '${{ steps.build.outputs.srcs-relative-paths }}'
-        if: steps.srcs.outputs.srcs == 'true'
-
-      - run: pkg test ${{matrix.pkgs}}
-
-  typecheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pkgxdev/dev@main
-      - run: deno task typecheck
-
-  unit-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pkgxdev/dev@main
-      - run: deno test --allow-env --allow-net
-    env:
-      GITHUB_TOKEN: ${{ github.token }}
+  cli:
+    uses: ./.github/workflows/ci.cli.yml
+  actions:
+    uses: ./.github/workflows/ci.actions.yml

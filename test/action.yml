@@ -1,0 +1,35 @@
+name: pkgx/brewkit/build
+
+inputs:
+  pkg:
+    description: >
+      eg. pkgx.sh@1.1
+    required: true
+  token:
+    default: ${{github.token}}
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - run: |
+        if ! pkgx --sync; then
+          echo "::error::you must use: pkgxdev/setup before using this action"
+          exit 1
+        fi
+      shell: bash
+
+    - name: fetch deno deps
+      shell: bash
+      run: |
+        echo "::group::fetch deno deps"
+        tmpdir=$(mktemp -d)
+        ln -s ${GITHUB_ACTION_PATH}/../bin/cmd/test $tmpdir/test.ts
+        pkgx deno cache $tmpdir/test.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
+        echo "::endgroup::"
+
+    - name: test
+      run: ${GITHUB_ACTION_PATH}/../bin/cmd/test ${{ inputs.pkg }}
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{inputs.token}}

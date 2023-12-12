@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+
+set -e
+
+d="$(cd "$(dirname "$0")" && pwd)"
+
+if [ -z "$1" ] || [ "$1" = '--help' ] || [ "$1" = '-h' ]; then
+  echo usage: >&2
+  echo "  $0 <command> [args]" >&2
+  echo >&2
+  echo available commands: >&2
+  for x in $(ls "$d"/cmd); do
+    echo "  $x" >&2
+  done
+  echo >&2
+  echo • some commands provide \`--help\` >&2
+  echo • "you can (unambiguously) shorten commands, eg. \`bk b\`"
+  echo • https://github.com/pkgxdev/brewkit
+  if [ -z "$1" ]; then
+    exit 64
+  else
+    exit 0
+  fi
+fi
+
+arg="$1"
+shift
+
+if test "$arg" = "-v" || test "$arg" = "--version"; then
+  d="$(cd "$(dirname "$0")"/.. && pwd)"
+  if echo "$d" | grep -q "${PKGX_DIR:-$HOME/.pkgx}/pkgx.sh/brewkit"; then
+    V="${d#"${PKGX_DIR:-$HOME/.pkgx}"/pkgx.sh/brewkit/}"
+  else
+    V="$(git describe --tags --abbrev=0 --match "v[0-9]*.[0-9]*.[0-9]*")-dev"
+  fi
+  echo "brewkit $V"
+  exit 0
+fi
+
+if test -x "$d/cmd/$arg"; then
+  exec "$d/cmd/$arg" "$@"
+elif test "$(find "$d/cmd" -name "$arg*" | wc -l)" -eq 1; then
+  exec "$d"/cmd/"$arg"* "$@"
+else
+  echo "error: unknown or ambiguous command \`$arg\`, available commands:" >&2
+  echo >&2
+  echo "  "$(ls "$d"/cmd) >&2
+  exit 64
+fi

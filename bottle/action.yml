@@ -1,0 +1,31 @@
+name: pkgx/brewkit/build
+
+inputs:
+  file:
+    description: the uncompressed tarball from a built pkgx pkg
+    required: true
+  compression:
+    description: either gz or xz
+    default: gz
+    required: true
+outputs:
+  filename:
+    description: the path to the bottle
+    value: ${{ inputs.file }}.${{ inputs.compression }}
+  name:
+    description: a name suitable for actions/upload-artifact
+    value: ${{ steps.bottle.outputs.name }}
+
+runs:
+  using: composite
+  steps:
+    - run: |
+        if [ ${{ inputs.compression}} = gz ]; then
+          tool=gzip
+        else
+          tool=${{inputs.compression}}
+        fi
+        $tool ${{inputs.file}}
+        echo name=$(basename ${{inputs.file}}).${{inputs.compression}} >> $GITHUB_OUTPUT
+      id: bottle
+      shell: bash

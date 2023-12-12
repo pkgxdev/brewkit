@@ -1,0 +1,42 @@
+distributable: ~
+
+versions:
+  - 1.2.3
+  - 2.3.4
+
+build:
+  script:
+    - working-directory: ${{prefix}}/bin
+      run: |
+        echo '#!/bin/sh' >> stark
+        echo 'echo sup_bro' >> stark
+        chmod +x stark
+
+    # verify these are set
+    - test -n "$PKGX_DIR"
+    - test "$SRCROOT" = "$PWD"
+
+    # verify GNU sed (doesn’t require a backup file)
+    - sed -i s/sup_bro/sup_unc/g props/package.yml
+
+    # verify pkgx is not here
+    - |
+      if ! command which pkgx
+        then exit 1
+      fi
+
+    # check for regression
+    - test $PREFIX = {{prefix}}
+  env:
+    PREFIX: ${{prefix}}
+
+provides:
+  - bin/stark
+
+test:
+  - test $(stark) = sup_bro
+  - |
+    if command which pkgx
+      then exit 1
+    fi
+  - pkgx --version  # however the command not found handler does work

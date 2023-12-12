@@ -1,0 +1,45 @@
+name: pkgx/brewkit//upload-build-artifacts
+
+inputs:
+  pkg:
+    description: >
+      eg. pkgx.sh@1.1.1, if unspecified defaults to `$BREWKIT_PKGSPEC` which
+      is set by the build action (or set it yourself if you like).
+
+      This action moves the built keg away from `$PKGX_DIR`. Sorry about that.
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - run: |
+        if ! pkgx --sync; then
+          echo "::error::you must use: pkgxdev/setup before using this action"
+          exit 1
+        fi
+      shell: bash
+
+    - name: fetch deno deps
+      shell: bash
+      run: |
+        echo "::group::fetch deno deps"
+        pkgx deno cache ${GITHUB_ACTION_PATH}/../lib/actions/*.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
+        echo "::endgroup::"
+
+    # we must tar because the upload action loses file permissions 😕
+    - name: tar
+      run: |
+        tmpdir=$(mktemp -d)
+        key=$(${GITHUB_ACTION_PATH}/../lib/actions/platform-key.ts)
+        ${GITHUB_ACTION_PATH}/../lib/actions/stage.ts $tmpdir ${{inputs.pkg}}
+        cd $tmpdir
+        tar cf $key.tar *
+        echo "path=$tmpdir/$key.tar" >> $GITHUB_OUTPUT
+        echo "name=$key" >> $GITHUB_OUTPUT
+      id: tar
+      shell: bash
+
+    - uses: actions/upload-artifact@v3
+      with:
+        path: ${{ steps.tar.outputs.path }}
+        name: ${{ steps.tar.outputs.name }}

@@ -1,8 +1,8 @@
 export * from "libpkgx"
 
-import usePantry from "./usePantry.ts"
-import useCache from "./useCache.ts"
-import useSourceUnarchiver from "./useSourceUnarchiver.ts"
+import usePantry from "./hooks/usePantry.ts"
+import useCache from "./hooks/useCache.ts"
+import useSourceUnarchiver from "./hooks/useSourceUnarchiver.ts"
 import { hooks as vanilla_hooks } from "libpkgx"
 
 function usePrefix() {

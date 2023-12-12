@@ -1,5 +1,0 @@
-#!/usr/bin/env -S pkgx bash
-# shellcheck shell=bash
-
-d="$(cd "$(dirname "$0")/.." && pwd)"
-exec "$d"/libexec/inventory.ts "$@"
