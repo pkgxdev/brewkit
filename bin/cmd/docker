@@ -13,6 +13,16 @@ if [ -z "$GITHUB_TOKEN" ]; then
   GITHUB_TOKEN=$(pkgx gh auth token)
 fi
 
+if [ "$1" = --pull ]; then
+  docker image pull pkgxdev/pkgx
+  shift
+fi
+
+if [ -z "$1" ]; then
+  echo "error: missing command" >&2
+  exit 64
+fi
+
 CMD=$1
 shift
 
