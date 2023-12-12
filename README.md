@@ -9,16 +9,17 @@ $ bk build zlib.net
 $ bk test zlib.net
 ```
 
-> ![TIP]
-> If you’re inside a pantry clone then the
+> [!TIP]
+> If you’re inside a pantry clone then (after running `dev`) brewkit will
+> build/test whatever has been edited.
 
 ## Build Process Details
 
-> ![NOTE]
+> [!NOTE]
 > `$BREWROOT` is either your pantry clone or
 > `${XDG_DATA_HOME:-$HOME/.local/share}/brewkit`.
 
-> ![NOTE]
+> [!NOTE]
 > `$PKGSLUG` is the pkg project name with slashes replaced with unicode
 > slashes and the version appended in `-1.2.3` form.
 
