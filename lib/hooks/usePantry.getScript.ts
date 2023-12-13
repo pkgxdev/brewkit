@@ -25,7 +25,7 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
 
   const script = (input: unknown) => {
     if (isString(input)) {
-      return mm.apply(validate.str(input), tokens)
+      return mm.apply(input, tokens)
     } else if (!isArray(input)) {
       throw new Error("script node is not string or array")
     }
@@ -56,7 +56,7 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
           throw new Error('every node in a script YAML array must contain a `run` key')
         }
 
-        run = mm.apply(validate.str(input), tokens)
+        run = mm.apply(run, tokens)
 
         let cd = obj['working-directory']
         if (cd) {
