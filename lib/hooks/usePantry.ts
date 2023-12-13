@@ -60,15 +60,15 @@ const getPlatforms = async (pkg: Package | PackageRequirement) => {
   return rv
 }
 
-const getRawDistributableURL = (yml: PlainObject) => {
-  if (isPlainObject(yml.distributable)) {
-    return validate.str(yml.distributable.url)
-  } else if (isString(yml.distributable)) {
-    return yml.distributable
-  } else if (yml.distributable === null || yml.distributable === undefined) {
+const getRawDistributableURL = (dist: PlainObject) => {
+  if (isPlainObject(dist)) {
+    return validate.str(dist.url)
+  } else if (isString(dist)) {
+    return dist
+  } else if (dist === null || dist === undefined) {
     return
   } else {
-    throw new Error(`invalid distributable node: ${yml.distributable}`)
+    throw new Error(`invalid distributable node: ${dist}`)
   }
 }
 
@@ -93,30 +93,58 @@ const getDistributable = async (pkg: Package) => {
   const moustaches = useMoustaches()
 
   const yml = await hooks.usePantry().project(pkg).yaml()
+  const dists = isArray(yml.distributable) ? yml.distributable : [yml.distributable]
+  
+  for (const dist of dists) {
+    if (!dist) continue
+    //FIXME: Add check for Git dists as well
+    if (dist.git) {
+      console.warn(
+        "brewkit: using distributable.git instead of distributable.url is deprecated",
+      )
+      return getGitDistribution({ pkg, ...dist })
+    }
 
-  if (yml.distributable?.git) {
-    console.warn("brewkit: using distributable.git instead of distributable.url is deprecated")
-    return getGitDistribution({ pkg, ...yml.distributable})
+    if (dist.url?.startsWith("git")) {
+      return getGitDistribution({ pkg, ...dist })
+    }
+
+    let urlstr = getRawDistributableURL(dist)
+    if (!urlstr) continue
+
+    let v = pkg.version
+    const stripComponents = flatmap(dist["strip-components"], coerceNumber)
+
+    if (isPlainObject(dist)) {
+      if (dist.rewrite?.match) {
+        const v_raw = v.raw.replace(
+          new RegExp(dist.rewrite["match"], "gi"),
+          dist.rewrite["with"],
+        )
+        Object.assign(v, { raw: new_v })
+      }
+
+      if (dist.if) {
+        const matched = new RegExp(dist.if).test(pkg.version.raw);
+        if (!matched) continue
+      }
+    }
+
+    urlstr = moustaches.apply(urlstr, [
+      ...moustaches.tokenize.version(v),
+      ...moustaches.tokenize.host(),
+    ])
+
+    const rsp = await fetch(urlstr, { method: "HEAD" })
+
+    if (rsp.status == 200) {
+      const url = new URL(urlstr)
+      return { url, ref: undefined, stripComponents, type: "url" }
+    } else {
+      console.warn(`brewkit: Could not fetch ${urlstr} [${rsp.status}]`)
+    }
   }
-  if (yml.distributable?.url?.startsWith("git")) {
-    return getGitDistribution({ pkg, ...yml.distributable})
-  }
-
-  let urlstr = getRawDistributableURL(yml)
-  if (!urlstr) return
-  let stripComponents: number | undefined
-  if (isPlainObject(yml.distributable)) {
-    stripComponents = flatmap(yml.distributable["strip-components"], coerceNumber)
-  }
-
-  urlstr = moustaches.apply(urlstr, [
-    ...moustaches.tokenize.version(pkg.version),
-    ...moustaches.tokenize.host()
-  ])
-
-  const url = new URL(urlstr)
-
-  return { url, ref: undefined, stripComponents, type: 'url' }
+  return;
 }
 
 // deno-lint-ignore no-explicit-any
