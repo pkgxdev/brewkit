@@ -98,7 +98,7 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
 
         return run.trim()
       } else {
-        return `${obj}`.trim()
+        return mm.apply(`${obj}`, tokens).trim()
       }
     }).join("\n\n")
   }
