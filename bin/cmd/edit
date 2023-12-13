@@ -2,12 +2,14 @@
 
 set -eo pipefail
 
+d="$(cd "$(dirname "$0")" && pwd)"
+
 if test -z "$1"; then
   if test -z "$PKGX_PANTRY_PATH"; then
     echo "error: PKGX_PANTRY_PATH is not set" >&2
     exit 1
   fi
-  d="$(cd "$(dirname "$0")" && pwd)"
+
   for x in $(echo "$PKGX_PANTRY_PATH" | tr ':' '\n'); do
     if test -z "$PKGS" -a -d "$x"/.git; then
       #^^^^^^^^^^^^^^^ stop at first match
@@ -15,16 +17,14 @@ if test -z "$1"; then
     fi
   done
 else
-  PKGS=($(deno run --allow-read --allow-env - <<EoTS
+  PKGS="$(cd $d/../.. && deno run --allow-read --allow-env - "$@" <<EoTS
     import { hooks } from "pkgx";
     const pp = Deno.args.map(arg => hooks.usePantry().find(arg).then(x => x.map(y => y.path.string)));
     const paths = await Promise.all(pp);
-    console.log(paths.flatMap(x => x).join("\n"));
+    console.log(paths.flat().map(x => x.replaceAll(" ", "\\\\ ")).join("\n"));
     Deno.exit(0);
 EoTS
-  ))
-
-  echo "${PKGS[@]}"
+  )"
 fi
 
 if test -z "$EDITOR"; then
@@ -53,9 +53,9 @@ if test -z "$PKGS"; then
     echo "usage: bk edit <pkgspec>" >&2
   fi
   exit 1
-elif test "$EDITOR" = code; then
-  exec $EDITOR "$PKGX_PANTRY_PATH" "${PKGS[@]}"
+elif test "$EDITOR" = code -a -n "$PKGX_PANTRY_PATH"; then
+  exec $EDITOR "$PKGX_PANTRY_PATH" ${PKGS[@]}
   # ^^ be more useful
 else
-  exec $EDITOR "${PKGS[@]}"
+  exec $EDITOR ${PKGS}
 fi

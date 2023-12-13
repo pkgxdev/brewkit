@@ -1,6 +1,7 @@
 distributable:
-  url: https://github.com/pkgxdev/brewkit/archive/refs/tags/v{{ version }}.tar.gz
-  strip-components: 1
+  - url: https://FAILURE.DOT.COM
+  - url: https://github.com/pkgxdev/brewkit/archive/refs/tags/v{{ version }}.tar.gz
+    strip-components: 1
 
 versions:
   github: pkgxdev/brewkit
