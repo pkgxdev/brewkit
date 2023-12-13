@@ -30,7 +30,7 @@ const pkgx = find_pkgx()
 const bash = find_in_PATH('bash')
 const gum_ = find_in_PATH('gum')
 
-const depstr = (deps: (PackageRequirement | Package)[]) => deps.map(x => `+${utils.pkg.str(x)}`).join(' ')
+const depstr = (deps: (PackageRequirement | Package)[]) => deps.map(x => `"+${utils.pkg.str(x)}"`).join(' ')
 const env_plus = `${depstr([config.pkg])} ${depstr(config.deps.dry.runtime)} ${depstr(config.deps.dry.test)}`.trim()
 
 const user_script = await usePantry().getScript(config.pkg, 'test', config.deps.gas, config.path.install)
@@ -58,6 +58,8 @@ const script_text = undent`
   }
 
   export HOME="${config.path.home}"
+  mkdir -p "$HOME"
+
   ${fixture()}
 
   env -u GH_TOKEN -u GITHUB_TOKEN
