@@ -135,13 +135,17 @@ const getDistributable = async (pkg: Package) => {
       ...moustaches.tokenize.host(),
     ])
 
-    const rsp = await fetch(urlstr, { method: "HEAD" })
-
-    if (rsp.status == 200) {
-      const url = new URL(urlstr)
-      return { url, ref: undefined, stripComponents, type: "url" }
-    } else {
-      console.warn(`brewkit: Could not fetch ${urlstr} [${rsp.status}]`)
+    try {
+      const rsp = await fetch(urlstr, { method: "HEAD" })
+  
+      if (rsp.status == 200) {
+        const url = new URL(urlstr)
+        return { url, ref: undefined, stripComponents, type: "url" }
+      } else {
+        console.warn(`brewkit: Could not fetch ${urlstr} [${rsp.status}]`)
+      }
+    } catch (err) {
+        console.warn(`brewkit: Could not fetch ${urlstr}\nError: ${err}`)
     }
   }
   return;
