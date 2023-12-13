@@ -27,6 +27,9 @@ build:
 
     # check for regression
     - test $PREFIX = {{prefix}}
+
+    # tests we support script lines starting with $
+    - ${{prefix}}/bin/stark
   env:
     PREFIX: ${{prefix}}
 
