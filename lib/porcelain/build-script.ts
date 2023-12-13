@@ -7,7 +7,7 @@ const { usePantry, useConfig } = hooks
 const { host } = utils
 
 export default async function(config: Config, PATH?: Path): Promise<string> {
-  const depstr = (deps: PackageRequirement[]) => deps.map(x => `+${utils.pkg.str(x)}`).join(' ')
+  const depstr = (deps: PackageRequirement[]) => deps.map(x => `"+${utils.pkg.str(x)}"`).join(' ')
   const env_plus = `${depstr(config.deps.dry.runtime)} ${depstr(config.deps.dry.build)}`.trim()
   const user_script = await usePantry().getScript(config.pkg, 'build', config.deps.gas, config.path.build_install)
 
