@@ -30,6 +30,14 @@ build:
 
     # tests we support script lines starting with $
     - ${{prefix}}/bin/stark
+
+    # test run scripts tokenize at the start
+    - run: ${{prefix}}/bin/stark
+
+    # test you can array off a run:
+    - run:
+      - ${{prefix}}/bin/stark
+      - ${{prefix}}/bin/stark
   env:
     PREFIX: ${{prefix}}
 
