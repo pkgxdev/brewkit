@@ -121,7 +121,7 @@ const getDistributable = async (pkg: Package) => {
           new RegExp(dist.rewrite["match"], "gi"),
           dist.rewrite["with"],
         )
-        Object.assign(v, { raw: new_v })
+        Object.assign(v, { raw: v_raw })
       }
 
       if (dist.if) {
