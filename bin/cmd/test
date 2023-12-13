@@ -58,6 +58,8 @@ const script_text = undent`
   }
 
   export HOME="${config.path.home}"
+  mkdir -p "$HOME"
+
   ${fixture()}
 
   env -u GH_TOKEN -u GITHUB_TOKEN
