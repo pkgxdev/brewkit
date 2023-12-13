@@ -45,7 +45,7 @@ export default async function(config: Config, PATH?: Path): Promise<string> {
         export FORCE_UNSAFE_CONFIGURE=1
       fi
       mkdir -p $HOME
-      ${flags().join('\n')}
+      ${FLAGS.join('\n')}
 
       env -u GH_TOKEN -u GITHUB_TOKEN
 
