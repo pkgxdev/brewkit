@@ -136,3 +136,38 @@ jobs:
 
       - run: exit 1
         if: ${{steps.build.outputs.noop != 'true'}}
+
+  id:
+    env:
+      PKGX_PANTRY_PATH: ${{github.workspace}}
+    runs-on: ubuntu-latest
+    outputs:
+      pkgs: ${{ steps.id.outputs.pkgs }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pkgxdev/setup@v2
+      - uses: ./id
+        id: id
+        with:
+          pkg: stark.com/foo
+        env:
+          PKGX_PANTRY_PATH: ${{github.workspace}}
+      - run: test ${{ steps.id.outputs.version }} = 2.3.4
+      - run: test ${{ steps.id.outputs.version-raw }} = 2.3.4
+      - run: test -z "${{ steps.id.outputs.version-tag }}"
+
+      - run: bin/bk build '${{ steps.id.outputs.pkg-json }}'
+
+      - uses: ./id
+        id: id2
+        with:
+          pkg: toolchain.com
+
+      - run: test v${{ steps.id2.outputs.version }} = ${{ steps.id2.outputs.version-tag }}
+      - run: test ${{ steps.id2.outputs.version-raw }} = ${{ steps.id2.outputs.version }}
+
+      # test that running off the `BREWKIT_PKGJSON` that the id action sets works
+      - run: bin/bk build
+        id: build
+
+      - run: test ${{ steps.build.outputs.project }} = 'toolchain.com'
