@@ -49,7 +49,7 @@ export default async function config(arg?: string): Promise<Config> {
     if (arg.startsWith("{")) {
       const json = JSON.parse(arg)
       const project = json.project
-      const version = new SemVer(json.version.version)
+      const version = new SemVer(json.version.value)
       const path = await usePantry().find(project).path
       return {
         pkg: {project, version},
