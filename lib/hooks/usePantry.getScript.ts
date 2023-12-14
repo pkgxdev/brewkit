@@ -24,7 +24,13 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
   }
 
   const script = (input: unknown) => {
-    if (isArray(input)) input = input.map(obj => {
+    if (isString(input)) {
+      return mm.apply(input, tokens)
+    } else if (!isArray(input)) {
+      throw new Error("script node is not string or array")
+    }
+
+    return input.map(obj => {
       if (isPlainObject(obj)) {
 
         const condition = obj["if"]
@@ -45,9 +51,11 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
 
         let run = obj['run']
         if (isArray(run)) {
-          run = run.join("\n")
+          run = run.map(x => mm.apply(x, tokens)).join("\n")
         } else if (!isString(run)) {
           throw new Error('every node in a script YAML array must contain a `run` key')
+        } else {
+          run = mm.apply(run, tokens)
         }
 
         let cd = obj['working-directory']
@@ -90,10 +98,9 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
 
         return run.trim()
       } else {
-        return `${obj}`.trim()
+        return mm.apply(`${obj}`, tokens).trim()
       }
     }).join("\n\n")
-    return mm.apply(validate.str(input), tokens)
   }
 
   if (isPlainObject(node)) {
