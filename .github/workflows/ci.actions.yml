@@ -154,6 +154,8 @@ jobs:
       - run: test ${{ steps.id.outputs.version-raw }} = 2.3.4
       - run: test -z "${{ steps.id.outputs.version-tag }}"
 
+      - run: bin/bk build '${{ steps.id.outputs.json }}'
+
       - uses: ./id
         id: id2
         with:
@@ -164,4 +166,8 @@ jobs:
       - run: test v${{ steps.id2.outputs.version }} = ${{ steps.id2.outputs.version-tag }}
       - run: test ${{ steps.id2.outputs.version-raw }} = ${{ steps.id2.outputs.version }}
 
-      - run: bin/bk build --json '${{ steps.id2.outputs.json }}'
+      # test that running off the `BREWKIT_PKGJSON` that the id action sets works
+      - run: bin/bk build
+        id: build
+
+      - run: test ${{ steps.build.outputs.project }} = 'toolchain.com'
