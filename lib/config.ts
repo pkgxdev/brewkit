@@ -50,11 +50,11 @@ export default async function config(arg?: string): Promise<Config> {
       const json = JSON.parse(arg)
       const project = json.project
       const version = new SemVer(json.version.value)
-      const path = await usePantry().find(project).path
+      const [found] = await usePantry().find(project)
       return {
         pkg: {project, version},
         constraint: new semver.Range(version),
-        path
+        path: found.path
       }
     } else {
       const { constraint, project } = utils.pkg.parse(arg)
