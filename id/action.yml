@@ -1,0 +1,75 @@
+name:
+  pkgx/brewkit/id
+description:
+  determine pkgs and version info based on git tree or inputs
+
+inputs:
+  pkgs:
+    description: >
+      eg. `pkgx.sh@1.1 openssl.org`.
+      if unspecified we diff against git.
+      we have tested this for both main branch and pull requests.
+    required: false
+  token:
+    default: ${{github.token}}
+    required: true
+
+outputs:
+  pkgs:
+    description: |
+      JSON array with example form:
+
+      ```json
+      [{
+        "project": "example.com",
+        "pkgspec": "example.com@1.2.0",
+        "version": "1.2.0",
+        "version_raw": "1.2.0",
+        "version_tag": "v1.2"
+      }]
+      ```
+    value: ${{ steps.meat.outputs.value }}
+
+runs:
+  using: composite
+  steps:
+    - name: prep
+      run: |
+        if ! pkgx --sync; then
+          echo "::error::you must use: pkgxdev/setup before using this action"
+          exit 1
+        fi
+      shell: bash
+
+    - name: fetch deno deps
+      shell: bash
+      run: |
+        echo "::group::fetch deno deps"
+        pkgx deno cache ${GITHUB_ACTION_PATH}/id.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
+        echo "::endgroup::"
+
+    - uses: technote-space/get-diff-action@v6
+      id: get-diff
+      with:
+        PATTERNS: projects/**/package.yml
+      if: ${{ ! inputs.pkg }}
+
+    - run: |
+        for x in ${{ steps.get-diff.outputs.diff }}; do
+          y=$(echo $x | sed 's#projects/\(.*\)/package.yml#\1#')
+          RESULT="$RESULT $y"
+        done
+        echo "diff=$RESULT" >> $GITHUB_OUTPUT
+      id: diff
+      if: ${{ ! inputs.pkg }}
+
+    - run: |
+        var="$(echo ${{ inputs.projects }} | jq -R -s -c 'split(" ")')"
+        echo "pkgs=$var" >> $GITHUB_OUTPUT
+      if: ${{ inputs.pkg }}
+      id: parse
+
+    - run: |
+        out="$(${GITHUB_ACTION_PATH}/id.ts ${{ steps.diff.outputs.diff || steps.parse.outputs.pkgs }})"
+        echo "value=$out" >> $GITHUB_OUTPUT
+      id: meat

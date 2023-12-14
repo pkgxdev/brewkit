@@ -136,3 +136,25 @@ jobs:
 
       - run: exit 1
         if: ${{steps.build.outputs.noop != 'true'}}
+
+  with-id:
+    runs-on: ubuntu-latest
+    outputs:
+      pkgs: ${{ steps.id.outputs.pkgs }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./id
+        id: id
+
+  with-id-2:
+    needs: with-id
+    runs-on: ubuntu-latest
+    matrix:
+      pkg: ${{ fromJson(needs.with-id.outputs.pkgs) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./build
+        with:
+          pkg: ${{ matrix.pkg }}
+        env:
+          PKGX_PANTRY_PATH: ${{github.workspace}}
