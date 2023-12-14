@@ -28,6 +28,7 @@ jobs:
           - pyapp.com/1
           - pyapp.com/2
           - stark.com/foo@1.2.3
+          - git-clone.com
     runs-on: ${{ matrix.platform.os }}
     container: ${{ matrix.platform.img }}
     steps:

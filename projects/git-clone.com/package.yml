@@ -1,0 +1,15 @@
+distributable:
+  - url: git+https://github.com/pkgxdev/brewkit
+    ref: v${{version}}
+
+versions:
+  github: pkgxdev/brewkit
+
+build:
+  - touch foo
+  - git add foo
+  - run:
+    - mkdir -p {{prefix}}
+    - mv foo {{prefix}}
+
+test: true
