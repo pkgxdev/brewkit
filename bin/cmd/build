@@ -58,17 +58,21 @@ const yml = YAML.parse(await config.path.yaml.read()) as any
 
 /// fetch
 await gum('fetch & extract')
+let fetched: undefined | 'git' | 'tarball'
 if (yml.distributable) {
-  await fetch(config)
+  fetched = await fetch(config)
 } else {
   console.log("no srcs, skipping fetch")
 }
 
 /// rsync sources & props to build stage
 await gum('stage')
-if (yml.distributable) {
+if (fetched == 'git') {
+  await rsync(config.path.src, config.path.build)
+} else if (fetched == 'tarball') {
   await rsync(config.path.src, config.path.build, ['--exclude=.git'])
 }
+
 await rsync(config.path.yaml.parent(), config.path.build.join("props"))
 
 /// write out pkgx.yaml

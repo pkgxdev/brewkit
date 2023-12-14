@@ -17,7 +17,8 @@ export default async function fetch({pkg, path: {tarball_dir, src: dstdir}}: Pic
   }
 
   if (type === "git") {
-    return clone({ dst: dstdir, src: url, ref })
+    await clone({ dst: dstdir, src: url, ref })
+    return 'git'
   } else {
     const zipfile = await download(url, tarball_dir, pkg)
     await hooks.useSourceUnarchiver().unarchive({ dstdir, zipfile, stripComponents })
@@ -26,7 +27,7 @@ export default async function fetch({pkg, path: {tarball_dir, src: dstdir}}: Pic
       await new Deno.Command("git", {args: ["init"], cwd}).spawn().status
       await new Deno.Command("git", {args: ["add", "."], cwd}).spawn().status
     }
-    return dstdir
+    return 'tarball'
   }
 }
 
