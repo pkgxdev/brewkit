@@ -53,7 +53,7 @@ export default async function config(arg?: string): Promise<Config> {
       const [found] = await usePantry().find(project)
       return {
         pkg: {project, version},
-        constraint: new semver.Range(version),
+        constraint: new semver.Range(`=${version}`),
         path: found.path
       }
     } else {

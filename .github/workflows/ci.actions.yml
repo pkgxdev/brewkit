@@ -154,7 +154,7 @@ jobs:
       - run: test ${{ steps.id.outputs.version-raw }} = 2.3.4
       - run: test -z "${{ steps.id.outputs.version-tag }}"
 
-      - run: bin/bk build '${{ steps.id.outputs.json }}'
+      - run: bin/bk build '${{ steps.id.outputs.pkg-json }}'
 
       - uses: ./id
         id: id2

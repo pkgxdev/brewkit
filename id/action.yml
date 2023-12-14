@@ -21,7 +21,7 @@ outputs:
   version-tag:
     description: eg v1.2
     value: ${{ steps.version.outputs.tag }}
-  pkg:
+  pkg-json:
     description: json that can be fed to build/test etc.
     value: ${{ steps.version.outputs.json }}
 
