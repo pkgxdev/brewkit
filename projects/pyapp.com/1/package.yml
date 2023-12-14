@@ -1,4 +1,6 @@
-distributable: null
+distributable:
+  url: git+https://github.com/pkgxdev/brewkit
+  ref: v{{version}}
 
 versions:
   - 1.0.0

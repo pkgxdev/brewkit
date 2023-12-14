@@ -41,8 +41,6 @@ async function clone({ dst, src, ref }: { dst: Path, src: URL, ref?: string }) {
   // ensure the parent dir exists
   dst.parent().mkdir('p')
 
-  const tmp = Path.mktemp({})
-
   const args = [
     "clone",
     "--quiet",
@@ -53,18 +51,11 @@ async function clone({ dst, src, ref }: { dst: Path, src: URL, ref?: string }) {
   }
   args.push(
     src.toString(),
-    tmp.string,
+    dst.string,
   )
 
-  // Clone the specific ref to our temp dir
-  const proc = new Deno.Command("git", {
-    args,
-    // `git` uses stderr for... non errors, and --quiet
-    // doesn't touch them
-    stderr: "null",
-  })
-  const status = await proc.spawn().status
-  if (!status.success) {
+  const {success} = await new Deno.Command("git", {args}).spawn().status
+  if (!success) {
     throw new Error(`git failed to clone ${src} to ${dst}`)
   }
 
