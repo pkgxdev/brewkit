@@ -6,10 +6,13 @@ versions:
   github: pkgxdev/brewkit
 
 build:
-  - touch foo
-  - git add foo
-  - run:
-    - mkdir -p {{prefix}}
-    - mv foo {{prefix}}
+  dependencies:
+    git-scm.org: '*'
+  script:
+    - touch foo
+    - git add foo
+    - run:
+      - mkdir -p {{prefix}}
+      - mv foo {{prefix}}
 
 test: true
