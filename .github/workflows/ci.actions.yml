@@ -138,6 +138,8 @@ jobs:
         if: ${{steps.build.outputs.noop != 'true'}}
 
   id:
+    env:
+      PKGX_PANTRY_PATH: ${{github.workspace}}
     runs-on: ubuntu-latest
     outputs:
       pkgs: ${{ steps.id.outputs.pkgs }}
@@ -160,8 +162,6 @@ jobs:
         id: id2
         with:
           pkg: toolchain.com
-        env:
-          PKGX_PANTRY_PATH: ${{github.workspace}}
 
       - run: test v${{ steps.id2.outputs.version }} = ${{ steps.id2.outputs.version-tag }}
       - run: test ${{ steps.id2.outputs.version-raw }} = ${{ steps.id2.outputs.version }}
