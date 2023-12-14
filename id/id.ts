@@ -1,26 +1,28 @@
-#!/usr/bin/env -S pkgx +git deno --allow-env
+#!/usr/bin/env -S pkgx +git +gh deno run --allow-env --allow-net --allow-write --allow-run=gh --allow-read
 
 import get_config from "brewkit/config.ts"
-import { utils } from "pkgx"
 
-interface Package {
-  project: string
-  pkgspec: string
-  version: string
-  version_raw: string
-  version_tag: string
+const config = await get_config(Deno.args[0])
+
+const ghout = Deno.env.get("GITHUB_OUTPUT")
+
+Deno.writeTextFileSync(ghout!, `value=${config.pkg.version.toString()}\n`, {append: true})
+if (config.pkg.version.raw) {
+  Deno.writeTextFileSync(ghout!, `raw=${config.pkg.version.raw}\n`, {append: true})
+}
+if (config.pkg.version.tag) {
+  Deno.writeTextFileSync(ghout!, `tag=${config.pkg.version.tag}\n`, {append: true})
 }
 
-const rv: Package[] = []
-for (const arg of Deno.args) {
-  const config = await get_config(arg)
-  rv.push({
-    project: config.pkg.project,
-    pkgspec: utils.pkg.str(config.pkgspec),
-    version: config.pkg.version.toString(),
-    version_raw: config.pkg.version.raw,
-    version_tag: config.pkg.version.tag,
-  })
+const json = {
+  project: config.pkg.project,
+  version: {
+    value: config.pkg.version.toString(),
+    raw: config.pkg.version.raw,
+    tag: config.pkg.version.tag
+  }
 }
 
-console.log(JSON.stringify(rv, null, 2))
+Deno.writeTextFileSync(ghout!, `json=${JSON.stringify(json)}\n`, {append: true})
+
+console.log(json)

@@ -1,34 +1,29 @@
 name:
   pkgx/brewkit/id
 description:
-  determine pkgs and version info based on git tree or inputs
+  resolve a specific version, including the raw version and tag (if available)
 
 inputs:
-  pkgs:
-    description: >
-      eg. `pkgx.sh@1.1 openssl.org`.
-      if unspecified we diff against git.
-      we have tested this for both main branch and pull requests.
-    required: false
+  pkg:
+    description: eg. `pkgx.sh@1.1`.
+    required: true
   token:
     default: ${{github.token}}
     required: true
 
 outputs:
-  pkgs:
-    description: |
-      JSON array with example form:
-
-      ```json
-      [{
-        "project": "example.com",
-        "pkgspec": "example.com@1.2.0",
-        "version": "1.2.0",
-        "version_raw": "1.2.0",
-        "version_tag": "v1.2"
-      }]
-      ```
-    value: ${{ steps.meat.outputs.value }}
+  version:
+    description: eg 1.2.3
+    value: ${{ steps.version.outputs.value }}
+  version-raw:
+    description: eg 1.2
+    value: ${{ steps.version.outputs.raw }}
+  version-tag:
+    description: eg v1.2
+    value: ${{ steps.version.outputs.tag }}
+  pkg:
+    description: json that can be fed to build/test etc.
+    value: ${{ steps.version.outputs.json }}
 
 runs:
   using: composite
@@ -42,34 +37,14 @@ runs:
       shell: bash
 
     - name: fetch deno deps
-      shell: bash
       run: |
         echo "::group::fetch deno deps"
         pkgx deno cache ${GITHUB_ACTION_PATH}/id.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
         echo "::endgroup::"
+      shell: bash
 
-    - uses: technote-space/get-diff-action@v6
-      id: get-diff
-      with:
-        PATTERNS: projects/**/package.yml
-      if: ${{ ! inputs.pkg }}
-
-    - run: |
-        for x in ${{ steps.get-diff.outputs.diff }}; do
-          y=$(echo $x | sed 's#projects/\(.*\)/package.yml#\1#')
-          RESULT="$RESULT $y"
-        done
-        echo "diff=$RESULT" >> $GITHUB_OUTPUT
-      id: diff
-      if: ${{ ! inputs.pkg }}
-
-    - run: |
-        var="$(echo ${{ inputs.projects }} | jq -R -s -c 'split(" ")')"
-        echo "pkgs=$var" >> $GITHUB_OUTPUT
-      if: ${{ inputs.pkg }}
-      id: parse
-
-    - run: |
-        out="$(${GITHUB_ACTION_PATH}/id.ts ${{ steps.diff.outputs.diff || steps.parse.outputs.pkgs }})"
-        echo "value=$out" >> $GITHUB_OUTPUT
-      id: meat
+    - run: ${GITHUB_ACTION_PATH}/id.ts ${{ inputs.pkg }}
+      id: version
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}

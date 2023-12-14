@@ -8,18 +8,6 @@ inputs:
   token:
     default: ${{github.token}}
     required: true
-  raw-version:
-    description: |
-      some pkgs require the “raw version” to process, eg. the semantic version
-      is 1.2.0 but the raw version is 1.2. the raw version will be used in eg.
-      tarballs.
-
-      the reason to specify this is otherwise almost all brewkit operations
-      must ping GitHub for version info as there is no other way to get the
-      “raw” version. Pinging GitHub so often is wasteful, but the real reason
-      we added this is because GitHub is unreliable AF nowadays and we got
-      fed up with builds failing because of it.
-    required: false
 
 outputs:
   pkgspec:
@@ -70,7 +58,7 @@ runs:
         fi
 
         set +e
-        ${GITHUB_ACTION_PATH}/../bin/cmd/build ${{ inputs.pkg }}
+        ${GITHUB_ACTION_PATH}/../bin/cmd/build '${{ inputs.pkg }}'
         status=$?
         if [ $status -eq 2 ]; then
           echo noop=true >> $GITHUB_OUTPUT

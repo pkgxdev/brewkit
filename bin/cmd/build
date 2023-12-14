@@ -14,7 +14,7 @@ const { host } = utils
 const { options, args } = await new Command()
   .name("build")
   .description("Build pkgx pantry pkgs with brewkit")
-  .option("-C, --clean=", "Clean everything first")
+  .option("-C, --clean", "Clean everything first")
   .arguments("[pkgspec]")
   .parse();
 
@@ -23,7 +23,7 @@ if (args.length > 1) {
 }
 
 await gum('computing configuration')
-const config = await get_config(args[0])
+const config = await get_config(args[0], options)
 console.log("pkg:", utils.pkg.str(config.pkg))
 console.log("src:", config.path.src)
 console.log("build:", config.path.build)
@@ -121,7 +121,7 @@ await fix_up(config)
 const ghout = Deno.env.get("GITHUB_OUTPUT")
 if (ghout) {
   const { platform, arch } = host()
-  const pkgspec = `${utils.pkg.str(config.pkg)}`
+  const pkgspec = utils.pkg.str(config.pkg)
   Deno.writeTextFileSync(ghout, `pkgspec=${pkgspec}\n`, { append: true})
   Deno.writeTextFileSync(ghout, `project=${config.pkg.project}\n`, { append: true})
   Deno.writeTextFileSync(ghout, `version=${config.pkg.version}\n`, { append: true})
@@ -130,6 +130,16 @@ if (ghout) {
   Deno.writeTextFileSync(ghout, `arch=${arch}\n`, { append: true})
   const ghenv = Deno.env.get("GITHUB_ENV")
   if (ghenv) {
+    const json = {
+      project: config.pkg.project,
+      version: {
+        value: config.pkg.version.toString(),
+        raw: config.pkg.version.raw,
+        tag: config.pkg.version.tag
+      }
+    }
+
+    Deno.writeTextFileSync(ghenv, `BREWKIT_PKGJSON=${JSON.stringify(json)}\n`, { append: true })
     Deno.writeTextFileSync(ghenv, `BREWKIT_PKGSPEC=${pkgspec}\n`, { append: true })
     Deno.writeTextFileSync(ghenv, `BREWKIT_PREFIX=${config.path.install.string}\n`, { append: true })
   }
