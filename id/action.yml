@@ -1,0 +1,50 @@
+name:
+  pkgx/brewkit/id
+description:
+  resolve a specific version, including the raw version and tag (if available)
+
+inputs:
+  pkg:
+    description: eg. `pkgx.sh@1.1`.
+    required: true
+  token:
+    default: ${{github.token}}
+    required: true
+
+outputs:
+  version:
+    description: eg 1.2.3
+    value: ${{ steps.version.outputs.value }}
+  version-raw:
+    description: eg 1.2
+    value: ${{ steps.version.outputs.raw }}
+  version-tag:
+    description: eg v1.2
+    value: ${{ steps.version.outputs.tag }}
+  pkg-json:
+    description: json that can be fed to build/test etc.
+    value: ${{ steps.version.outputs.json }}
+
+runs:
+  using: composite
+  steps:
+    - name: prep
+      run: |
+        if ! pkgx --sync; then
+          echo "::error::you must use: pkgxdev/setup before using this action"
+          exit 1
+        fi
+      shell: bash
+
+    - name: fetch deno deps
+      run: |
+        echo "::group::fetch deno deps"
+        pkgx deno cache ${GITHUB_ACTION_PATH}/id.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
+        echo "::endgroup::"
+      shell: bash
+
+    - run: ${GITHUB_ACTION_PATH}/id.ts ${{ inputs.pkg }}
+      id: version
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}

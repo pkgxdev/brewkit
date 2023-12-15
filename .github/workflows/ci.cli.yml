@@ -51,12 +51,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pkgxdev/setup@v2
-      - run: pkgx --sync  #FIXME bug where shebangs don’t cause an auto-sync
-      - uses: fregante/setup-git-user@v2
-      - run: git update-ref refs/remotes/origin/main HEAD
-      - run: '! bin/bk status'
-      - run: cp package-mod.yml package.yml
-        working-directory: projects/stark.com/foo
+      - uses: ./.github/modify-pantry
       - run: test $(bin/bk status) = stark.com/foo
       - run: bin/bk build
       - run: bin/bk test

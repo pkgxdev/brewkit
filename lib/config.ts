@@ -1,5 +1,5 @@
 import useConfig from "libpkgx/hooks/useConfig.ts"
-import { Path, Package, PackageRequirement, utils, hooks, plumbing, Installation } from "pkgx"
+import { Path, Package, PackageRequirement, utils, hooks, plumbing, Installation, SemVer, semver } from "pkgx"
 const { flatmap, host } = utils
 const { usePantry } = hooks
 const { hydrate } = plumbing
@@ -34,17 +34,34 @@ export interface ConfigPath {
 
 export default async function config(arg?: string): Promise<Config> {
   if (!arg) {
-    arg ??= Deno.env.get("BREWKIT_PKGSPEC") ?? (await get_pantry_status())?.[0]
+    arg ||= Deno.env.get("BREWKIT_PKGJSON")
+    arg ||= Deno.env.get("BREWKIT_PKGSPEC")
+    arg ||= (await get_pantry_status())?.[0]
     if (!arg) throw new Error(`usage: ${Deno.execPath()} <pkgspec>`)
   }
 
-  const { constraint, project } = utils.pkg.parse(arg)
-  const [found, ...rest] = await usePantry().find(project)
-  if (rest.length) throw new Error("ambiguous pkg spec")
-  const pkg = await usePantry().resolve({project: found.project, constraint})
+  const { pkg, constraint, path } = await (async () => {
+    if (arg.startsWith("{")) {
+      const json = JSON.parse(arg)
+      const project = json.project
+      const version = new SemVer(json.version.raw)
+      const [found] = await usePantry().find(project)
+      return {
+        pkg: {project, version},
+        constraint: new semver.Range(`=${version}`),
+        path: found.path
+      }
+    } else {
+      const { constraint, project } = utils.pkg.parse(arg.trim())
+      const [found, ...rest] = await usePantry().find(project)
+      if (rest.length) throw new Error("ambiguous pkg spec")
+      const pkg = await usePantry().resolve({project: found.project, constraint})
+      return { constraint, path: found.path, pkg }
+    }
+  })()
 
-  let pantry = found.path
-  for (let x = 0, N = found.project.split('/').length + 1; x < N; x++) {
+  let pantry = path
+  for (let x = 0, N = pkg.project.split('/').length + 1; x < N; x++) {
     pantry = pantry.parent()
   }
 
@@ -89,7 +106,7 @@ export default async function config(arg?: string): Promise<Config> {
 
     return {
       pkg,
-      pkgspec: {project: found.project, constraint},
+      pkgspec: {project: pkg.project, constraint},
       deps: {
         dry,
         wet,
@@ -98,7 +115,7 @@ export default async function config(arg?: string): Promise<Config> {
       path: {
         cache,
         pantry,
-        yaml: found.path,
+        yaml: path,
         src,
         build,
         install,

@@ -1,0 +1,18 @@
+runs:
+  using: composite
+  steps:
+    - run: pkgx --sync  #FIXME bug where shebangs don’t cause an auto-sync
+      shell: bash
+    - uses: fregante/setup-git-user@v2
+    - run: git update-ref refs/remotes/origin/main HEAD
+      working-directory: ${{ github.workspace }}
+      shell: bash
+    - run: |
+        ! ${GITHUB_ACTION_PATH}/../../bin/bk status
+      shell: bash
+    - run: cp package-mod.yml package.yml
+      working-directory: ${{ github.workspace }}/projects/stark.com/foo
+      shell: bash
+    - run: |
+        ${GITHUB_ACTION_PATH}/../../bin/bk status
+      shell: bash

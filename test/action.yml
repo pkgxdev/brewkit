@@ -29,7 +29,7 @@ runs:
         echo "::endgroup::"
 
     - name: test
-      run: ${GITHUB_ACTION_PATH}/../bin/cmd/test ${{ inputs.pkg }}
+      run: ${GITHUB_ACTION_PATH}/../bin/cmd/test '${{ inputs.pkg }}'
       shell: bash
       env:
         GITHUB_TOKEN: ${{inputs.token}}

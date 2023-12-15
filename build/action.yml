@@ -58,7 +58,7 @@ runs:
         fi
 
         set +e
-        ${GITHUB_ACTION_PATH}/../bin/cmd/build ${{ inputs.pkg }}
+        ${GITHUB_ACTION_PATH}/../bin/cmd/build '${{ inputs.pkg }}'
         status=$?
         if [ $status -eq 2 ]; then
           echo noop=true >> $GITHUB_OUTPUT
