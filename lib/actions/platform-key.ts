@@ -6,12 +6,15 @@ import { utils } from 'pkgx'
 
 let { options: { pkg, platform } } = await new Command()
   .option('--pkg=[type:string]', 'Package name')
-  .option('--platform=<platform>', 'Platform name')
+  .option('--platform=[type:string]', 'Platform name')
   .parse(Deno.args);
 
+if (platform === true) platform = undefined
+// ^^ unfortunate that we need to accept empty string due to GITHUB ACTIONS
+// BEING SUPER GOOD and Cliffy then takes that to mean “true” as it
+// interprets it as FLAG ON
 platform ??= (({arch, platform}) => `${platform}+${arch}`)(utils.host())
-
-if (pkg === true) pkg = undefined //fuck knows what Cliffy is doing here
+if (pkg === true) pkg = undefined
 
 const config = await get_config(pkg as string | undefined)
 
