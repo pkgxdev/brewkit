@@ -40,7 +40,7 @@ export default async function config(arg?: string): Promise<Config> {
     if (!arg) throw new Error(`usage: ${Deno.execPath()} <pkgspec>`)
   }
 
-  const { pkg, constraint, path } = await (async () => {
+  const { pkg, constraint, path } = await (async (arg: string) => {
     if (arg.startsWith("{")) {
       const json = JSON.parse(arg)
       const project = json.project
@@ -58,7 +58,7 @@ export default async function config(arg?: string): Promise<Config> {
       const pkg = await usePantry().resolve({project: found.project, constraint})
       return { constraint, path: found.path, pkg }
     }
-  })()
+  })(arg)
 
   let pantry = path
   for (let x = 0, N = pkg.project.split('/').length + 1; x < N; x++) {
