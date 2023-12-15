@@ -5,7 +5,7 @@ import get_config from '../config.ts'
 import { utils } from 'pkgx'
 
 let { options: { pkg, platform } } = await new Command()
-  .option('--pkg=[pkg]', 'Package name')
+  .option('--pkg=[type:string]', 'Package name')
   .option('--platform=<platform>', 'Platform name')
   .parse(Deno.args);
 
