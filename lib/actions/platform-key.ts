@@ -11,6 +11,9 @@ let { options: { pkg, platform } } = await new Command()
 
 platform ??= ((arch, platform) => `${arch}+${platform}`)(utils.host())
 
+// cliffy is weird AF
+if (pkg === true) pkg = undefined
+
 const config = await get_config(pkg as string | undefined)
 
 console.log(`${utils.pkg.str(config.pkg)}+${platform}`)
