@@ -5,11 +5,13 @@ import get_config from '../config.ts'
 import { utils } from 'pkgx'
 
 let { options: { pkg, platform } } = await new Command()
-  .option('--pkg=<pkg>', 'Package name').allowEmpty()
+  .option('--pkg=[type:string]', 'Package name')
   .option('--platform=<platform>', 'Platform name')
   .parse(Deno.args);
 
 platform ??= (({arch, platform}) => `${platform}+${arch}`)(utils.host())
+
+if (pkg === true) pkg = undefined //fuck knows what Cliffy is doing here
 
 const config = await get_config(pkg as string | undefined)
 
