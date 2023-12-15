@@ -40,6 +40,8 @@ export default async function config(arg?: string): Promise<Config> {
     if (!arg) throw new Error(`usage: ${Deno.execPath()} <pkgspec>`)
   }
 
+  console.error(arg)
+
   const { pkg, constraint, path } = await (async (arg: string) => {
     if (arg.startsWith("{")) {
       const json = JSON.parse(arg)
