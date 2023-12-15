@@ -30,7 +30,7 @@ runs:
     - name: tar
       run: |
         tmpdir=$(mktemp -d)
-        key=$(${GITHUB_ACTION_PATH}/../lib/actions/platform-key.ts) --pkg ${{inputs.pkg}}
+        key=$(${GITHUB_ACTION_PATH}/../lib/actions/platform-key.ts --pkg '${{inputs.pkg}}')
         ${GITHUB_ACTION_PATH}/../lib/actions/stage.ts $tmpdir ${{inputs.pkg}}
         cd $tmpdir
         tar cf $key.tar *
