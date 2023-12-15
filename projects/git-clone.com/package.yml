@@ -11,7 +11,9 @@ build:
   script:
     - touch foo
     - git add foo
-    - mkdir -p {{prefix}}
-    - mv foo {{prefix}}
+    - run:
+      - mkdir -p {{prefix}}
+      - mv foo {{prefix}}
 
-test: true
+test: |
+  true
