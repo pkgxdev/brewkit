@@ -156,7 +156,7 @@ jobs:
       - run: test ${{ steps.id.outputs.version-raw }} = 2.3.4
       - run: test -z "${{ steps.id.outputs.version-tag }}"
 
-      - uses: ./co/build
+      - uses: ./build
         with:
           pkg: ${{ steps.id.outputs.pkg-json }}
 
@@ -169,9 +169,9 @@ jobs:
       - run: test ${{ steps.id2.outputs.version-raw }} = ${{ steps.id2.outputs.version }}
 
       # test that running off the `BREWKIT_PKGJSON` that the id action sets works
-      - uses: ./co/build
+      - uses: ./build
         id: build
 
       - run: test ${{ steps.build.outputs.project }} = 'toolchain.com'
 
-      - uses: ./co/test
+      - uses: ./test
