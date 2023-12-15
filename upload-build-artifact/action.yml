@@ -6,7 +6,8 @@ inputs:
       eg. pkgx.sh@1.1.1, if unspecified defaults to `$BREWKIT_PKGSPEC` which
       is set by the build action (or set it yourself if you like).
 
-      This action moves the built keg away from `$PKGX_DIR`. Sorry about that.
+      This action moves the built keg away from `$PKGX_DIR`.
+      Sorry about that.
     required: false
 
 runs:
@@ -39,7 +40,8 @@ runs:
       id: tar
       shell: bash
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v3
       with:
         path: ${{ steps.tar.outputs.path }}
         name: ${{ steps.tar.outputs.name }}
+        if-no-files-found: error
