@@ -40,8 +40,9 @@ runs:
       id: tar
       shell: bash
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         path: ${{ steps.tar.outputs.path }}
         name: ${{ steps.tar.outputs.name }}
         if-no-files-found: error
+        retention-days: 1
