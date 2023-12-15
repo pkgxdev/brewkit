@@ -9,10 +9,13 @@ let { options: { pkg, platform } } = await new Command()
   .option('--platform=<platform>', 'Platform name')
   .parse(Deno.args);
 
+  console.error({ pkg, platform })
 platform ??= ((arch, platform) => `${arch}+${platform}`)(utils.host())
 
 // cliffy is weird AF
 if (pkg === true) pkg = undefined
+
+console.error({ pkg, platform })
 
 const config = await get_config(pkg as string | undefined)
 
