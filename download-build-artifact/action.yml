@@ -58,7 +58,7 @@ runs:
     - name: prep
       run: |
         echo "tmpdir=$(mktemp -d)" >> $GITHUB_OUTPUT
-        key=$(${GITHUB_ACTION_PATH}/../lib/actions/platform-key.ts) ${{inputs.pkg}} ${{inputs.platform}}
+        key=$(${GITHUB_ACTION_PATH}/../lib/actions/platform-key.ts) --pkg ${{inputs.pkg}} --platform ${{inputs.platform}}
         echo "artifact-name=$key" >> $GITHUB_OUTPUT
       id: prep
       shell: bash
