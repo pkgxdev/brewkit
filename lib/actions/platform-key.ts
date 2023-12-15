@@ -18,4 +18,4 @@ if (pkg === true) pkg = undefined
 
 const config = await get_config(pkg as string | undefined)
 
-console.log(`${encodeURIComponent(utils.pkg.str(config.pkg))}+${platform}`)
+console.log(`${utils.pkg.str(config.pkg).replace('/', '_')}+${platform}`)
