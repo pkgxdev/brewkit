@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ${{ matrix.platform.os }}
     outputs:
-      pkgspec: ${{ steps.build.outputs.pkgspec }}
+      pkg: ${{ steps.build.outputs.pkgjson }}
     env:
       PKGX_PANTRY_PATH: ${{github.workspace}}/co
     strategy:
@@ -63,11 +63,11 @@ jobs:
       - uses: pkgxdev/setup@v2
       - uses: ./co/download-build-artifact
         with:
-          pkg: ${{ needs.build.outputs.pkgspec }}
+          pkg: ${{ needs.build.outputs.pkg }}
           platform: ${{ matrix.platform-key }}
       - uses: ./co/test
         with:
-          pkg: ${{ needs.build.outputs.pkgspec }}
+          pkg: ${{ needs.build.outputs.pkg }}
 
   audit:
     needs: build
@@ -85,9 +85,11 @@ jobs:
           path: co  # test that things working isn’t just a coincident of PWD == BREKWIT_DIR
       - uses: pkgxdev/setup@v2
       - uses: ./co/download-build-artifact
+        with:
+          pkg: ${{ needs.build.outputs.pkg }}
       - uses: ./co/audit
         with:
-          pkg: ${{ needs.build.outputs.pkgspec }}
+          pkg: ${{ needs.build.outputs.pkg }}
 
   bottle:
     needs: build
@@ -110,6 +112,7 @@ jobs:
         with:
           extract: false
           platform: ${{ matrix.platform }}
+          pkg: ${{ needs.build.outputs.pkg }}
 
       - uses: ./co/bottle
         id: bottle

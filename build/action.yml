@@ -14,6 +14,8 @@ outputs:
     description: >
       the precise pkg and version we built, eg. pkgx.sh@1.1.1
     value: ${{ steps.build.outputs.pkgspec }}
+  pkgjson:
+    value: ${{ steps.build.outputs.pkgjson }}
   prefix:
     description: >
       the path to the built and installed pkg
