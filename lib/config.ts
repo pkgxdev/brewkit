@@ -34,9 +34,9 @@ export interface ConfigPath {
 
 export default async function config(arg?: string): Promise<Config> {
   if (!arg) {
-    arg ??= Deno.env.get("BREWKIT_PKGJSON")
-    arg ??= Deno.env.get("BREWKIT_PKGSPEC")
-    arg ??= (await get_pantry_status())?.[0]
+    arg ||= Deno.env.get("BREWKIT_PKGJSON")
+    arg ||= Deno.env.get("BREWKIT_PKGSPEC")
+    arg ||= (await get_pantry_status())?.[0]
     if (!arg) throw new Error(`usage: ${Deno.execPath()} <pkgspec>`)
   }
 
