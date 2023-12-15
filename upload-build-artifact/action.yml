@@ -6,7 +6,8 @@ inputs:
       eg. pkgx.sh@1.1.1, if unspecified defaults to `$BREWKIT_PKGSPEC` which
       is set by the build action (or set it yourself if you like).
 
-      This action moves the built keg away from `$PKGX_DIR`. Sorry about that.
+      This action moves the built keg away from `$PKGX_DIR`.
+      Sorry about that.
     required: false
 
 runs:
@@ -30,7 +31,7 @@ runs:
     - name: tar
       run: |
         tmpdir=$(mktemp -d)
-        key=$(${GITHUB_ACTION_PATH}/../lib/actions/platform-key.ts)
+        key=$(${GITHUB_ACTION_PATH}/../lib/actions/platform-key.ts --pkg='${{inputs.pkg}}')
         ${GITHUB_ACTION_PATH}/../lib/actions/stage.ts $tmpdir ${{inputs.pkg}}
         cd $tmpdir
         tar cf $key.tar *
@@ -43,3 +44,4 @@ runs:
       with:
         path: ${{ steps.tar.outputs.path }}
         name: ${{ steps.tar.outputs.name }}
+        if-no-files-found: error
