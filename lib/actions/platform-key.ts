@@ -10,7 +10,7 @@ let { options: { pkg, platform } } = await new Command()
   .parse(Deno.args);
 
   console.error({ pkg, platform })
-platform ??= ((arch, platform) => `${arch}+${platform}`)(utils.host())
+platform ??= (({arch, platform}) => `${platform}+${arch}`)(utils.host())
 
 // cliffy is weird AF
 if (pkg === true) pkg = undefined
