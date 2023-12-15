@@ -1,7 +1,7 @@
 #!/usr/bin/env -S pkgx deno run --allow-env --allow-read
 
 import { Command } from "cliffy/command/mod.ts"
-import get_config from '../config.ts'
+import get_config from '../resolve-pkg.ts'
 import { utils } from 'pkgx'
 
 let { options: { pkg, platform } } = await new Command()

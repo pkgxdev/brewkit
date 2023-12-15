@@ -1,7 +1,7 @@
 #!/usr/bin/env -S pkgx deno run --allow-read --allow-env --allow-write
 
 import { hooks, Path } from "pkgx"
-import get_config from '../config.ts'
+import get_config from '../resolve-pkg.ts'
 
 const config = await get_config(Deno.args[1])
 
