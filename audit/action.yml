@@ -30,7 +30,7 @@ runs:
         pkgx deno cache $tmpdir/audit.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
         echo "::endgroup::"
 
-    - run: ${GITHUB_ACTION_PATH}/../bin/cmd/audit ${{ inputs.pkg }}
+    - run: ${GITHUB_ACTION_PATH}/../bin/cmd/audit '${{ inputs.pkg }}'
       shell: bash
       env:
         GITHUB_TOKEN: ${{inputs.token}}
