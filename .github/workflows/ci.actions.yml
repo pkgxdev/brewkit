@@ -50,10 +50,10 @@ jobs:
     needs: build
     strategy:
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-    runs-on: ${{ matrix.os }}
+        platform-key:
+          - darwin+x86-64
+          - null
+    runs-on: ubuntu-latest
     env:
       PKGX_PANTRY_PATH: ${{github.workspace}}/co
     steps:
@@ -62,6 +62,9 @@ jobs:
           path: co  # test that things working isn’t just a coincident of PWD == BREKWIT_DIR
       - uses: pkgxdev/setup@v2
       - uses: ./co/download-build-artifact
+        with:
+          pkg: ${{ needs.build.outputs.pkgspec }}
+          platform: ${{ matrix.platform-key }}
       - uses: ./co/test
         with:
           pkg: ${{ needs.build.outputs.pkgspec }}

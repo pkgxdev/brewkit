@@ -19,9 +19,13 @@ description: |
   > open to discussing removing this limitation.
 
 inputs:
+  pkg:
+    required: true
   platform:
     required: false
-    description: eg. `darwin+aarch64` or `linux+x86-64`
+    description: >
+      eg. `darwin+aarch64` or `linux+x86-64`.
+      unspecified means: runner platform.
   extract:
     required: true
     default: true
@@ -54,15 +58,15 @@ runs:
     - name: prep
       run: |
         echo "tmpdir=$(mktemp -d)" >> $GITHUB_OUTPUT
-        key=$(${GITHUB_ACTION_PATH}/../lib/actions/platform-key.ts)
-        echo "platform=$key" >> $GITHUB_OUTPUT
+        key=$(${GITHUB_ACTION_PATH}/../lib/actions/platform-key.ts) ${{inputs.pkg}} ${{inputs.platform}}
+        echo "artifact-name=$key" >> $GITHUB_OUTPUT
       id: prep
       shell: bash
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       id: download
       with:
-        name: ${{ inputs.platform || steps.prep.outputs.platform }}
+        name: ${{ steps.prep.outputs.artifact-name }}
         path: ${{steps.prep.outputs.tmpdir}}
 
     - name: github-make-shit-things
