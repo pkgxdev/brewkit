@@ -1,7 +1,7 @@
-#!/usr/bin/env -S pkgx +shuf bash>=4
+#!/usr/bin/env -S pkgx +shuf +gum bash>=4
 # shellcheck shell=bash
 
-set -eo pipefail
+set -exo pipefail
 
 if test -z "$PKGX_PANTRY_PATH"; then
   echo "error: PKGX_PANTRY_PATH is not set" >&2
@@ -21,10 +21,10 @@ if ! git status --porcelain; then
   exit 1
 fi
 
-d="$(cd "$(dirname "$0")"/.. && pwd)"
+d="$(cd "$(dirname "$0")"/../.. && pwd)"
 
 if [ -f /usr/share/dict/words ]; then
-  BLEND=$(paste <(shuf -n 1 /usr/share/dict/words) <(shuf -n 1 /usr/share/dict/words) -d '-')
+  BLEND=wip.$(shuf -n 1 /usr/share/dict/words).org
 else
   BLEND=example.com
 fi
@@ -43,10 +43,10 @@ if test "$(git rev-parse --abbrev-ref HEAD)" != "new/$BLEND"; then
   git branch --unset-upstream  # ask jacob why
 fi
 
-pkgx gum format <<EOF
+gum format <<EOF
 # created \`$PRETTY\`
 
-Now type \`edit\` to open the yaml in your \`\$EDITOR\`
+Now type \`bk edit\` to open the yaml in your \`\$EDITOR\`
 
 the package will need renaming before we can merge it.
 we typically name packages after their homepage.
@@ -54,4 +54,4 @@ we typically name packages after their homepage.
 if you aren’t sure about the name you can submit and we’ll assist.
 EOF
 
-exec "$d/edit" $BLEND
+exec bash "$d/bin/cmd/edit" $BLEND

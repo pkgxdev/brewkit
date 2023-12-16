@@ -1,24 +1,26 @@
 #!/usr/bin/env -S pkgx +deno +git bash
 
-set -eo pipefail
+set -exo pipefail
 
-d="$(cd "$(dirname "$0")" && pwd)"
+d="$(cd "$(dirname "$0")/../.." && pwd)"
 
-if test -z "$1"; then
-  if test -z "$PKGX_PANTRY_PATH"; then
+if [ -z "$1" ]; then
+  if [ -z "$PKGX_PANTRY_PATH" ]; then
     echo "error: PKGX_PANTRY_PATH is not set" >&2
     exit 1
   fi
 
   for x in $(echo "$PKGX_PANTRY_PATH" | tr ':' '\n'); do
-    if test -z "$PKGS" -a -d "$x"/.git; then
+    if [ -z "$PKGS" -a -d "$x"/.git ]; then
       #^^^^^^^^^^^^^^^ stop at first match
-      PKGS=($(GIT_WORK_TREE="$x" bash "$d/status" --print-paths))
+      PKGS=($(GIT_WORK_TREE="$x" bash "$d/bin/cmd/status" --print-paths))
     fi
   done
+elif [ -f "$d"/projects/$1/package.yml ]; then
+  PKGS=($1)
 else
   IFS=$'\n'
-  PKGS=($(cd $d/../.. && deno run --allow-read --allow-env - "$@" <<EoTS
+  PKGS=($(cd "$d" && deno run --allow-read --allow-env - "$@" <<EoTS
     import { hooks } from "pkgx";
     const pp = Deno.args.map(arg => hooks.usePantry().find(arg).then(x => x.map(y => y.path.string)));
     const paths = await Promise.all(pp);
@@ -28,7 +30,7 @@ EoTS
   ))
 fi
 
-if test -z "$EDITOR"; then
+if [ -z "$EDITOR" ]; then
   if command -v code >/dev/null; then
     EDITOR="code"
   elif command -v vim >/dev/null; then
@@ -41,20 +43,20 @@ if test -z "$EDITOR"; then
     echo "error: \`\$EDITOR\` is not set" >&2
     exit 1
   fi
-elif test "$EDITOR" = code_wait; then
+elif [ "$EDITOR" = code_wait ]; then
   # this is for mxcl who generally prefers his editor to wait
   # but not in this case. #perks-of-making-the-thing
   EDITOR=code
 fi
 
-if test -z "$PKGS"; then
+if [ -z "$PKGS" ]; then
   if [ -n "$PKGX_PANTRY_PATH" ]; then
     echo "error: no new packages in \`\$PKGX_PANTRY_PATH\`" >&2
   else
     echo "usage: bk edit <pkgspec>" >&2
   fi
   exit 1
-elif test "$EDITOR" = code -a -n "$PKGX_PANTRY_PATH"; then
+elif [ "$EDITOR" = code -a -n "$PKGX_PANTRY_PATH" ]; then
   exec $EDITOR "$PKGX_PANTRY_PATH" "${PKGS[@]}"
   # ^^ be more useful
 else
