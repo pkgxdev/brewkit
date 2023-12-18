@@ -1,5 +1,5 @@
 import useConfig from "libpkgx/hooks/useConfig.ts"
-import { Path, Package, PackageRequirement, utils, hooks, plumbing, Installation, SemVer, semver } from "pkgx"
+import { Path, Package, PackageRequirement, utils, hooks, plumbing, Installation } from "pkgx"
 const { flatmap, host } = utils
 const { usePantry } = hooks
 const { hydrate } = plumbing
@@ -101,15 +101,6 @@ export default async function config(arg?: string): Promise<Config> {
         tarball_dir
       }
     }
-  }
-}
-
-async function get_pantry_status() {
-  const bkroot = new Path(new URL(import.meta.url).pathname).parent().parent()
-  const proc = new Deno.Command("bash", {args: [bkroot.join('bin/cmd/status').string], stdout: 'piped'}).spawn()
-  const [out, { success }] = await Promise.all([proc.output(), proc.status])
-  if (success) {
-    return new TextDecoder().decode(out.stdout).split(/\s+/).filter(x => x)
   }
 }
 

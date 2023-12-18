@@ -13,7 +13,8 @@ export default async function(arg?: string) {
     if (arg.startsWith("{")) {
       const json = JSON.parse(arg)
       const project = json.project
-      const version = new SemVer(json.version.raw)
+      const version = new SemVer(json.version.raw);
+      (version as unknown as any).tag = json.version.tag
       const [found] = await usePantry().find(project)
       return {
         pkg: {project, version},

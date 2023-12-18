@@ -27,4 +27,4 @@ Deno.writeTextFileSync(ghout!, `json=${JSON.stringify(json)}\n`, {append: true})
 
 Deno.writeTextFileSync(Deno.env.get("GITHUB_ENV")!, `BREWKIT_PKGJSON=${JSON.stringify(json)}\n`, {append: true})
 
-console.log(json)
+console.log(`::notice::${JSON.stringify(json)}`)
