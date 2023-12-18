@@ -1,6 +1,6 @@
 #!/usr/bin/env -S pkgx +deno +git bash
 
-set -exo pipefail
+set -eo pipefail
 
 d="$(cd "$(dirname "$0")/../.." && pwd)"
 

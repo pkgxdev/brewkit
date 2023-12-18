@@ -1,7 +1,7 @@
 #!/usr/bin/env -S pkgx +shuf +gum bash>=4
 # shellcheck shell=bash
 
-set -exo pipefail
+set -eo pipefail
 
 if test -z "$PKGX_PANTRY_PATH"; then
   echo "error: PKGX_PANTRY_PATH is not set" >&2
