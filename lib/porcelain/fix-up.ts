@@ -63,7 +63,11 @@ async function fix_pc_files(pkg_prefix: Path) {
       if (isFile && path.extname() == ".pc") {
         const orig = await path.read()
         const relative_path = pkg_prefix.relative({ to: path.parent() })
-        const text = orig.replaceAll(pkg_prefix.string, `\${pcfiledir}/${relative_path}`)
+        // newer versions of brewkit append +brewing to the path; this will get both
+        // variants
+        const text = orig
+          .replaceAll(pkg_prefix.join("+brewing").string, `\${pcfiledir}/${relative_path}`)
+          .replaceAll(pkg_prefix.string, `\${pcfiledir}/${relative_path}`)
         if (orig !== text) {
           console.log({ fixing: path })
           path.write({text, force: true})
@@ -83,7 +87,11 @@ async function fix_cmake_files(pkg_prefix: Path) {
       if (isFile && path.extname() == ".cmake") {
         const orig = await path.read()
         const relative_path = pkg_prefix.relative({ to: path.parent() })
-        const text = orig.replaceAll(pkg_prefix.string, `\${CMAKE_CURRENT_LIST_DIR}/${relative_path}`)
+        // newer versions of brewkit append +brewing to the path; this will get both
+        // variants
+        const text = orig
+          .replaceAll(pkg_prefix.join("+brewing").string, `\${CMAKE_CURRENT_LIST_DIR}/${relative_path}`)
+          .replaceAll(pkg_prefix.string, `\${CMAKE_CURRENT_LIST_DIR}/${relative_path}`)
         if (orig !== text) {
           console.log({ fixing: path })
           path.write({text, force: true})
