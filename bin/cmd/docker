@@ -19,12 +19,13 @@ if [ "$1" = --pull ]; then
 fi
 
 if [ -z "$1" ]; then
-  echo "error: missing command" >&2
-  exit 64
+  echo "no command: launching interactive container" >&2
+  INTERACTIVE="-i"
+  CMD="/bin/bash"
+else
+  CMD="/brewkit/bin/cmd/$1"
+  shift
 fi
-
-CMD=$1
-shift
 
 mkdir -p "$PKGX_PANTRY_PATH/prefixes/linux"
 
@@ -32,6 +33,7 @@ exec docker run \
   --name brewkit.pkgx.dev \
   --rm \
   --tty \
+  "$INTERACTIVE" \
   --volume "$d:/brewkit" \
   --volume "$PKGX_PANTRY_PATH:/work" \
   --volume "${XDG_CACHE_HOME:-$HOME/Library/Caches/pkgx}:/root/.cache/pkgx" \
@@ -40,4 +42,4 @@ exec docker run \
   --env CLICOLOR_FORCE=1 \
   --workdir /work \
   pkgxdev/pkgx \
-  /brewkit/bin/cmd/$CMD "$@"
+  "$CMD" "$@"
