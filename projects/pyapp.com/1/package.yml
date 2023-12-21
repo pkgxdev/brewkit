@@ -21,7 +21,7 @@ test:
 
   - run: |
       test $(basename $FIXTURE .rb).rb = $(basename $FIXTURE)
-      test (cat $FIXTURE) = foo
+      test $(cat $FIXTURE) = foo
     fixture:
       content: foo
       extname: .rb
