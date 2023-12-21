@@ -71,30 +71,7 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
             `
         }
 
-        let fixture_key = key == 'build' ? 'prop' : 'fixture'
-        let fixture = obj[fixture_key]
-        if (fixture) {
-          fixture_key = fixture_key.toUpperCase()
-          fixture = mm.apply(validate.str(fixture), tokens)
-          run = undent`
-            OLD_${fixture_key}=$${fixture_key}
-            ${fixture_key}=$(mktemp)
-
-            cat <<DEV_PKGX_EOF > $${fixture_key}
-            ${fixture}
-            DEV_PKGX_EOF
-
-            ${run}
-
-            rm -f $${fixture_key}
-
-            if test -n "$${fixture_key}"; then
-              ${fixture_key}=$OLD_${fixture_key}
-            else
-              unset ${fixture_key}
-            fi
-            `
-        }
+        run = add_fixture(run, key, obj, tokens)
 
         return run.trim()
       } else {
@@ -153,6 +130,38 @@ function expand_env(env: PlainObject, pkg: Package, tokens: { from: string, to: 
 
     return `export ${key}=${value}`
   }).join("\n")
+}
+
+function add_fixture(run: string, key: string, obj: any, tokens: { from: string, to: string }[]) {
+  let fixture_key = key == 'build' ? 'prop' : 'fixture'
+  let fixture = obj[fixture_key]
+  if (!fixture) return run
+
+  let extname = `${fixture['extname'] || ''}`
+  while (extname.startsWith('.')) extname = extname.slice(1)
+
+  const contents = isPlainObject(fixture) ? fixture['content'] : fixture
+
+  fixture_key = fixture_key.toUpperCase()
+  fixture = useMoustaches().apply(validate.str(contents), tokens)
+  return undent`
+    OLD_${fixture_key}=$${fixture_key}
+    ${fixture_key}=$(mktemp)${extname ? `.${extname}` : ''}
+
+    cat <<DEV_PKGX_EOF > $${fixture_key}
+    ${fixture}
+    DEV_PKGX_EOF
+
+    ${run}
+
+    rm -f $${fixture_key}*
+
+    if test -n "$${fixture_key}"; then
+      ${fixture_key}=$OLD_${fixture_key}
+    else
+      unset ${fixture_key}
+    fi
+    `
 }
 
 //FIXME these are copy pasta from usePantry because we build to a different prefix so need control over the moustaches

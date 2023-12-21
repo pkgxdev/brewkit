@@ -17,4 +17,11 @@ provides:
   - bin/myapp
 
 test:
-  myapp
+  - myapp
+
+  - run: |
+      test $(extname $FIXTURE) = rb
+      test (cat $FIXTURE) = foo
+    fixture:
+      content: foo
+      extname: .rb
