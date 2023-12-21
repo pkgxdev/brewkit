@@ -6,8 +6,8 @@ const { host } = utils
 export default async function finish(config: Config) {
   const prefix = config.path.install
   await fix_rpaths(prefix, config.pkg, config.path.cache, config.deps.gas)
-  await fix_pc_files(prefix)
-  await fix_cmake_files(prefix)
+  await fix_pc_files(prefix, config.path.build_install)
+  await fix_cmake_files(prefix, config.path.build_install)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@ async function fix_rpaths(pkg_prefix: Path, pkg: Package, cache: Path, deps: Ins
   }}
 }
 
-async function fix_pc_files(pkg_prefix: Path) {
+async function fix_pc_files(pkg_prefix: Path, build_prefix: Path) {
   //NOTE currently we only support pc files in lib/pkgconfig
   // we aim to standardize on this but will relent if a package is found
   // that uses share and other tools that build against it only accept that
@@ -63,7 +63,11 @@ async function fix_pc_files(pkg_prefix: Path) {
       if (isFile && path.extname() == ".pc") {
         const orig = await path.read()
         const relative_path = pkg_prefix.relative({ to: path.parent() })
-        const text = orig.replaceAll(pkg_prefix.string, `\${pcfiledir}/${relative_path}`)
+        // newer versions of brewkit append +brewing to the path; this will get both
+        // variants
+        const text = orig
+          .replaceAll(build_prefix.string, `\${pcfiledir}/${relative_path}`)
+          .replaceAll(pkg_prefix.string, `\${pcfiledir}/${relative_path}`)
         if (orig !== text) {
           console.log({ fixing: path })
           path.write({text, force: true})
@@ -73,7 +77,7 @@ async function fix_pc_files(pkg_prefix: Path) {
   }
 }
 
-async function fix_cmake_files(pkg_prefix: Path) {
+async function fix_cmake_files(pkg_prefix: Path, build_prefix: Path) {
   // Facebook and others who use CMake sometimes rely on a libary's .cmake files
   // being shipped with it. This would be fine, except they have hardcoded paths.
   // But a simple solution has been found.
@@ -83,7 +87,11 @@ async function fix_cmake_files(pkg_prefix: Path) {
       if (isFile && path.extname() == ".cmake") {
         const orig = await path.read()
         const relative_path = pkg_prefix.relative({ to: path.parent() })
-        const text = orig.replaceAll(pkg_prefix.string, `\${CMAKE_CURRENT_LIST_DIR}/${relative_path}`)
+        // newer versions of brewkit append +brewing to the path; this will get both
+        // variants
+        const text = orig
+          .replaceAll(build_prefix.string, `\${CMAKE_CURRENT_LIST_DIR}/${relative_path}`)
+          .replaceAll(pkg_prefix.string, `\${CMAKE_CURRENT_LIST_DIR}/${relative_path}`)
         if (orig !== text) {
           console.log({ fixing: path })
           path.write({text, force: true})
