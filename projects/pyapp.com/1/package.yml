@@ -20,7 +20,7 @@ test:
   - myapp
 
   - run: |
-      test $(extname $FIXTURE) = rb
+      test $(basename $FIXTURE .rb) = $FIXTURE.rb
       test (cat $FIXTURE) = foo
     fixture:
       content: foo
