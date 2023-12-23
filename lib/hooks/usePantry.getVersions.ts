@@ -11,9 +11,9 @@ import useGitHubAPI from "./useGitHubAPI.ts";
 const { validate } = utils;
 
 /// returns sorted versions
-export default async function getVersions(
-  spec: { project: string },
-): Promise<SemVer[]> {
+export default async function getVersions(spec: {
+  project: string;
+}): Promise<SemVer[]> {
   const files = hooks.usePantry().project(spec);
   const versions = await files.yaml().then((x) => x.versions);
   return _parse(versions, spec.project);
@@ -34,12 +34,14 @@ export async function _parse(
         tempres = await handleGitHubVersions(v);
       } else if (v.gitlab) {
         tempres = await handleGitLabVersions(v);
+      } else if (v.npm) {
+        tempres = await handleNPMVersions(v);
       } else if (v.url) {
         tempres = await handleURLVersions(v);
       } else {
         const keys = Object.keys(v);
         const first = keys.length > 0 ? keys[0] : "undefined";
-        throw new Error(`Could not parse version scheme for ${first}`)
+        throw new Error(`Could not parse version scheme for ${first}`);
       }
       for (const ver of tempres) {
         result.add(ver);
@@ -169,9 +171,11 @@ interface APIResponseParams {
   strip: (x: string) => string;
 }
 
-async function handleAPIResponse(
-  { fetch, ignore, strip }: APIResponseParams,
-): Promise<SemVer[]> {
+async function handleAPIResponse({
+  fetch,
+  ignore,
+  strip,
+}: APIResponseParams): Promise<SemVer[]> {
   const rv: SemVer[] = [];
   for await (const { version: pre_strip_name, tag } of fetch) {
     let name = strip(pre_strip_name);
@@ -248,6 +252,21 @@ async function handleURLVersions(versions: PlainObject): Promise<SemVer[]> {
     // Lots of times the same string will appear as both the HREF and
     // the text of the link. We don't want to double count.
     if (v && !rv.find((vx) => vx.raw === v.raw)) rv.push(v);
+  }
+  return rv;
+}
+
+async function handleNPMVersions(versions: PlainObject): Promise<SemVer[]> {
+  const rv: SemVer[] = [];
+  const pkg = validate.str(versions.npm);
+  const body = await fetch(`https://registry.npmjs.org/${pkg}`).then((x) =>
+    x.json(),
+  );
+  const versions_ = body.versions;
+  for (const v of Object.keys(versions_)) {
+    if (versions.ignore?.includes(v)) continue;
+    const ver = semver.parse(v);
+    if (ver) rv.push(ver);
   }
   return rv;
 }
