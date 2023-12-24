@@ -11,9 +11,9 @@ import useGitHubAPI from "./useGitHubAPI.ts";
 const { validate } = utils;
 
 /// returns sorted versions
-export default async function getVersions(spec: {
-  project: string;
-}): Promise<SemVer[]> {
+export default async function getVersions(
+  spec: { project: string },
+): Promise<SemVer[]> {
   const files = hooks.usePantry().project(spec);
   const versions = await files.yaml().then((x) => x.versions);
   return _parse(versions, spec.project);
@@ -41,7 +41,7 @@ export async function _parse(
       } else {
         const keys = Object.keys(v);
         const first = keys.length > 0 ? keys[0] : "undefined";
-        throw new Error(`Could not parse version scheme for ${first}`);
+        throw new Error(`Could not parse version scheme for ${first}`)
       }
       for (const ver of tempres) {
         result.add(ver);
@@ -171,11 +171,9 @@ interface APIResponseParams {
   strip: (x: string) => string;
 }
 
-async function handleAPIResponse({
-  fetch,
-  ignore,
-  strip,
-}: APIResponseParams): Promise<SemVer[]> {
+async function handleAPIResponse(
+  { fetch, ignore, strip }: APIResponseParams,
+): Promise<SemVer[]> {
   const rv: SemVer[] = [];
   for await (const { version: pre_strip_name, tag } of fetch) {
     let name = strip(pre_strip_name);
