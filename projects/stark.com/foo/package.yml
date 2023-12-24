@@ -17,7 +17,13 @@ build:
     - test "$SRCROOT" = "$PWD"
 
     # verify GNU sed (doesn’t require a backup file)
-    - sed -i s/sup_bro/sup_unc/g props/package.yml
+    - sed -i s/sup_bro/sup_unc/g {{props}}/package.yml
+
+    - |
+      test {{props}} = $PWD/props
+      test {{srcroot}} = $SRCROOT
+      test {{srcroot}} = $PWD
+      test -d {{pkgx.dir}}
 
     # verify pkgx is not here
     - |

@@ -58,7 +58,7 @@ const yml = YAML.parse(await config.path.yaml.read()) as any
 
 /// fetch
 await gum('fetch & extract')
-let fetched: undefined | 'git' | 'tarball'
+let fetched: Path | 'git' | 'tarball' | undefined
 if (yml.distributable) {
   fetched = await fetch(config)
 } else {
