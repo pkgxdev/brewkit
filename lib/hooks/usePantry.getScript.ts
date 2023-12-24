@@ -9,6 +9,7 @@ const { validate, host } = utils
 const { useMoustaches } = hooks
 
 export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation[], config: BrewkitConfig) => {
+  const install_path = key == 'build' ? config.path.build_install : config.path.install
   const yml = await hooks.usePantry().project(pkg).yaml()
   const node = yml[key]
 
@@ -27,7 +28,7 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
 
   for (const [index, token] of tokens.entries()) {
     if (token.from == "prefix") {
-      tokens[index] = { from: "prefix", to: config.path.build_install.string }
+      tokens[index] = { from: "prefix", to: install_path.string }
     }
   }
 
@@ -95,7 +96,7 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
       const rv = []
       for (const token of tokens) {
         if (token.from == "prefix") {
-          rv.push({from: "prefix", to: config.path.build_install.string})
+          rv.push({from: "prefix", to: install_path.string})
         } else {
           rv.push(token)
         }
