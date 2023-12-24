@@ -1,5 +1,5 @@
 import usePkgxConfig from "libpkgx/hooks/useConfig.ts"
-import BrewkitConfig from "brewkit/config.ts"
+import { Config as BrewkitConfig } from "brewkit/config.ts"
 import { SupportedPlatforms, SupportedArchitectures } from "libpkgx/utils/host.ts"
 import { isArray, isString, isPlainObject, PlainObject, isPrimitive, isBoolean, isNumber } from "is-what"
 import { Package, Installation, hooks, utils, semver, Path, PantryParseError } from "libpkgx"
