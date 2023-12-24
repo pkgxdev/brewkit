@@ -16,11 +16,14 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
   const tokens = mm.tokenize.all(pkg, deps)
   tokens.push({
     from: "pkgx.dir", to: usePkgxConfig().prefix.string
-  }, {
-    from: "srcroot", to: config.path.build.string
-  }, {
-    from: "props", to: config.path.build.join("props").string
   })
+  if (key == 'build') {
+    tokens.push({
+      from: "srcroot", to: config.path.build.string
+    }, {
+      from: "props", to: config.path.build.join("props").string
+    })
+  }
 
   for (const [index, token] of tokens.entries()) {
     if (token.from == "prefix") {
