@@ -29,6 +29,8 @@ jobs:
           - pyapp.com/2
           - stark.com/foo@1.2.3
           - git-clone.com
+          - pc-cmake.com
+
     runs-on: ${{ matrix.platform.os }}
     container: ${{ matrix.platform.img }}
     steps:
@@ -78,13 +80,3 @@ jobs:
           set +e
           bin/bk build unavailable.com
           test $? -eq 2
-
-  fix-up:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pkgxdev/setup@v2
-      - run: pkgx --sync
-      - run: bin/bk build pc-cmake.com
-      - run: bin/bk test pc-cmake.com
-      - run: bin/bk audit pc-cmake.com
