@@ -9,7 +9,7 @@ const { host } = utils
 export default async function(config: Config, PATH?: Path): Promise<string> {
   const depstr = (deps: PackageRequirement[]) => deps.map(x => `"+${utils.pkg.str(x)}"`).join(' ')
   const env_plus = `${depstr(config.deps.dry.runtime)} ${depstr(config.deps.dry.build)}`.trim()
-  const user_script = await usePantry().getScript(config.pkg, 'build', config.deps.gas, config.path.build_install)
+  const user_script = await usePantry().getScript(config.pkg, 'build', config.deps.gas, config)
 
   const pkgx = find_in_PATH('pkgx')
   const bash = find_in_PATH('bash')
@@ -45,7 +45,7 @@ export default async function(config: Config, PATH?: Path): Promise<string> {
         export FORCE_UNSAFE_CONFIGURE=1
       fi
       mkdir -p $HOME
-      ${FLAGS.join('\n')}
+      ${FLAGS.join('\n  ')}
 
       env -u GH_TOKEN -u GITHUB_TOKEN
 

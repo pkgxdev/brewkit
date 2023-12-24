@@ -1,4 +1,5 @@
-import useConfig from "libpkgx/hooks/useConfig.ts"
+import usePkgxConfig from "libpkgx/hooks/useConfig.ts"
+import { Config as BrewkitConfig } from "brewkit/config.ts"
 import { SupportedPlatforms, SupportedArchitectures } from "libpkgx/utils/host.ts"
 import { isArray, isString, isPlainObject, PlainObject, isPrimitive, isBoolean, isNumber } from "is-what"
 import { Package, Installation, hooks, utils, semver, Path, PantryParseError } from "libpkgx"
@@ -7,19 +8,27 @@ import undent from "outdent"
 const { validate, host } = utils
 const { useMoustaches } = hooks
 
-export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation[], install_prefix: Path) => {
+export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation[], config: BrewkitConfig) => {
+  const install_path = key == 'build' ? config.path.build_install : config.path.install
   const yml = await hooks.usePantry().project(pkg).yaml()
   const node = yml[key]
 
   const mm = useMoustaches()
   const tokens = mm.tokenize.all(pkg, deps)
   tokens.push({
-    from: "pkgx.dir", to: useConfig().prefix.string
+    from: "pkgx.dir", to: usePkgxConfig().prefix.string
   })
+  if (key == 'build') {
+    tokens.push({
+      from: "srcroot", to: config.path.build.string
+    }, {
+      from: "props", to: config.path.build.join("props").string
+    })
+  }
 
   for (const [index, token] of tokens.entries()) {
     if (token.from == "prefix") {
-      tokens[index] = { from: "prefix", to: install_prefix.string }
+      tokens[index] = { from: "prefix", to: install_path.string }
     }
   }
 
@@ -87,7 +96,7 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
       const rv = []
       for (const token of tokens) {
         if (token.from == "prefix") {
-          rv.push({from: "prefix", to: install_prefix.string})
+          rv.push({from: "prefix", to: install_path.string})
         } else {
           rv.push(token)
         }
