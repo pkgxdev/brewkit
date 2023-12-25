@@ -6,6 +6,12 @@ build:
     working-directory: '{{prefix}}/lib/pkgconfig'
   - run: echo "{{prefix}}" >pc-cmake-targets.cmake
     working-directory: '{{prefix}}/lib/cmake/pc-cmake'
+  - run: |
+      if $(sh $PROP) = $(dirname $0); then
+        exit 1
+      fi
+    prop: |
+      echo $(dirname $0)
 
 test:
   - test "$(cat {{prefix}}/lib/pkgconfig/pc-cmake.pc)" = '${pcfiledir}/../..'

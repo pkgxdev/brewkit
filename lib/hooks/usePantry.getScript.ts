@@ -152,7 +152,7 @@ function add_fixture(run: string, key: string, obj: any, tokens: { from: string,
   const contents = isPlainObject(fixture) ? fixture['content'] : fixture
 
   fixture_key = fixture_key.toUpperCase()
-  fixture = useMoustaches().apply(validate.str(contents), tokens)
+  fixture = useMoustaches().apply(validate.str(contents), tokens).replace('$', '\\$')
   return undent`
     OLD_${fixture_key}=$${fixture_key}
     ${fixture_key}=$(mktemp)${extname ? `.${extname}` : ''}
