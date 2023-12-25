@@ -12,6 +12,11 @@ dependencies:
 build:
   - cc props/foo.c -lz
   - install -D a.out {{prefix}}/bin/foo
+  - run:
+      test $($PROP) = 1.1
+    prop: |
+      #!/bin/sh
+      echo {{deps.zlib.net.version.marketing}}
 
 test: |
   test $(foo) = sup_bro
