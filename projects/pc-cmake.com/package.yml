@@ -6,12 +6,15 @@ build:
     working-directory: '{{prefix}}/lib/pkgconfig'
   - run: echo "{{prefix}}" >pc-cmake-targets.cmake
     working-directory: '{{prefix}}/lib/cmake/pc-cmake'
-  - run: |
-      if $(sh $PROP) = $(dirname $0); then
-        exit 1
-      fi
+  # testing dollar escaping
+  - |
+    FOO=1
+    BAR=2
+    export BAZ=3
+  - run:
+      test $(sh $PROP) = --3
     prop: |
-      echo $(dirname $0)
+      echo $FOO-$BAR-$BAZ
 
 test:
   - test "$(cat {{prefix}}/lib/pkgconfig/pc-cmake.pc)" = '${pcfiledir}/../..'
