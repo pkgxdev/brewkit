@@ -155,7 +155,7 @@ function add_fixture(run: string, key: string, obj: any, tokens: { from: string,
 
   const chmod_if_shebang = contents.startsWith("#!") ? `chmod +x $${fixture_key}\n` : ""
 
-  fixture = useMoustaches().apply(validate.str(contents), tokens).replace('$', '\\$')
+  fixture = useMoustaches().apply(validate.str(contents), tokens).replaceAll('$', '\\$')
   return undent`
     OLD_${fixture_key}=$${fixture_key}
     ${fixture_key}=$(mktemp)${extname ? `.${extname}` : ''}
@@ -168,7 +168,7 @@ function add_fixture(run: string, key: string, obj: any, tokens: { from: string,
 
     rm -f $${fixture_key}*
 
-    if test -n "$${fixture_key}"; then
+    if test -n "$OLD_${fixture_key}"; then
       ${fixture_key}=$OLD_${fixture_key}
     else
       unset ${fixture_key}
