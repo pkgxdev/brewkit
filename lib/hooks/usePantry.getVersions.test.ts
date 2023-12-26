@@ -29,3 +29,21 @@ Deno.test("complex versions", async () => {
   assert(foo[foo.length - 2].eq(new SemVer("1.0.1")))
   assert(foo[foo.length - 1].eq(new SemVer("1.0.2")))
 })
+
+Deno.test("npm versions", async () => {
+  const versions = await _parse([
+    {
+      npm: "nx",
+      ignore: ["9999.0.1", "999.9.9"],
+    },
+  ]);
+  assert(versions.find((v) => v.eq(new SemVer("0.7.3"))), "0.7.3 should be found");
+  assert(
+    versions.find((v) => v.eq(new SemVer("999.0.1"))) === undefined,
+    "999.0.1 should be filtered out",
+  );
+  assert(
+    versions.find((v) => v.eq(new SemVer("9999.0.1"))) === undefined,
+    "9999.0.1 should be filtered out",
+  );
+});

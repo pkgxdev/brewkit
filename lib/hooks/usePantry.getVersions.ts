@@ -34,6 +34,8 @@ export async function _parse(
         tempres = await handleGitHubVersions(v);
       } else if (v.gitlab) {
         tempres = await handleGitLabVersions(v);
+      } else if (v.npm) {
+        tempres = await handleNPMVersions(v);
       } else if (v.url) {
         tempres = await handleURLVersions(v);
       } else {
@@ -248,6 +250,21 @@ async function handleURLVersions(versions: PlainObject): Promise<SemVer[]> {
     // Lots of times the same string will appear as both the HREF and
     // the text of the link. We don't want to double count.
     if (v && !rv.find((vx) => vx.raw === v.raw)) rv.push(v);
+  }
+  return rv;
+}
+
+async function handleNPMVersions(versions: PlainObject): Promise<SemVer[]> {
+  const rv: SemVer[] = [];
+  const pkg = validate.str(versions.npm);
+  const body = await fetch(`https://registry.npmjs.org/${pkg}`).then((x) =>
+    x.json(),
+  );
+  const versions_ = body.versions;
+  for (const v of Object.keys(versions_)) {
+    if (versions.ignore?.includes(v)) continue;
+    const ver = semver.parse(v);
+    if (ver) rv.push(ver);
   }
   return rv;
 }
