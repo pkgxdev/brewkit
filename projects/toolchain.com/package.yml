@@ -7,11 +7,16 @@ versions:
   github: pkgxdev/brewkit
 
 dependencies:
-  zlib.net: ^1.1
+  zlib.net: ~1.3
 
 build:
   - cc props/foo.c -lz
   - install -D a.out {{prefix}}/bin/foo
+  - run:
+      test $($PROP) = 1.3
+    prop: |
+      #!/bin/sh
+      echo {{deps.zlib.net.version.marketing}}
 
 test: |
   test $(foo) = sup_bro

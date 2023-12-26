@@ -152,6 +152,9 @@ function add_fixture(run: string, key: string, obj: any, tokens: { from: string,
   const contents = isPlainObject(fixture) ? fixture['content'] : fixture
 
   fixture_key = fixture_key.toUpperCase()
+
+  const chmod_if_shebang = contents.startsWith("#!") ? `chmod +x $${fixture_key}\n` : ""
+
   fixture = useMoustaches().apply(validate.str(contents), tokens).replace('$', '\\$')
   return undent`
     OLD_${fixture_key}=$${fixture_key}
@@ -160,7 +163,7 @@ function add_fixture(run: string, key: string, obj: any, tokens: { from: string,
     cat <<DEV_PKGX_EOF > $${fixture_key}
     ${fixture}
     DEV_PKGX_EOF
-
+    ${chmod_if_shebang}
     ${run}
 
     rm -f $${fixture_key}*
