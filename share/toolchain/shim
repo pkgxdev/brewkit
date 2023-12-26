@@ -20,7 +20,14 @@ if [ $(uname) != Darwin ]; then
   set -a
   eval "$("$pkgx" +llvm.org)"
 
-  exec "$HOME/toolchain/$tool" "$@"
+  filtered_args=()
+  for arg in "$@"; do
+    if [ $arg != -Werror ]; then
+      filtered_args+=("$arg")
+    fi
+  done
+
+  exec "$HOME/toolchain/$tool" "${filtered_args[@]}"
 fi
 
 case $tool in
@@ -82,6 +89,10 @@ exe_path = ENV['PATH'].split(":").filter { |path|
 }
 
 abort "couldn’t find #{exe} in `PATH`" unless exe_path
+
+args = args.filter do |arg|
+  arg != '-Werror'
+end
 
 for arg in args do
   # figuring out what “mode” we are operating in is hard
