@@ -90,7 +90,7 @@ exe_path = ENV['PATH'].split(":").filter { |path|
 
 abort "couldn’t find #{exe} in `PATH`" unless exe_path
 
-arg = args.filter do |arg|
+args = args.filter do |arg|
   arg != '-Werror'
 end
 
