@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env -S pkgx ruby@3.2.2
 
 # using macOS provided ∵ ruby is complex, ocassionally breaks and that causes revlock
 # ideally our tests would be thorough enough to guarantee more stability
