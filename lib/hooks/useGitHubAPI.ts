@@ -113,12 +113,13 @@ async function *getVersionsLong({ user, repo, type }: GetVersionsOptions): Async
         body: JSON.stringify({ query }),
         headers
       })
-      const json = await rsp.json()
 
       if (!rsp.ok) {
-        console.error({ rsp, json })
-        throw new Error()
+        console.error({ rsp, json: await rsp.json().catch() })
+        throw new Error(`github api: ${rsp.status} (${rsp.statusText})`)
       }
+
+      const json = await rsp.json()
 
       // deno-lint-ignore no-explicit-any
       const foo = validate.arr(json?.data?.repository?.refs?.nodes).map((x: any) => ({
