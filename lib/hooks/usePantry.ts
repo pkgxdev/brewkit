@@ -53,9 +53,13 @@ const getPlatforms = async (pkg: Package | PackageRequirement) => {
   if (!isArray(platforms)) throw new Error(`invalid platform node: ${platforms}`)
   const rv = []
   for (const platform of platforms) {
-    if (platform.match(/^(linux|darwin)\/(aarch64|x86-64)$/)) rv.push(platform)
-    else if (platform.match(/^(linux|darwin)$/)) rv.push(`${platform}/x86-64`, `${platform}/aarch64`)
-    else throw new Error(`invalid platform: ${platform}`)
+    if (platform.match(/^(linux|darwin)\/(aarch64|x86-64)$/)) {
+      rv.push(platform)
+    } else if (platform.match(/^(linux|darwin)$/)) {
+      rv.push(`${platform}/x86-64`, `${platform}/aarch64`)
+    } else {
+      throw new Error(`invalid platform: ${platform}`)
+    }
   }
   return rv
 }
@@ -94,7 +98,7 @@ const getDistributable = async (pkg: Package) => {
 
   const yml = await hooks.usePantry().project(pkg).yaml()
   const dists = isArray(yml.distributable) ? yml.distributable : [yml.distributable]
-  
+
   for (const dist of dists) {
     if (!dist) continue
     //FIXME: Add check for Git dists as well
@@ -137,7 +141,7 @@ const getDistributable = async (pkg: Package) => {
 
     try {
       const rsp = await fetch(urlstr, { method: "HEAD" })
-  
+
       if (rsp.status == 200) {
         const url = new URL(urlstr)
         return { url, ref: undefined, stripComponents, type: "url" }
