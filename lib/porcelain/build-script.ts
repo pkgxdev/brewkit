@@ -32,6 +32,7 @@ export default async function(config: Config, PATH?: Path): Promise<string> {
     set -eo pipefail
 
     ${gum} format "## env"
+      export PKGX_HOME="$HOME"
       export PATH="${brewkit_PATHs}:$PATH"
       set -a
       ${env_plus ? `eval "$(CLICOLOR_FORCE=1 ${pkgx} ${env_plus})"` : ''}
@@ -39,7 +40,6 @@ export default async function(config: Config, PATH?: Path): Promise<string> {
 
       export PKGX="${pkgx}"
       export SRCROOT=${config.path.build.string}
-      #TODO export XDG_CACHE_HOME="${config.path.cache.string}"
       export HOME=${config.path.home.string}
       if [ -n "$CI" ]; then
         export FORCE_UNSAFE_CONFIGURE=1
