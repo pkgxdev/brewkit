@@ -4,6 +4,7 @@ import { SupportedPlatforms, SupportedArchitectures } from "libpkgx/utils/host.t
 import { isArray, isString, isPlainObject, PlainObject, isPrimitive, isBoolean, isNumber } from "is-what"
 import { Package, Installation, hooks, utils, semver, Path, PantryParseError } from "libpkgx"
 import undent from "outdent"
+import { panic } from "libpkgx/utils/error.ts";
 
 const { validate, host } = utils
 const { useMoustaches } = hooks
@@ -149,7 +150,7 @@ function add_fixture(run: string, key: string, obj: any, tokens: { from: string,
   let extname = `${fixture['extname'] || ''}`
   while (extname.startsWith('.')) extname = extname.slice(1)
 
-  const contents = isPlainObject(fixture) ? fixture['content'] : fixture
+  const contents = isPlainObject(fixture) ? (fixture['content'] ?? fixture['contents'] ?? panic()) : fixture
 
   fixture_key = fixture_key.toUpperCase()
 
