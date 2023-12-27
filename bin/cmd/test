@@ -8,7 +8,8 @@ import { gum, find_pkgx, rsync, find_in_PATH } from "brewkit/utils.ts"
 import get_config from "brewkit/config.ts"
 import * as YAML from "deno/yaml/mod.ts"
 import undent from "outdent"
-const { useConfig, usePantry } = hooks
+import useConfig from "libpkgx/hooks/useConfig.ts";
+const { usePantry } = hooks
 
 await gum('computing configuration')
 const config = await get_config(Deno.args[0])
@@ -40,12 +41,11 @@ const script_text = undent`
 
   set -eo pipefail
 
-  export PKGX_DIR="${useConfig().prefix}"
-
   ${gum_} format "## env"
-  set -a
-  eval "$(CLICOLOR_FORCE=1 ${pkgx} ${env_plus})" || exit $?
-  set +a
+    export PKGX_HOME="$HOME"
+    set -a
+    eval "$(CLICOLOR_FORCE=1 ${pkgx} ${env_plus})" || exit $?
+    set +a
 
   command_not_found_handle() {
     echo "::warning::\\\`$1\\\` is not an explicit dependency!"
@@ -86,8 +86,11 @@ script.write({ force: true, text: script_text }).chmod(0o755)
 
 await gum("test")
 
-const env: Record<string, string> = {PATH: '/usr/bin:/bin:/usr/sbin:/sbin'}
-for (const key of ['HOME', 'PKGX_PANTRY_PATH', 'XDG_DATA_HOME', 'GITHUB_TOKEN', 'LANG', 'LOGNAME', 'USER']) {
+const env: Record<string, string> = {
+  PATH: '/usr/bin:/bin:/usr/sbin:/sbin',
+  PKGX_DIR: useConfig().prefix.string
+}
+for (const key of ['HOME', 'PKGX_PANTRY_PATH', 'GITHUB_TOKEN', 'LANG', 'LOGNAME', 'USER']) {
   const value = Deno.env.get(key)
   if (value) env[key] = value
 }

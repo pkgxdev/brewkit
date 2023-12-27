@@ -32,7 +32,7 @@ console.log("install:", config.path.install)
 console.log("build-install:", config.path.build_install)
 
 if (options.clean) {
-  gum("# cleaning")
+  gum("cleaning")
   config.path.home.rm({recursive: true})
   config.path.install.rm({recursive: true})
   config.path.build_install.rm({recursive: true})
@@ -100,7 +100,14 @@ const env: Record<string, string> = {
   PATH: '/usr/bin:/bin:/usr/sbin:/sbin',
   PKGX_DIR: useConfig().prefix.string
 }
-for (const key of ['HOME', 'PKGX_PANTRY_PATH', 'XDG_DATA_HOME', 'GITHUB_TOKEN', 'LANG', 'LOGNAME', 'USER']) {
+
+// compute sanitized `env` the script will run within
+for (const key of [
+  'HOME',
+  'PKGX_PANTRY_PATH', // otherwise we cannot build against the user’s pantry
+  'GITHUB_TOKEN',     // pass through for `gh` and that sort of thing
+  'LANG', 'LOGNAME', 'USER'  // prevent POSIX tools from breaking
+]) {
   const value = Deno.env.get(key)
   if (value) env[key] = value
 }

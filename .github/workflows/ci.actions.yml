@@ -2,13 +2,6 @@ on:
   pull_request:
   workflow_call:
 
-env:
-  # FIXME
-  # we must set this or pkgx won’t find the main pantry after $HOME is changed
-  # because the default is based on $HOME and we don’t sync if $PKGX_PANTRY_PATH is set
-  # FIXME add PKGX_HOME to libpkgx
-  XDG_DATA_HOME: ${{github.workspace}}/.data
-
 jobs:
   build:
     runs-on: ${{ matrix.platform.os }}
