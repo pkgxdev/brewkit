@@ -54,7 +54,7 @@ class Fixer
     when :object
       # noop
     else
-      throw Error("unknown filetype: #{file.filetype}: #{file.filename}")
+      throw Error("unknown filetype: #{@file.filetype}: #{@file.filename}")
     end
 
     # changing the macho stuff invalidates the signature
