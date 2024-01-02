@@ -15,6 +15,7 @@ const { options, args } = await new Command()
   .name("build")
   .description("Build pkgx pantry pkgs with brewkit")
   .option("-C, --clean", "Clean everything first")
+  .option("-s, --stage", "Stage, do not run build")
   .arguments("[pkgspec]")
   .parse();
 
@@ -92,6 +93,10 @@ const script_content = await make_build_script(config, toolchain_PATH)
 const script = new Path(`${config.path.build}.sh`)
 console.log('writing', script)
 script.write({text: script_content, force: true}).chmod(0o755)
+
+if (options.stage) {
+  Deno.exit(0)
+}
 
 /// run script
 await gum('build')
