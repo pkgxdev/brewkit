@@ -1,0 +1,26 @@
+distributable:
+  # test can fetch a git repo
+  url: git+https://github.com/pkgxdev/brewkit
+  ref: v{{version}}
+
+versions:
+  - 1.0.0
+
+dependencies:
+  pkgx.sh: ^1
+
+build:
+  dependencies:
+    python.org: ^3.11
+  script:
+    - mv props/* .
+
+    - bkpyvenv stage {{prefix}} {{version}}
+    - ${{prefix}}/venv/bin/pip install {{srcroot}}
+    - bkpyvenv seal {{prefix}} myapp
+
+provides:
+  - bin/myapp
+
+test:
+  - myapp

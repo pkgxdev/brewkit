@@ -1,0 +1,63 @@
+#!/usr/bin/env -S pkgx +git +install bash
+
+set -eo pipefail
+
+cd "$SRCROOT"
+
+d="$(cd "$(dirname "$0")"/.. && pwd)"
+
+CMD=$1
+shift
+
+if [ $1 = '--engine=poetry' ]; then
+  ENGINE=poetry
+  shift
+fi
+
+PREFIX=$1
+shift
+
+set -x
+
+case $CMD in
+stage)
+  VERSION=$1
+
+  if [ ! -d "$SRCROOT/.git" ]; then
+    GIT_DIR="$SRCROOT/.git"
+    git init
+    git config user.name 'pkgx[bot]'
+    git config user.email 'bot@pkgx.dev'
+    git commit -mnil --allow-empty
+    git tag -a "$VERSION" -m "Version $VERSION" --force
+    unset GIT_DIR
+  fi
+
+  if [ "$ENGINE" = poetry ]; then
+    poetry config virtualenvs.create true
+    poetry config virtualenvs.in-project true
+  else
+    python -m venv "$PREFIX"/venv
+  fi
+  ;;
+seal)
+  PYTHON=$(python --version | sed -n 's/Python \([0-9]\+\.[0-9]\+\).*/\1/p')
+
+  if [ "$ENGINE" = poetry ]; then
+    # FIXME is there a more efficient way to do this?
+    # FIXME the glob is unfortunate
+    poetry build -f sdist
+    tar xzf \
+      dist/*.tar.gz \
+      --directory "$SRCROOT"/.venv/lib/python$PYTHON/site-packages \
+      --strip-components=1
+    mkdir -p "$PREFIX"
+    mv "$SRCROOT"/.venv "$PREFIX/venv"
+  fi
+
+  for cmd in $@; do
+    install -D "$d/share/brewkit/python-venv-stub.py" $PREFIX/bin/$cmd
+    sed -i "1s|.*|#!/usr/bin/env -S pkgx python@$PYTHON|" $PREFIX/bin/$cmd
+  done
+  ;;
+esac

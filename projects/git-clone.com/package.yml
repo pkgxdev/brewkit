@@ -11,6 +11,7 @@ build:
   script:
     - touch foo
     - git add foo
+    # test run can be an array
     - run:
       - mkdir -p {{prefix}}
       - mv foo {{prefix}}

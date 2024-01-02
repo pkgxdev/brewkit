@@ -10,6 +10,7 @@ jobs:
   integration-tests:
     name: ${{matrix.pkg}} (${{matrix.platform.tag}})
     strategy:
+      fail-fast: false
       matrix:
         platform:
           - os: ubuntu-latest
@@ -20,8 +21,8 @@ jobs:
         pkg:
           - stark.com/foo
           - toolchain.com
-          - pyapp.com/1
-          - pyapp.com/2
+          - pyapp.com/pip
+          - pyapp.com/poetry
           - stark.com/foo@1.2.3
           - git-clone.com
           - pc-cmake.com
@@ -54,6 +55,7 @@ jobs:
       - run: bin/bk test
       - run: test $(pkgx +stark.com/foo -- stark) = not_much_u
       - run: bin/bk audit
+
 
   unit-tests:
     runs-on: ubuntu-latest

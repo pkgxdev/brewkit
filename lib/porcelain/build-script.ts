@@ -17,7 +17,7 @@ export default async function(config: Config, PATH?: Path): Promise<string> {
 
   const brewkitd = new Path(new URL(import.meta.url).pathname).parent().parent().parent()
   const brewkit_PATHs = [
-    brewkitd.join("share/brewkit"),
+    brewkitd.join("libexec"),
     PATH
   ].compact(x => x?.string).join(':')
 
@@ -25,6 +25,16 @@ export default async function(config: Config, PATH?: Path): Promise<string> {
   if (host().platform == 'darwin') {
     FLAGS.push("export MACOSX_DEPLOYMENT_TARGET=11.0")
   }
+
+  const tmp = (() => {
+    switch (host().platform) {
+    case 'darwin':
+    case 'linux':
+      return `export TMPDIR="$HOME/tmp"; mkdir -p "$TMPDIR"`
+    case 'windows':
+      return `export TMP="$HOME/tmp"; export TEMP="$HOME/tmp"; mkdir -p "$TMP"`
+    }
+  })
 
   return undent`
     #!/${bash}
@@ -39,8 +49,9 @@ export default async function(config: Config, PATH?: Path): Promise<string> {
       set +a
 
       export PKGX="${pkgx}"
-      export SRCROOT=${config.path.build.string}
       export HOME=${config.path.home.string}
+      export SRCROOT=${config.path.build.string}
+      ${tmp()}
       if [ -n "$CI" ]; then
         export FORCE_UNSAFE_CONFIGURE=1
       fi

@@ -1,0 +1,30 @@
+versions:
+  - 1.0.0
+
+dependencies:
+  pkgx.sh: ^1
+
+build:
+  dependencies:
+    python.org: ~3.11
+    python-poetry.org: ^1.7
+  script:
+    - mv props/* .
+
+    - bkpyvenv stage --engine=poetry {{prefix}} {{version}}
+    - poetry install
+    - bkpyvenv seal --engine=poetry {{prefix}} myapp
+
+provides:
+  - bin/myapp
+
+test:
+  - myapp
+
+  # test fixtures can have extnames
+  - run: |
+      test $(basename $FIXTURE .rb).rb = $(basename $FIXTURE)
+      test $(cat $FIXTURE) = foo
+    fixture:
+      content: foo
+      extname: .rb
