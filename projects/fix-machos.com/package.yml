@@ -1,0 +1,39 @@
+versions:
+  - 1.0.0
+
+# platforms: [darwin] # not used by our CI, sadly
+
+build:
+  dependencies:
+    zlib.net: ^1
+  script:
+    - mkdir -p "{{prefix}}"/{bin,lib}
+
+    # none of these hacks do anything on linux
+    - run: exit 0
+      if: linux
+
+    - run: |
+        clang -o '{{prefix}}/bin/fix-machos-test' $PROP -lz
+      prop:
+        content: |
+          #include <stdio.h>
+          int main() {
+            printf("Hello, world!\n");
+            return 0;
+          }
+        extname: c
+
+    - cp {{deps.zlib.net.prefix}}/lib/libz.dylib '{{prefix}}/lib'
+
+    - run: install_name_tool -change @rpath/zlib.net/v{{deps.zlib.net.version}}/lib/libz.{{deps.zlib.net.version.marketing}}.dylib {{prefix}}/lib/libz.dylib fix-machos-test
+      working-directory: '{{prefix}}/bin'
+
+    - run: otool -l fix-machos-test
+      working-directory: '{{prefix}}/bin'
+
+test:
+  - run: exit 0
+    if: linux
+  - fix-machos-test
+  - otool -l '{{prefix}}/bin/fix-machos-test' | grep '@loader_path/../../v{{version}}/lib/libz.dylib'
