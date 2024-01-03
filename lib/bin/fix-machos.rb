@@ -130,6 +130,10 @@ class Fixer
     # rewrite any rpaths the tool itself set to be relative
     @file.rpaths.each do |rpath|
       if rpath.start_with? $PKGX_DIR
+        if rpath.include? '+brewing'
+          # this is a special case for the brew tool
+          rpath = rpath.sub('+brewing', '')
+        end
         diff = Pathname.new(rpath).relative_path_from(Pathname.new(@file.filename).parent)
         new_rpath = "@loader_path/#{diff}"
         if @file.rpaths.include? new_rpath
@@ -231,6 +235,12 @@ class Fixer
         # assume they are meant to be relative to lib dir
         new_name = Pathname.new($pkg_prefix).join("lib").relative_path_from(Pathname.new(@file.filename).parent)
         new_name = "@loader_path/#{new_name}/#{old_name}"
+      end
+
+      # newer brewkits build in a different path and copy out
+      # so we need to fix that
+      if new_name.include? '+brewing/'
+        new_name = new_name.sub('+brewing/', '/')
       end
 
       @file.change_install_name old_name, new_name
