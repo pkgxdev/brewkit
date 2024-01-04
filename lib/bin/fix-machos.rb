@@ -130,12 +130,12 @@ class Fixer
     # rewrite any rpaths the tool itself set to be relative
     @file.rpaths.each do |rpath|
       if rpath.start_with? $PKGX_DIR
-        if rpath.include? '+brewing'
-          # this is a special case for the brew tool
-          rpath = rpath.sub('+brewing', '')
-        end
         diff = Pathname.new(rpath).relative_path_from(Pathname.new(@file.filename).parent)
         new_rpath = "@loader_path/#{diff}"
+        if new_rpath.include? '+brewing'
+          # this is a special case for the brew tool
+          new_rpath = new_rpath.sub('+brewing', '')
+        end
         if @file.rpaths.include? new_rpath
           @file.delete_rpath rpath
         else
