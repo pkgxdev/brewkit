@@ -1,6 +1,6 @@
 import { isNumber, isPlainObject, isString, isArray, PlainObject } from "is-what"
 import { Package, PackageRequirement, semver, utils, hooks } from "libpkgx"
-import { getScript } from "./usePantry.getScript.ts"
+import { getScript, tokenizeHost } from "./usePantry.getScript.ts"
 import getVersions from "./usePantry.getVersions.ts"
 
 const { flatmap, validate } = utils
@@ -87,7 +87,7 @@ const getGitDistribution = ({ pkg, url: urlstr, ref }: { pkg: Package, url: stri
 
   ref = moustaches.apply(ref, [
     ...moustaches.tokenize.version(pkg.version),
-    ...moustaches.tokenize.host()
+    ...tokenizeHost()
   ])
 
   return { url, ref, stripComponents: 0, type: 'git' }
@@ -136,7 +136,7 @@ const getDistributable = async (pkg: Package) => {
 
     urlstr = moustaches.apply(urlstr, [
       ...moustaches.tokenize.version(v),
-      ...moustaches.tokenize.host(),
+      ...tokenizeHost(),
     ])
 
     try {
