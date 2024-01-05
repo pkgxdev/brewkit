@@ -16,6 +16,7 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
 
   const mm = useMoustaches()
   const tokens = mm.tokenize.all(pkg, deps)
+  tokens.push(...tokenizeHost())
   tokens.push({
     from: "pkgx.dir", to: usePkgxConfig().prefix.string
   })
@@ -109,7 +110,7 @@ export const getScript = async (pkg: Package, key: 'build' | 'test', deps: Insta
     if (wd) {
       wd = mm.apply(wd, [
         ...mm.tokenize.version(pkg.version),
-        ...mm.tokenize.host(),
+        ...tokenizeHost(),
         ...pkg_tokens
       ])
       raw = undent`
@@ -259,4 +260,15 @@ function platform_reduce(env: PlainObject) {
       }
     }
   }
+}
+
+//TODO replace `hw` with `host`
+export function tokenizeHost() {
+  const { arch, target, platform } = host()
+  return [
+    { from: "hw.arch",        to: arch },
+    { from: "hw.target",      to: target },
+    { from: "hw.platform",    to: platform },
+    { from: "hw.concurrency", to: navigator.hardwareConcurrency.toString() },
+  ]
 }
