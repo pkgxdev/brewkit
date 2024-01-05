@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pkgx deno run --allow-env --allow-read
+#!/usr/bin/env -S pkgx deno run --allow-env --allow-read --allow-sys
 
 import { Command } from "cliffy/command/mod.ts"
 import get_config from '../resolve-pkg.ts'

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pkgx +git +gh deno run --allow-env --allow-net --allow-write --allow-run=gh --allow-read
+#!/usr/bin/env -S pkgx +git +gh deno run --allow-env --allow-net --allow-write --allow-sys --allow-run=gh --allow-read
 
 import get_config from "brewkit/config.ts"
 
