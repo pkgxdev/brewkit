@@ -130,12 +130,15 @@ class Fixer
     # rewrite any rpaths the tool itself set to be relative
     @file.rpaths.each do |rpath|
       if rpath.start_with? $PKGX_DIR
-        if rpath.include? '+brewing'
-          # this is a special case for the brew tool
-          rpath = rpath.sub('+brewing', '')
-        end
         diff = Pathname.new(rpath).relative_path_from(Pathname.new(@file.filename).parent)
         new_rpath = "@loader_path/#{diff}"
+        # this is a special case for the brew tool
+        # FIXME: this is a hack with code smell (magic string)
+        # we should be able to either pass in the build dir, or
+        # redo this whole thing in typescript so we can use config.path.build_install
+        if new_rpath.include? '+brewing'
+          new_rpath = new_rpath.sub('+brewing', '')
+        end
         if @file.rpaths.include? new_rpath
           @file.delete_rpath rpath
         else
@@ -239,6 +242,9 @@ class Fixer
 
       # newer brewkits build in a different path and copy out
       # so we need to fix that
+      # FIXME: this is a hack with code smell (magic string)
+      # we should be able to either pass in the build dir, or
+      # redo this whole thing in typescript so we can use config.path.build_install
       if new_name.include? '+brewing/'
         new_name = new_name.sub('+brewing/', '/')
       end
