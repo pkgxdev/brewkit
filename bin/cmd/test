@@ -48,7 +48,7 @@ const script_text = undent`
     set +a
 
   command_not_found_handle() {
-    echo "::warning::\\\`$1\\\` is not an explicit dependency!"
+    echo "::warning::\\\`$1\\\` is not an explicit dependency!" 1>&2
     case $1 in
     cc|c++|ld)
       ${pkgx} +llvm.org -- "$@";;
