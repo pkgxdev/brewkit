@@ -1,0 +1,13 @@
+platforms:
+  - darwin
+
+versions:
+  github: ImageMagick/ImageMagick
+  transform: v => v.replace('-', '.')
+
+build:
+  working-directory: ${{prefix}}
+  script: echo {{version}} > VERSION
+
+test:
+  test $(cat VERSION) = {{version}}

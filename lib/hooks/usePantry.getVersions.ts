@@ -67,7 +67,7 @@ function handleGitHubVersions(versions: PlainObject): Promise<SemVer[]> {
   const type = types?.join("/").chuzzle() ?? "releases/tags";
 
   const ignore = parseIgnore(versions.ignore);
-
+  const transform = (x => isString(x) ? x : undefined)(versions.transform);
   const strip = parseStrip(versions.strip);
 
   switch (type) {
@@ -81,7 +81,7 @@ function handleGitHubVersions(versions: PlainObject): Promise<SemVer[]> {
 
   const fetch = useGitHubAPI().getVersions({ user, repo, type });
 
-  return handleAPIResponse({ fetch, ignore, strip });
+  return handleAPIResponse({ fetch, ignore, strip, transform });
 }
 
 function handleGitLabVersions(versions: PlainObject): Promise<SemVer[]> {
@@ -169,18 +169,27 @@ interface APIResponseParams {
   fetch: AsyncGenerator<{ version: string; tag?: string }, any, unknown>;
   ignore: RegExp[];
   strip: (x: string) => string;
+  transform?: string | undefined;
 }
 
-async function handleAPIResponse(
-  { fetch, ignore, strip }: APIResponseParams,
-): Promise<SemVer[]> {
+async function handleAPIResponse({ fetch, ignore, strip, transform }: APIResponseParams): Promise<SemVer[]>
+{
   const rv: SemVer[] = [];
+
+  // if (transform) {
+  //   handleTransformer({ transform }, fetch).then(x => rv.push(...x)
+  // }
+
+  const verstrs: string[] = []
   for await (const { version: pre_strip_name, tag } of fetch) {
     let name = strip(pre_strip_name);
 
     if (ignore.some((x) => x.test(name))) {
       console.debug({ ignoring: pre_strip_name, reason: "explicit" });
-    } else {
+      continue;
+    }
+
+    if (!transform) {
       // An unfortunate number of tags/releases/other
       // replace the dots in the version with underscores.
       // This is parser-unfriendly, but we can make a
@@ -196,7 +205,6 @@ async function handleAPIResponse(
       if (name.includes("-") && !name.includes(".")) {
         name = name.replace(/-/g, ".");
       }
-
       const v = semver.parse(name);
       if (!v) {
         console.debug({ ignoring: pre_strip_name, reason: "unparsable" });
@@ -208,7 +216,13 @@ async function handleAPIResponse(
       } else {
         console.debug({ ignoring: pre_strip_name, reason: "prerelease" });
       }
+    } else {
+      verstrs.push(name)
     }
+  }
+
+  if (transform) {
+    rv.push(...await handleTransformer(transform, verstrs))
   }
 
   if (rv.length == 0) {
@@ -267,4 +281,42 @@ async function handleNPMVersions(versions: PlainObject): Promise<SemVer[]> {
     if (ver) rv.push(ver);
   }
   return rv;
+}
+
+import undent from "outdent"
+
+async function handleTransformer(transform: string, versions: string[]): Promise<SemVer[]> {
+  /// sadly deno built binaries cannot `eval` so we have to run a whole script 😕
+
+  const cmd = new Deno.Command("pkgx", {
+    args: ["deno", "run", "-"],
+    stdin: "piped",
+    stdout: "piped",
+  }).spawn()
+
+  const vv = versions.map(x => `"${x}"`).join(',')
+
+  const writer = cmd.stdin!.getWriter()
+  await writer.write(new TextEncoder().encode(undent`
+    const transform = ${transform}
+    for (const v of [${vv}]) {
+      console.log(transform(v), v)
+    }
+    `));
+  await writer.close()
+
+  const read = cmd.stdout.getReader().read().then(x => x.value)
+
+  const [out, { success: ok }] = await Promise.all([read, cmd.status])
+
+  if (!ok) throw new Error("failed to run version transformer")
+
+  return new TextDecoder().decode(out).split('\n').compact(x => {
+    const [transformed, original] = x.split(' ')
+    const v = semver.parse(transformed)
+    if (v) {
+      (v as unknown as { tag: string }).tag = original
+      return v
+    }
+  })
 }
