@@ -43,7 +43,7 @@ export default async function config(arg?: string): Promise<Config> {
 
   if (Deno.env.get("PKGX_PANTRY_PATH")) {
     const checkout = new Path(Deno.env.get("PKGX_PANTRY_PATH")!)
-    const slug = pkg.project.replace(/\//g, "∕")  // this is a unicode separator
+    const slug = pkg.project.replace(/\//g, "__")  //FIXME use real folders probs
     const pkgspec = `${slug}-${pkg.version}`
     return await construct_config({
       home: checkout.join('homes', pkgspec),
