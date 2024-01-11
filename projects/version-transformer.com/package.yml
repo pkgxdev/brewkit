@@ -8,4 +8,4 @@ build:
     echo {{version}} > VERSION
 
 test:
-  test $(cat VERSION) = {{version}}
+  test $(cat {{prefix}}/VERSION) = {{version}}
