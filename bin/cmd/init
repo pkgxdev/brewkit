@@ -23,7 +23,9 @@ fi
 
 d="$(cd "$(dirname "$0")"/../.. && pwd)"
 
-if [ -f /usr/share/dict/words ]; then
+if [ -n "$1" ]; then
+  BLEND=$1
+elif [ -f /usr/share/dict/words ]; then
   BLEND=wip.$(shuf -n 1 /usr/share/dict/words).org
 else
   BLEND=example.com
