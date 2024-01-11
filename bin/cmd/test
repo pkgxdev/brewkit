@@ -5,7 +5,7 @@
 
 import { Package, PackageRequirement, Path, hooks, utils } from "pkgx"
 import { gum, find_pkgx, rsync, find_in_PATH } from "brewkit/utils.ts"
-import get_config from "brewkit/config.ts"
+import get_config, { platform_cache } from "brewkit/config.ts"
 import * as YAML from "deno/yaml/mod.ts"
 import undent from "outdent"
 import useConfig from "libpkgx/hooks/useConfig.ts";
@@ -98,6 +98,8 @@ if (env['GITHUB_TOKEN']) {
   // for `gh`
   env['GH_TOKEN'] = env['GITHUB_TOKEN']
 }
+
+platform_cache(() => config.path.home).mkdir('p')  // we’ve indeed found things to break without this
 
 const proc = new Deno.Command(script.string, {clearEnv: true, env}).spawn()
 const rv = await proc.status

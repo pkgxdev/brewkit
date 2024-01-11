@@ -8,4 +8,10 @@ build:
     echo {{version}} > VERSION
 
 test:
-  test $(cat {{prefix}}/VERSION) = {{version}}
+  - test $(cat {{prefix}}/VERSION) = {{version}}
+
+  # test that cache directories are created in our sandbox
+  - run: touch ~/.cache/foo
+    if: linux
+  - run: touch ~/Library/Caches/foo
+    if: darwin
