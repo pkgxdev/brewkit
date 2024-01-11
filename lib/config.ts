@@ -104,9 +104,9 @@ export default async function config(arg?: string): Promise<Config> {
   }
 }
 
-function platform_cache() {
+export function platform_cache(home = Path.home) {
   return flatmap(Deno.env.get('XDG_CACHE_HOME'), Path.abs) ?? (platform =>
-    platform == 'darwin' ? Path.home().join('Library/Caches') : Path.home().join(".cache")
+    platform == 'darwin' ? home().join('Library/Caches') : home().join(".cache")
   )(host().platform)
 }
 
