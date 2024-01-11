@@ -27,6 +27,7 @@ jobs:
           - git-clone.com
           - pc-cmake.com
           - fix-machos.com
+          - version-transformer.com
 
     runs-on: ${{ matrix.platform.os }}
     container: ${{ matrix.platform.img }}
