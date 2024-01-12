@@ -1,6 +1,6 @@
 #!/usr/bin/env -S pkgx +docker bash
 
-set -eo pipefail
+set -exo pipefail
 
 if [ ! -d "$PKGX_PANTRY_PATH" ]; then
   echo "error: \`brewkit docker\` can only be run from a pantry checkout" >&2
@@ -33,7 +33,7 @@ exec docker run \
   --name brewkit.pkgx.dev \
   --rm \
   --tty \
-  "$INTERACTIVE" \
+  $INTERACTIVE \
   --volume "$d:/brewkit" \
   --volume "$PKGX_PANTRY_PATH:/work" \
   --volume "${XDG_CACHE_HOME:-$HOME/Library/Caches/pkgx}:/root/.cache/pkgx" \
