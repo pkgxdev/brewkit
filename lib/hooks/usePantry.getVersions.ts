@@ -305,9 +305,7 @@ async function handleTransformer(transform: string, versions: string[]): Promise
     `));
   await writer.close()
 
-  const read = cmd.stdout.getReader().read().then(x => x.value)
-
-  const [out, { success: ok }] = await Promise.all([read, cmd.status])
+  const { stdout: out, success: ok } = await cmd.output()
 
   if (!ok) throw new Error("failed to run version transformer")
 
