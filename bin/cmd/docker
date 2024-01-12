@@ -1,6 +1,6 @@
 #!/usr/bin/env -S pkgx +docker bash
 
-set -exo pipefail
+set -eo pipefail
 
 if [ ! -d "$PKGX_PANTRY_PATH" ]; then
   echo "error: \`brewkit docker\` can only be run from a pantry checkout" >&2
