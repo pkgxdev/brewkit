@@ -50,11 +50,6 @@ if (config.path.build.string.includes(" ")) {
   Deno.exit(1)
 }
 
-if (!await hooks.usePantry().project(config.pkg.project).available()) {
-  console.warn("warn: project not available on this platform")
-  Deno.exit(2)
-}
-
 const yml = YAML.parse(await config.path.yaml.read()) as any
 
 /// fetch

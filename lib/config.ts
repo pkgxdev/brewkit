@@ -36,6 +36,12 @@ export interface ConfigPath {
 export default async function config(arg?: string): Promise<Config> {
   const { pkg, path, constraint } = await resolve_pkg(arg)
 
+  //FIXME shouldn't be here, but fixing things properly is outside my time allotments nowadays
+  if (!await hooks.usePantry().project(pkg.project).available()) {
+    console.warn("warn: project not available on this platform")
+    Deno.exit(2)
+  }
+
   let pantry = path
   for (let x = 0, N = pkg.project.split('/').length + 1; x < N; x++) {
     pantry = pantry.parent()
