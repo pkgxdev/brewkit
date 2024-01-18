@@ -1,7 +1,4 @@
-#!/usr/bin/env bash
-# shellcheck shell=bash
-
-set -e
+#!/usr/bin/env -S bash -eo pipefail
 
 d="$(cd "$(dirname "$0")" && pwd)"
 

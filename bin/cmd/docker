@@ -18,6 +18,11 @@ if [ "$1" = --pull ]; then
   shift
 fi
 
+if [ "$1" = --x86-64 ]; then
+  INTEL="--platform linux/amd64"
+  shift
+fi
+
 if [ -z "$1" ]; then
   echo "no command: launching interactive container" >&2
   INTERACTIVE="-i"
@@ -33,7 +38,7 @@ exec docker run \
   --name brewkit.pkgx.dev \
   --rm \
   --tty \
-  $INTERACTIVE \
+  $INTERACTIVE $INTEL \
   --volume "$d:/brewkit" \
   --volume "$PKGX_PANTRY_PATH:/work" \
   --volume "${XDG_CACHE_HOME:-$HOME/Library/Caches/pkgx}:/root/.cache/pkgx" \
