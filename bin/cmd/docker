@@ -44,16 +44,22 @@ else
   shift
 fi
 
-mkdir -p "$PKGX_PANTRY_PATH/prefixes/linux"
+VOLUME_NAME="brewkit.pkgx.dev"
+
+# Create volume if it doesn't exist
+if [ -z "$(docker volume ls -q -f name=^${VOLUME_NAME}$)" ]; then
+  docker volume create ${VOLUME_NAME}
+fi
 
 exec docker run \
-  --name brewkit.pkgx.dev \
+  --name $VOLUME_NAME \
   --rm \
   --tty \
   $INTERACTIVE $INTEL \
   --volume "$d:/brewkit" \
   --volume "$PKGX_PANTRY_PATH:/work" \
   --volume "${XDG_CACHE_HOME:-$HOME/Library/Caches/pkgx}:/root/.cache/pkgx" \
+  --volume "$VOLUME_NAME:/root/.pkgx" \
   --env PKGX_PANTRY_PATH=/work \
   --env GITHUB_TOKEN=$GITHUB_TOKEN \
   --env CLICOLOR_FORCE=1 \
