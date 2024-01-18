@@ -1,6 +1,18 @@
-#!/usr/bin/env -S pkgx +docker bash
+#!/usr/bin/env -S pkgx +docker bash -eo pipefail
 
-set -eo pipefail
+if [ "$1" == --help ]; then
+  echo 'enables building linux on darwin' >&2
+  echo 'builds are persisted to your pantry checkout' >&2
+  echo >&2
+  echo 'bk docker                 interactive tty of your pantry checkout' >&2
+  echo 'bk docker build           same as `bk build` but in linux' >&2
+  echo 'bk docker --x86-64 build  builds for intel' >&2
+  exit 0
+fi
+
+if [ -n "$VERBOSE" ]; then
+  set -x
+fi
 
 if [ ! -d "$PKGX_PANTRY_PATH" ]; then
   echo "error: \`brewkit docker\` can only be run from a pantry checkout" >&2
