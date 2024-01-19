@@ -75,12 +75,18 @@ export default async function config(arg?: string): Promise<Config> {
     const dry = await usePantry().getDeps(pkg)
 
     const { pkgs: wet } = await hydrate(dry.runtime.concat(dry.build))
-    const gas = await plumbing.resolve(wet)
-    // predetermining these just for the build script generation step
-    const installs = gas.pkgs.map(pkg => ({
-      pkg,
-      path: useConfig().prefix.join(pkg.project, `v${pkg.version}`)
-    }))
+    let installs = []
+
+    try {
+      const gas = await plumbing.resolve(wet)
+      // predetermining these just for the build script generation step
+      installs = gas.pkgs.map(pkg => ({
+        pkg,
+        path: useConfig().prefix.join(pkg.project, `v${pkg.version}`)
+      }))
+    } catch {
+      console.warn("Failed to resolve dependencies, will spit out non-dependency config")
+    }
 
     const cache = platform_cache()
     const install =  useConfig().prefix.join(pkg.project, `v${pkg.version}`)
