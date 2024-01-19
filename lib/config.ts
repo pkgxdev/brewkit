@@ -75,7 +75,7 @@ export default async function config(arg?: string): Promise<Config> {
     const dry = await usePantry().getDeps(pkg)
 
     const { pkgs: wet } = await hydrate(dry.runtime.concat(dry.build))
-    let installs = []
+    let installs: { pkg: Package, path: Path }[] = []
 
     try {
       const gas = await plumbing.resolve(wet)
