@@ -182,6 +182,7 @@ async function handleAPIResponse({ fetch, ignore, strip, transform }: APIRespons
 
   const verstrs: string[] = []
   for await (const { version: pre_strip_name, tag } of fetch) {
+
     let name = strip(pre_strip_name);
 
     if (ignore.some((x) => x.test(name))) {

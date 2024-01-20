@@ -15,6 +15,7 @@ interface GHRelease {
   tag_name: string
   name: string
   created_at: Date
+  prerelease: boolean
 }
 
 export default function useGitHubAPI() {
@@ -63,10 +64,16 @@ async function *getVersionsLong({ user, repo, type }: GetVersionsOptions): Async
       page++
       const [json, rsp] = await GET2<GHRelease[]>(`https://api.github.com/repos/${user}/${repo}/releases?per_page=100&page=${page}`)
       if (!isArray(json)) throw new Error("unexpected json")
-      for (const version of json.map(({ tag_name, name, created_at }) => ({
-        version: type == 'releases/tags' ? tag_name : name,
-        tag: tag_name,
-        date: created_at }))) {
+      for (const {tag_name, created_at, prerelease} of json) {
+        if (prerelease) {
+          console.debug("ignoring prerelease", tag_name)
+          continue
+        }
+        const version = {
+          version: type == 'releases/tags' ? tag_name : name,
+          tag: tag_name,
+          date: created_at
+        }
         yield version
       }
 
