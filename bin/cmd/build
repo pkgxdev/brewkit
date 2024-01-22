@@ -162,21 +162,19 @@ if (ghout) {
 ///////////////////////////////////////////////////////////////////
 function make_toolchain() {
   const deps = new Set(config.deps.dry.build.concat(config.deps.dry.runtime).map(x => x.project))
-  if (deps.has('llvm.org')) {
-    return
-  }
 
-  if (deps.has('gnu.org/gcc')) {
-    if (host().platform == "darwin") {
-      // gnu.org/binutils ar and ranlib seem to seriously mess up darwin builds in
-      // many cases; if xcode ar/ranlib are available, we'll use them
-      if (new Path('/usr/bin/ar').exists() && new Path('/usr/bin/ranlib').exists()) {
+  // gnu.org/binutils ar and ranlib seem to seriously mess up darwin builds in
+  // many cases; if xcode ar/ranlib are available, we'll use them
+  if (deps.has('gnu.org/binutils') &&
+      host().platform == "darwin" &&
+      new Path('/usr/bin/ar').exists() &&
+      new Path('/usr/bin/ranlib').exists()) {
         const d = config.path.home.join('toolchain').mkdir('p')
         d.join('ar').ln('s', { target: '/usr/bin/ar' })
         d.join('ranlib').ln('s', { target: '/usr/bin/ranlib' })
-        return
-      }
-    }
+  }
+
+  if (deps.has('llvm.org') || deps.has('gnu.org/gcc')) {
     return
   }
 
