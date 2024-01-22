@@ -49,7 +49,11 @@ export class TarballUnarchiver extends Unarchiver {
     case ".tar.gz":
     case ".tar.bz2":
     case ".tar.xz":
+    case ".tar.lz":
     case ".tgz":
+    case ".tbz2":
+    case ".txz":
+    case ".tlz":
       return true
     default:
       return false
@@ -73,6 +77,13 @@ export class TarballUnarchiver extends Unarchiver {
     case ".tar.xz":
       rv.push({
         project: "tukaani.org/xz",
+        constraint
+      })
+      break
+    case ".tlz":
+    case ".tar.lz":
+      rv.push({
+        project: "nongnu.org/lzip",
         constraint
       })
       break
