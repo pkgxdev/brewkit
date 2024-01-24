@@ -6,7 +6,7 @@ export default async function(arg?: string) {
     arg ||= Deno.env.get("BREWKIT_PKGJSON")
     arg ||= Deno.env.get("BREWKIT_PKGSPEC")
     arg ||= (await get_pantry_status())?.[0]
-    if (!arg) throw new Error(`usage: ${Deno.execPath()} <pkgspec>`)
+    if (!arg) throw new Error(`usage: bk <CMD> <pkgspec>`)
   }
 
   const { pkg, constraint, path } = await (async (arg: string) => {
