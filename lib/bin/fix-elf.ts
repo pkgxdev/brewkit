@@ -35,7 +35,7 @@ export default async function fix_rpaths(installation: Installation, pkgs: strin
 async function set_rpaths(exename: Path, our_rpaths: string[], installation: Installation) {
   if (host().platform != 'linux') throw new Error()
 
-  const cmd = await (async () => {
+  const args = await (async () => {
     //FIXME we need this for perl
     // however really we should just have an escape hatch *just* for stuff that sets its own rpaths
     const their_rpaths = (await backticks({
@@ -61,11 +61,12 @@ async function set_rpaths(exename: Path, our_rpaths: string[], installation: Ins
       ?? []
 
     //FIXME use runtime-path since then LD_LIBRARY_PATH takes precedence which our virtual env manager requires
-    return ["patchelf", "--force-rpath", "--set-rpath", rpaths, exename]
+    return ["--force-rpath", "--set-rpath", rpaths, exename]
   })()
 
-  if (cmd.length) {
-    const { success } = await Deno.run({ cmd: cmd.map(x => `${x}`) }).status()
+  if (args.length) {
+    const proc = new Deno.Command("patchelf", { args: args.map(x => `${x}`) }).spawn()
+    const { success } = await proc.status
     if (!success) {
       console.warn("patch-elf failed")
       //FIXME allowing this error because on Linux:
