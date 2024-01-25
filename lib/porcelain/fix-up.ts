@@ -21,16 +21,16 @@ async function fix_rpaths(pkg_prefix: Path, pkg: Package, cache: Path, deps: Ins
       console.info(`skipping rpath fixes for ${pkg.project}`)
       break
     }
-    const { success } = await Deno.run({
-      cmd: [
-        bindir.join('fix-machos.rb').string,
+    const proc = new Deno.Command(bindir.join('fix-machos.rb').string, {
+      args: [
         pkg_prefix.string,
         ...['bin', 'sbin', 'tbin', 'lib', 'libexec'].compact(x => pkg_prefix.join(x).isDirectory()?.string)
       ],
       env: {
         GEM_HOME: cache.join('brewkit/gem').string
       }
-    }).status()
+    }).spawn()
+    const { success } = await proc.status
     if (!success) throw new Error("failed to fix machos")
   } break
 
@@ -40,13 +40,13 @@ async function fix_rpaths(pkg_prefix: Path, pkg: Package, cache: Path, deps: Ins
       break
     }
 
-    const { success } = await Deno.run({
-      cmd: [
-        bindir.join('fix-elf.ts').string,
+    const proc = new Deno.Command(bindir.join('fix-elf.ts').string, {
+      args: [
         pkg_prefix.string,
         ...deps.map(({ path }) => path.string)
       ]
-    }).status()
+    }).spawn()
+    const { success } = await proc.status
     if (!success) Deno.exit(1)
     break
   }}
