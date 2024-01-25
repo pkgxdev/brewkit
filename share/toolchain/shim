@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-tool=$(basename $0)
+tool=$(basename "$0")
 
-if [ $(uname) != Darwin ]; then
+if [ "$(uname)" != Darwin ]; then
   if [ -x /usr/local/bin/pkgx ]; then
     # removed from PATH deliberately
     #TODO like, probs we should set PKGX or something before removing it from PATH
@@ -22,7 +22,7 @@ if [ $(uname) != Darwin ]; then
 
   filtered_args=()
   for arg in "$@"; do
-    if [ $arg != -Werror ]; then
+    if [ "$arg" != -Werror ]; then
       filtered_args+=("$arg")
     fi
   done
@@ -41,10 +41,10 @@ ld|lld|lld-link|ld64.lld)
     fi
   done
 
-  exec /usr/bin/$tool "$@" -rpath "${PKGX_DIR:-$HOME/.pkgx}"
+  exec /usr/bin/"$tool" "$@" -rpath "${PKGX_DIR:-$HOME/.pkgx}"
   ;;
 *)
-  exec /usr/bin/$tool "$@"
+  exec /usr/bin/"$tool" "$@"
   ;;
 esac
 
