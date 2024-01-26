@@ -1,7 +1,5 @@
-#!/usr/bin/env -S pkgx +git bash
+#!/usr/bin/env -S pkgx +git +column bash -eo pipefail
 # shellcheck shell=bash
-
-set -eo pipefail
 
 GIT_DIR="$PKGX_PANTRY_PATH"
 

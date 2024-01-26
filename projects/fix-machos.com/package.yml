@@ -26,8 +26,7 @@ build:
 
     - cp {{deps.zlib.net.prefix}}/lib/libz.dylib '{{prefix}}/lib'
 
-    # zlib is weird about its lib versioning it seems
-    # we have to jump through weird hoops to get this test set up
+    # linker prefers to choose shorter versions apparently
     - |
       if test {{deps.zlib.net.version.patch}} = 0; then
         ZLIB_VERSION={{deps.zlib.net.version.marketing}}

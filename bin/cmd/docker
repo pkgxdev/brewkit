@@ -36,8 +36,7 @@ if [ "$1" = --x86-64 ]; then
 fi
 
 if [ -z "$1" ]; then
-  echo "no command: launching interactive container" >&2
-  INTERACTIVE="-i"
+  INTERACTIVE="-it"
   CMD="/bin/bash"
 else
   CMD="/brewkit/bin/cmd/$1"
@@ -54,7 +53,6 @@ fi
 exec docker run \
   --name $VOLUME_NAME \
   --rm \
-  --tty \
   $INTERACTIVE $INTEL \
   --volume "$d:/brewkit" \
   --volume "$PKGX_PANTRY_PATH:/work" \
