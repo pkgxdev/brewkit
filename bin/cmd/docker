@@ -36,7 +36,6 @@ if [ "$1" = --x86-64 ]; then
 fi
 
 if [ -z "$1" ]; then
-  echo "no command: launching interactive container" >&2
   INTERACTIVE="-it"
   CMD="/bin/bash"
 else
