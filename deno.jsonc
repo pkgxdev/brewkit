@@ -7,7 +7,7 @@
   "tasks": {
     "typecheck": "deno check --unstable $(find . -name '*'.ts)"
   },
-  "pkgx": "deno^1.36.1",
+  "pkgx": "deno~1.39",  // ^1.40 has unskippable deprecation warnings
   "imports": {
     "brewkit/": "./lib/",
     "is-what": "https://deno.land/x/is_what@v4.1.15/src/index.ts",
