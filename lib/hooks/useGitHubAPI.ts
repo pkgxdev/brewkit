@@ -64,7 +64,7 @@ async function *getVersionsLong({ user, repo, type }: GetVersionsOptions): Async
       page++
       const [json, rsp] = await GET2<GHRelease[]>(`https://api.github.com/repos/${user}/${repo}/releases?per_page=100&page=${page}`)
       if (!isArray(json)) throw new Error("unexpected json")
-      for (const {tag_name, created_at, prerelease} of json) {
+      for (const {name, tag_name, created_at, prerelease} of json) {
         if (prerelease) {
           console.debug("ignoring prerelease", tag_name)
           continue
