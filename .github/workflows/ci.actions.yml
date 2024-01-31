@@ -115,7 +115,7 @@ jobs:
           file: ${{ steps.dl.outputs.filename }}
           compression: ${{matrix.compression}}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path:  ${{ steps.bottle.outputs.filename }}
           name:  ${{ steps.bottle.outputs.name }}
