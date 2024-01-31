@@ -44,5 +44,4 @@ test:
   - run: exit 0
     if: linux
   - fix-machos-test
-  - otool -l '{{prefix}}/bin/fix-machos-test'
   - otool -l '{{prefix}}/bin/fix-machos-test' | grep '@loader_path/../../v{{version}}/lib/libz.dylib'
