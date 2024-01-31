@@ -49,8 +49,17 @@ export function find_in_PATH(program: string) {
 export async function rsync(from: Path, to: Path, additional_args: string[] = []) {
   console.log(`rsync ${from.string} ${to.string}`)
   to.parent().mkdir('p')
-  const v = Deno.env.get("VERBOSE") ? 'v' : ''
-  const args = [`-a${v}`, '--delete', ...additional_args, `${from.string}/`, to.string]
+  const args = [
+    '--archive',
+    '--hard-links',  // or hard links get broken in the result
+    '--delete']
+  if (Deno.env.get("VERBOSE")) {
+    args.push('--verbose')
+  }
+  args.push(
+    ...additional_args,
+    `${from.string}/`,
+    to.string)
   const {success} = await new Deno.Command("rsync", {args}).spawn().status
   if (!success) throw new Error("rsync failed")
 }
