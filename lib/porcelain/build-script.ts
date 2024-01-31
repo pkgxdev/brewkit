@@ -7,6 +7,7 @@ const { usePantry, useConfig } = hooks
 const { host } = utils
 
 export default async function(config: Config, PATH?: Path): Promise<string> {
+  const depset = new Set(config.deps.gas.map(x => x.pkg.project))
   const depstr = (deps: PackageRequirement[]) => deps.map(x => `"+${utils.pkg.str(x)}"`).join(' ')
   const env_plus = `${depstr(config.deps.dry.runtime)} ${depstr(config.deps.dry.build)}`.trim()
   const user_script = await usePantry().getScript(config.pkg, 'build', config.deps.gas, config)
@@ -24,6 +25,13 @@ export default async function(config: Config, PATH?: Path): Promise<string> {
   const FLAGS = flags()
   if (host().platform == 'darwin') {
     FLAGS.push("export MACOSX_DEPLOYMENT_TARGET=11.0")
+
+    // gcc needs to use Apple’s ar/ranlib combo on darwin almost always or link failure occurs
+    // see https://github.com/pkgxdev/brewkit/pull/285
+    if (depset.has('gnu.org/binutils')) {
+      FLAGS.push("export AR=/usr/bin/ar")
+      FLAGS.push("export RANLIB=/usr/bin/ranlib")
+    }
   }
 
   const tmp = (() => {

@@ -33,6 +33,7 @@ build:
       else
         ZLIB_VERSION={{deps.zlib.net.version}}
       fi
+
     - run: install_name_tool -change @rpath/zlib.net/v{{deps.zlib.net.version}}/lib/libz.${ZLIB_VERSION}.dylib {{prefix}}/lib/libz.dylib fix-machos-test
       working-directory: '{{prefix}}/bin'
 

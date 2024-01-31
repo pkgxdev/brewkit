@@ -162,6 +162,7 @@ if (ghout) {
 ///////////////////////////////////////////////////////////////////
 function make_toolchain() {
   const deps = new Set(config.deps.dry.build.concat(config.deps.dry.runtime).map(x => x.project))
+
   if (deps.has('llvm.org') || deps.has('gnu.org/gcc')) {
     return
   }
