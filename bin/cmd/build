@@ -120,7 +120,7 @@ platform_cache(() => config.path.home).mkdir('p')  // we’ve indeed found thing
 
 const proc = new Deno.Command(script.string, {clearEnv: true, env}).spawn()
 const rv = await proc.status
-if (!rv.success) throw new Error(`${rv.code} ${rv.signal}`)
+if (!rv.success) throw new Error(`UR BUILD FAILED WITH CODE ${rv.code} & SIGNAL ${rv.signal}`)
 
 /// move installation products to destination
 await gum(`rsync install to final path`)
