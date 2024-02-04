@@ -35,7 +35,7 @@ export default async function(arg?: string) {
 
 async function get_pantry_status() {
   const bkroot = new Path(new URL(import.meta.url).pathname).parent().parent()
-  const proc = new Deno.Command("bash", {args: [bkroot.join('bin/cmd/status').string], stdout: 'piped'}).spawn()
+  const proc = new Deno.Command("bash", {args: [bkroot.join('bin/bk-status').string], stdout: 'piped'}).spawn()
   const [out, { success }] = await Promise.all([proc.output(), proc.status])
   if (success) {
     return new TextDecoder().decode(out.stdout).split(/\s+/).filter(x => x)

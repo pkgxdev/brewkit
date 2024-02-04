@@ -35,13 +35,15 @@ if test "$arg" = "-v" || test "$arg" = "--version"; then
   exit 0
 fi
 
-if test -x "$d/cmd/$arg"; then
-  exec "$d/cmd/$arg" "$@"
-elif test "$(find "$d/cmd" -name "$arg*" | wc -l)" -eq 1; then
-  exec "$d"/cmd/"$arg"* "$@"
+if test -x "$d/bk-$arg"; then
+  exec "$d/bk-$arg" "$@"
+elif test "$(find "$d" -name "bk-$arg*" | wc -l)" -eq 1; then
+  exec "$d/bk-$arg"* "$@"
 else
   echo "error: unknown or ambiguous command \`$arg\`, available commands:" >&2
   echo >&2
-  echo "  "$(ls "$d"/cmd) >&2
+  for x in $(cd "$d" && ls | grep '^bk-'); do
+    echo $x | sed 's/^bk-//' >&2
+  done
   exit 64
 fi

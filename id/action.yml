@@ -39,7 +39,8 @@ runs:
     - name: fetch deno deps
       run: |
         echo "::group::fetch deno deps"
-        pkgx deno cache ${GITHUB_ACTION_PATH}/id.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
+        cd ${GITHUB_ACTION_PATH}
+        pkgx deno cache ./id.ts
         echo "::endgroup::"
       shell: bash
 

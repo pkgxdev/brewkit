@@ -36,11 +36,7 @@ jobs:
       - uses: pkgxdev/setup@v2
 
       - name: precache  # makes it easier to read the real output
-        run: |          # we have to make symlinks because deno cache doesn’t take a --ext=ts flag
-          ln -s bin/cmd/build build.ts
-          ln -s bin/cmd/test test.ts
-          pkgx deno cache *.ts
-          rm *.ts
+        run: pkgx deno cache test/test.ts build/build.ts
 
       - run: bin/bk build ${{matrix.pkg}}
       - run: bin/bk test ${{matrix.pkg}}
@@ -65,8 +61,9 @@ jobs:
       PKGX_PANTRY_PATH: null
     steps:
       - uses: actions/checkout@v4
-      - uses: pkgxdev/dev@main
+      - uses: pkgxdev/dev@v0
       - run: deno test --allow-env --allow-net --ignore=.data
+        working-directory: lib
 
   unavailable:
     runs-on: ubuntu-latest

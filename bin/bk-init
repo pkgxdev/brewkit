@@ -56,4 +56,4 @@ we typically name packages after their homepage.
 if you aren’t sure about the name you can submit and we’ll assist.
 EOF
 
-exec bash "$d/bin/cmd/edit" $BLEND
+exec bash "$d/bin/bk-edit" $BLEND
