@@ -13,7 +13,7 @@ if [ -z "$1" ]; then
   for x in $(echo "$PKGX_PANTRY_PATH" | tr ':' '\n'); do
     if [ -z "$PKGS" -a -d "$x"/.git ]; then
       #^^^^^^^^^^^^^^^ stop at first match
-      PKGS=($(GIT_WORK_TREE="$x" bash "$d/bin/cmd/status" --print-paths))
+      PKGS=($(GIT_WORK_TREE="$x" bash "$d/bin/bk-status" --print-paths))
     fi
   done
 elif [ -f "$d"/projects/$1/package.yml ]; then

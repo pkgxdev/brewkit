@@ -202,5 +202,5 @@ function make_toolchain() {
     symlink(["strip"], {to: "llvm-strip"})
   }
 
-  return new Path(new URL(import.meta.url).pathname).join("../../../share/toolchain/bin")
+  return new Path(new URL(import.meta.url).pathname).join("../../share/toolchain/bin")
 }

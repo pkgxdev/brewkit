@@ -48,9 +48,8 @@ runs:
       shell: bash
       run: |
         echo "::group::fetch deno deps"
-        tmpdir=$(mktemp -d)
-        ln -s ${GITHUB_ACTION_PATH}/../bin/cmd/build $tmpdir/build.ts
-        pkgx deno cache $tmpdir/build.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
+        cd $GITHUB_ACTION_PATH
+        pkgx deno cache ./build.ts
         echo "::endgroup::"
 
     - name: build
@@ -60,7 +59,7 @@ runs:
         fi
 
         set +e
-        ${GITHUB_ACTION_PATH}/../bin/cmd/build '${{ inputs.pkg }}'
+        ${GITHUB_ACTION_PATH}/build.ts '${{ inputs.pkg }}'
         status=$?
         if [ $status -eq 2 ]; then
           echo noop=true >> $GITHUB_OUTPUT

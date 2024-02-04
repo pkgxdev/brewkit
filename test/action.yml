@@ -23,13 +23,12 @@ runs:
       shell: bash
       run: |
         echo "::group::fetch deno deps"
-        tmpdir=$(mktemp -d)
-        ln -s ${GITHUB_ACTION_PATH}/../bin/cmd/test $tmpdir/test.ts
-        pkgx deno cache $tmpdir/test.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
+        cd ${GITHUB_ACTION_PATH}
+        pkgx deno cache ./test.ts
         echo "::endgroup::"
 
     - name: test
-      run: ${GITHUB_ACTION_PATH}/../bin/cmd/test '${{ inputs.pkg }}'
+      run: ${GITHUB_ACTION_PATH}/test.ts '${{ inputs.pkg }}'
       shell: bash
       env:
         GITHUB_TOKEN: ${{inputs.token}}

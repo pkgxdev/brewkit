@@ -6,7 +6,7 @@ if [ "$1" == --help ]; then
   echo >&2
   echo 'bk docker                 interactive tty of your pantry checkout' >&2
   echo 'bk docker build           same as `bk build` but in linux' >&2
-  echo 'bk docker --x86-64 build  builds for intel' >&2
+  echo 'bk docker --x86-64 build  builds for PLATFORM' >&2
   exit 0
 fi
 
@@ -30,37 +30,55 @@ if [ "$1" = --pull ]; then
   shift
 fi
 
-if [ "$1" = --x86-64 ]; then
-  INTEL="--platform linux/amd64"
-  shift
-fi
+case "$1" in
+--x86-64|--amd64)
+  PLATFORM=linux/amd64
+  shift;;
+--aarch64|--arm64)
+  PLATFORM=linux/arm64
+  shift;;
+*)
+  case "$(uname -m)" in
+  x86_64)
+    PLATFORM=linux/amd64;;
+  aarch64|arm64)
+    PLATFORM=linux/arm64;;
+  esac;;
+esac
 
 if [ -z "$1" ]; then
   INTERACTIVE="-it"
   CMD="/bin/bash"
 else
-  CMD="/brewkit/bin/cmd/$1"
+  CMD="/brewkit/bin/bk $1"
   shift
 fi
 
-VOLUME_NAME="brewkit.pkgx.dev"
+SPECIFIER="${PLATFORM//\//-}"
+VOLUME_NAME="brewkit.pkgx.dev.${SPECIFIER:-unknown}"
+
+PLATFORM="${PLATFORM:+--platform $PLATFORM}"
 
 # Create volume if it doesn't exist
 if [ -z "$(docker volume ls -q -f name=^${VOLUME_NAME}$)" ]; then
-  docker volume create ${VOLUME_NAME}
+  set -x
+  docker volume create ${VOLUME_NAME} >/dev/null
+else
+  set -x
 fi
 
 exec docker run \
-  --name $VOLUME_NAME \
+  --name brewkit.pkgx.dev \
   --rm \
-  $INTERACTIVE $INTEL \
+  $INTERACTIVE $PLATFORM \
   --volume "$d:/brewkit" \
   --volume "$PKGX_PANTRY_PATH:/work" \
   --volume "${XDG_CACHE_HOME:-$HOME/Library/Caches/pkgx}:/root/.cache/pkgx" \
   --volume "$VOLUME_NAME:/root/.pkgx" \
+  --env DENO_DIR=/root/.pkgx/.cache/deno \
   --env PKGX_PANTRY_PATH=/work \
   --env GITHUB_TOKEN=$GITHUB_TOKEN \
   --env CLICOLOR_FORCE=1 \
   --workdir /work \
   pkgxdev/pkgx \
-  "$CMD" "$@"
+  $CMD "$@"
