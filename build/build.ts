@@ -175,7 +175,8 @@ function make_toolchain() {
         const path = d.join(name)
         if (path.exists()) continue
         const target = useConfig().prefix.join('llvm.org/v*/bin', to)
-        path.rm().ln('s', { target })
+        Deno.removeSync(path.string) // https://github.com/pkgxdev/brewkit/issues/303
+        path.ln('s', { target })
       }
     }
 
