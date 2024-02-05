@@ -53,6 +53,8 @@ jobs:
       - run: bin/bk test
       - run: test $(pkgx +stark.com/foo -- stark) = not_much_u
       - run: bin/bk audit
+      # check build can run twice, see https://github.com/pkgxdev/brewkit/issues/303
+      - run: bin/bk build
 
 
   unit-tests:
