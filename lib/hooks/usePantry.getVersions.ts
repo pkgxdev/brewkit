@@ -288,6 +288,7 @@ import undent from "outdent"
 
 async function handleTransformer(transform: string, versions: string[]): Promise<SemVer[]> {
   /// sadly deno built binaries cannot `eval` so we have to run a whole script 😕
+  //FIXME `eval` is available now!
 
   const cmd = new Deno.Command("pkgx", {
     args: ["deno", "run", "-"],
@@ -301,7 +302,8 @@ async function handleTransformer(transform: string, versions: string[]): Promise
   await writer.write(new TextEncoder().encode(undent`
     const transform = ${transform}
     for (const v of [${vv}]) {
-      console.log(transform(v), v)
+      const rv = transform(v)
+      if (rv) console.log(rv, v)
     }
     `));
   await writer.close()

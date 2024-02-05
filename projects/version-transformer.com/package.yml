@@ -1,6 +1,7 @@
 versions:
-  github: ImageMagick/ImageMagick
-  transform: v => v.replace('-', '.')
+  github: pkgxdev/mash
+  transform: |-
+    v => v.includes('2') ? v : undefined
 
 build:
   working-directory: ${{prefix}}
