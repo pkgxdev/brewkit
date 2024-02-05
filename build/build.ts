@@ -168,14 +168,14 @@ function make_toolchain() {
   }
 
   if (host().platform != "darwin") {
-    const d = config.path.home.join('toolchain').mkdir('p')
+    // rm ∵ // https://github.com/pkgxdev/brewkit/issues/303
+    const d = config.path.home.join('toolchain').rm({ recursive: true }).mkdir('p')
 
     const symlink = (names: string[], {to}: {to: string}) => {
       for (const name of names) {
         const path = d.join(name)
         if (path.exists()) continue
         const target = useConfig().prefix.join('llvm.org/v*/bin', to)
-        if (path.exists()) Deno.removeSync(path.string) // https://github.com/pkgxdev/brewkit/issues/303
         path.ln('s', { target })
       }
     }
