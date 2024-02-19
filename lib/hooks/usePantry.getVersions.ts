@@ -266,6 +266,20 @@ async function handleURLVersions(versions: PlainObject): Promise<SemVer[]> {
     // the text of the link. We don't want to double count.
     if (v && !rv.find((vx) => vx.raw === v.raw)) rv.push(v);
   }
+
+  if (rv.length == 0) {
+    const m: string[] = []
+    for (const match of body.matchAll(new RegExp(matcher.slice(1, -1), "g"))) {
+      m.push(match.join(","))
+    }
+    console.warn(`parsing ${url} produced no versions`)
+    if (m.length == 0) {
+      console.warn("no matches for regex")
+    } else {
+      console.warn("matches:", m.join(" "))
+    }
+  }
+
   return rv;
 }
 
