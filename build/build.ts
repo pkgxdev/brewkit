@@ -106,7 +106,7 @@ for (const key of [
   'HOME',
   'PKGX_PANTRY_PATH', // otherwise we cannot build against the user’s pantry
   'GITHUB_TOKEN',     // pass through for `gh` and that sort of thing
-  'LANG', 'LOGNAME', 'USER'  // prevent POSIX tools from breaking
+  'LANG', 'LOGNAME', 'USER', 'TERM'  // prevent POSIX tools from breaking
 ]) {
   const value = Deno.env.get(key)
   if (value) env[key] = value

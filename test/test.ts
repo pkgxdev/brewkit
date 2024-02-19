@@ -90,7 +90,7 @@ const env: Record<string, string> = {
   PATH: '/usr/bin:/bin:/usr/sbin:/sbin',
   PKGX_DIR: useConfig().prefix.string
 }
-for (const key of ['HOME', 'PKGX_PANTRY_PATH', 'GITHUB_TOKEN', 'LANG', 'LOGNAME', 'USER']) {
+for (const key of ['HOME', 'PKGX_PANTRY_PATH', 'GITHUB_TOKEN', 'LANG', 'LOGNAME', 'USER', 'TERM']) {
   const value = Deno.env.get(key)
   if (value) env[key] = value
 }
