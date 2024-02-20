@@ -7,9 +7,11 @@ if [ -z "$1" ] || [ "$1" = '--help' ] || [ "$1" = '-h' ]; then
   echo "  $0 <command> [args]" >&2
   echo >&2
   echo available commands: >&2
-  for x in $(ls "$d"/cmd); do
-    echo "  $x" >&2
-  done
+  for x in $(ls "$d"); do
+    if [[ "$x" =~ ^bk- ]]; then
+      # Strip the prefix and print the remaining filename with tab padding
+      echo "  ${x:3}" >&2
+    fi
   echo >&2
   echo • some commands provide \`--help\` >&2
   echo • "you can (unambiguously) shorten commands, eg. \`bk b\`"
