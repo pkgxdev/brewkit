@@ -12,6 +12,7 @@ if [ -z "$1" ] || [ "$1" = '--help' ] || [ "$1" = '-h' ]; then
       # Strip the prefix and print the remaining filename with tab padding
       echo "  ${x:3}" >&2
     fi
+  done
   echo >&2
   echo • some commands provide \`--help\` >&2
   echo • "you can (unambiguously) shorten commands, eg. \`bk b\`"
