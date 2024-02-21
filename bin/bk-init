@@ -21,7 +21,7 @@ if ! git status --porcelain; then
   exit 1
 fi
 
-d="$(cd "$(dirname "$0")"/../.. && pwd)"
+d="$(cd "$(dirname "$0")"/.. && pwd)"
 
 if [ -n "$1" ]; then
   BLEND=$1
