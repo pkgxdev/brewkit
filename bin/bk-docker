@@ -19,7 +19,7 @@ if [ ! -d "$PKGX_PANTRY_PATH" ]; then
   exit 64
 fi
 
-d="$(cd "$(dirname "$0")/../.." && pwd)"
+d="$(cd "$(dirname "$0")/.." && pwd)"
 
 if [ -z "$GITHUB_TOKEN" ]; then
   GITHUB_TOKEN=$(pkgx gh auth token)
