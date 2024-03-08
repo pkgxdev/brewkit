@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-d="$(cd "$(dirname "$0")/../.." && pwd)"
+d="$(cd "$(dirname "$0")/.." && pwd)"
 
 if [ -z "$1" ]; then
   if [ -z "$PKGX_PANTRY_PATH" ]; then
