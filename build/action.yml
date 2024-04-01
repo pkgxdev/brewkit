@@ -44,12 +44,21 @@ runs:
         fi
       shell: bash
 
+    - uses: denoland/setup-deno@v1
+      if: runner.os == 'macos'
+
+    - run: |
+        pkgx install deno
+        echo "${HOME}/.local/bin" >> $GITHUB_PATH
+      shell: bash
+      if: runner.os == 'linux'
+
     - name: fetch deno deps
       shell: bash
       run: |
         echo "::group::fetch deno deps"
         cd $GITHUB_ACTION_PATH
-        pkgx deno cache ./build.ts
+        deno cache ./build.ts
         echo "::endgroup::"
 
     - name: build

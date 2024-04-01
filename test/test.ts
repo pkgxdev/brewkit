@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pkgx +bash +gum +gh +rsync deno run --ext=ts --allow-env --allow-read --allow-write --allow-net --allow-run
+#!/usr/bin/env -S pkgx +bash +gum +gh +rsync env deno run --ext=ts --allow-env --allow-read --allow-write --allow-net --allow-run
 
 //TODO net required because we go to github for version info, but really we should require
 // a built product that is then recorded for us to use
