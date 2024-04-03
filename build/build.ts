@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pkgx +rsync +git +bash +gum +gh +curl +bzip2 +xz +unzip +lzip +column deno run --ext=ts --allow-env --allow-read --allow-write --allow-run --allow-net
+#!/usr/bin/env -S pkgx +rsync +git +bash +gum +gh +curl +bzip2 +xz +unzip +lzip +column env deno run --ext=ts --allow-env --allow-read --allow-write --allow-run --allow-net
 
 import make_build_script from "brewkit/porcelain/build-script.ts"
 import { gum, rsync } from "brewkit/utils.ts"

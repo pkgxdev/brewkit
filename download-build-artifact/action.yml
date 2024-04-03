@@ -48,11 +48,20 @@ runs:
         fi
       shell: bash
 
+    - uses: denoland/setup-deno@v1
+      if: runner.os == 'macos'
+
+    - run: |
+        pkgx install deno
+        echo "${HOME}/.local/bin" >> $GITHUB_PATH
+      shell: bash
+      if: runner.os == 'linux'
+
     - name: fetch deno deps
       shell: bash
       run: |
         echo "::group::fetch deno deps"
-        pkgx deno cache ${GITHUB_ACTION_PATH}/../lib/actions/*.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
+        deno cache ${GITHUB_ACTION_PATH}/../lib/actions/*.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
         echo "::endgroup::"
 
     - name: prep

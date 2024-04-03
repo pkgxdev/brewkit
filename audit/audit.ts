@@ -1,4 +1,4 @@
-#!//usr/bin/env -S pkgx +git +gh deno run --allow-env --allow-read --allow-run --allow-net --ext=ts
+#!//usr/bin/env -S pkgx +git +gh env deno run --allow-env --allow-read --allow-run --allow-net --ext=ts
 
 import { Command } from "cliffy/command/mod.ts"
 import { swallow } from "brewkit/utils.ts"
