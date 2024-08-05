@@ -63,7 +63,9 @@ runs:
       id: prep
       shell: bash
 
-    - uses: actions/download-artifact@v4
+    # upload-artifact@v4 is buggy on apple, and versions must match
+    # https://github.com/actions/upload-artifact/issues/527
+    - uses: actions/download-artifact@v3
       id: download
       with:
         name: ${{ steps.prep.outputs.artifact-name }}

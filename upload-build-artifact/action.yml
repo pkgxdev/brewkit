@@ -40,7 +40,9 @@ runs:
       id: tar
       shell: bash
 
-    - uses: actions/upload-artifact@v4
+    # v4 is buggy on apple
+    # https://github.com/actions/upload-artifact/issues/527
+    - uses: actions/upload-artifact@v3
       with:
         path: ${{ steps.tar.outputs.path }}
         name: ${{ steps.tar.outputs.name }}

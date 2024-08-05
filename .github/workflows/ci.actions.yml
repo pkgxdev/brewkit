@@ -115,7 +115,9 @@ jobs:
           file: ${{ steps.dl.outputs.filename }}
           compression: ${{matrix.compression}}
 
-      - uses: actions/upload-artifact@v4
+      # v4 is buggy on apple
+      # https://github.com/actions/upload-artifact/issues/527
+      - uses: actions/upload-artifact@v3
         with:
           path:  ${{ steps.bottle.outputs.filename }}
           name:  ${{ steps.bottle.outputs.name }}
