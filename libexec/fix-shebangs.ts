@@ -1,60 +1,60 @@
-#!/usr/bin/env -S pkgx deno run -A
+#!/usr/bin/env -S pkgx deno^1 run -A
 
-import { Path } from "pkgx"
-import undent from "outdent"
+import { Path } from "pkgx";
+import undent from "outdent";
 
 const has_shebang = (() => {
-  const encoder = new TextDecoder()
+  const encoder = new TextDecoder();
   return (buf: Uint8Array) => {
-    return encoder.decode(buf) == '#!'
-  }
-})()
+    return encoder.decode(buf) == "#!";
+  };
+})();
 
 for (const path of Deno.args) {
-  if (!Path.cwd().join(path).isFile()) continue
+  if (!Path.cwd().join(path).isFile()) continue;
 
-  console.debug({ path })
+  console.debug({ path });
 
-  const rid = await Deno.open(path, { read: true })
+  const rid = await Deno.open(path, { read: true });
   try {
-    const buf = new Uint8Array(2)
-    await rid.read(buf)
-    if (!has_shebang(buf)) continue
+    const buf = new Uint8Array(2);
+    await rid.read(buf);
+    if (!has_shebang(buf)) continue;
   } finally {
-    rid.close()
+    rid.close();
   }
 
   //FIXME this could be pretty damn efficient if we can find the time
   //NOTE as it stands this is HIDEOUSLY inefficient
 
-  const contents = await Deno.readFile(path)
-  const txt = new TextDecoder().decode(contents)
-  const [line0, ...lines] = txt.split("\n") //lol
+  const contents = await Deno.readFile(path);
+  const txt = new TextDecoder().decode(contents);
+  const [line0, ...lines] = txt.split("\n"); //lol
 
-  const match = line0.match(/^#!\s*(\/[^\s]+)/)
-  if (!match) throw new Error()
-  const interpreter = match[1]
+  const match = line0.match(/^#!\s*(\/[^\s]+)/);
+  if (!match) throw new Error();
+  const interpreter = match[1];
 
   switch (interpreter) {
-  case "/usr/bin/env":
-  case "/bin/sh":
-    console.log({ line0, path })
-    console.log("^^ skipped acceptable shebang")
-    continue
+    case "/usr/bin/env":
+    case "/bin/sh":
+      console.log({ line0, path });
+      console.log("^^ skipped acceptable shebang");
+      continue;
   }
 
-  const shebang = `#!/usr/bin/env ${new Path(interpreter).basename()}`
+  const shebang = `#!/usr/bin/env ${new Path(interpreter).basename()}`;
 
   const rewrite = undent`
     ${shebang}
     ${lines.join("\n")}
-    `
+    `;
 
-  console.log({rewrote: path, to: `#!/usr/bin/env ${interpreter}`})
+  console.log({ rewrote: path, to: `#!/usr/bin/env ${interpreter}` });
 
-  const stat = Deno.lstatSync(path)
-  const needs_chmod = stat.mode && !(stat.mode & 0o200)
-  if (needs_chmod) Deno.chmodSync(path, 0o666)
-  await Deno.writeFile(path, new TextEncoder().encode(rewrite))
-  if (needs_chmod) Deno.chmodSync(path, stat.mode!)
+  const stat = Deno.lstatSync(path);
+  const needs_chmod = stat.mode && !(stat.mode & 0o200);
+  if (needs_chmod) Deno.chmodSync(path, 0o666);
+  await Deno.writeFile(path, new TextEncoder().encode(rewrite));
+  if (needs_chmod) Deno.chmodSync(path, stat.mode!);
 }
