@@ -14,8 +14,10 @@ jobs:
         platform:
           - os: ubuntu-latest
             name: linux
+            arch: x86-64
           - os: macos-latest
             name: darwin
+            arch: aarch64
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,7 +34,7 @@ jobs:
       - run: test ${{ steps.build.outputs.project }} = stark.com/foo
       - run: test ${{ steps.build.outputs.version }} = 2.3.4
       - run: test ${{ steps.build.outputs.platform }} = ${{ matrix.platform.name }}
-      - run: test ${{ steps.build.outputs.arch }} = x86-64
+      - run: test ${{ steps.build.outputs.arch }} = ${{ matrix.platform.arch }}
       - run: test -d ${{ steps.build.outputs.prefix }}
       - run: test $BREWKIT_PKGSPEC = ${{ steps.build.outputs.pkgspec }}
       - run: test $BREWKIT_PREFIX = ${{ steps.build.outputs.prefix }}
@@ -44,7 +46,7 @@ jobs:
     strategy:
       matrix:
         platform-key:
-          - darwin+x86-64
+          - darwin+aarch64
           - null
     runs-on: ubuntu-latest
     env:
@@ -91,7 +93,7 @@ jobs:
       matrix:
         compression: [xz, gz]
         platform:
-          - darwin+x86-64
+          - darwin+aarch64
           - linux+x86-64
     env:
       PKGX_PANTRY_PATH: ${{github.workspace}}/co
