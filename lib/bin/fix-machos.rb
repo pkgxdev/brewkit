@@ -51,7 +51,7 @@ class Fixer
     when :bundle
       fix_rpaths
       fix_install_names
-    when :object
+    when :object, :dsym
       # noop
     else
       throw Error("unknown filetype: #{@file.filetype}: #{@file.filename}")
