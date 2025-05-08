@@ -35,9 +35,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pkgxdev/setup@v2
 
-      - name: precache  # makes it easier to read the real output
-        run: pkgx deno^1 cache test/test.ts build/build.ts
-
       - run: bin/bk build ${{matrix.pkg}}
       - run: bin/bk test ${{matrix.pkg}}
       - run: bin/bk audit ${{matrix.pkg}}
