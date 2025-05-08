@@ -72,6 +72,7 @@ exec docker run \
   --name brewkit.pkgx.dev \
   --rm \
   $INTERACTIVE $PLATFORM \
+  --init \
   --volume "$d:/brewkit" \
   --volume "$PKGX_PANTRY_PATH:/work" \
   --volume "${XDG_CACHE_HOME:-$HOME/Library/Caches/pkgx}:/root/.cache/pkgx" \
