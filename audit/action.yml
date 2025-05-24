@@ -26,7 +26,7 @@ runs:
       run: |
         echo "::group::fetch deno deps"
         cd $GITHUB_ACTION_PATH
-        pkgx deno cache ./audit.ts
+        pkgx deno^1 cache ./audit.ts
         echo "::endgroup::"
 
     - run: ${GITHUB_ACTION_PATH}/audit.ts '${{ inputs.pkg }}'

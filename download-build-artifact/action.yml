@@ -52,7 +52,7 @@ runs:
       shell: bash
       run: |
         echo "::group::fetch deno deps"
-        pkgx deno cache ${GITHUB_ACTION_PATH}/../lib/actions/*.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
+        pkgx deno^1 cache ${GITHUB_ACTION_PATH}/../lib/actions/*.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
         echo "::endgroup::"
 
     - name: prep

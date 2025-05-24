@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pkgx +git +gh deno run --allow-env --allow-net --allow-write --allow-run=gh,pkgx --allow-read
+#!/usr/bin/env -S pkgx +git +gh deno^1 run --allow-env --allow-net --allow-write --allow-run=gh,pkgx --allow-read
 
 import resolve_pkg from "brewkit/resolve-pkg.ts"
 
