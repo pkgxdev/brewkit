@@ -33,7 +33,7 @@ if (!config.pkg) {
 
 await audit_provides(config.pkg)
 await audit_names(config.pkg)
-await audit_display_name_is_unique(config.pkg)
+await audit_display_name(config.pkg)
 
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -79,15 +79,28 @@ function audit_names(pkg: Package) {
   }
 }
 
-async function audit_display_name_is_unique(pkg: Package) {
-  const display_name = await get_display_name(pkg.project)
-  if (!display_name) return
-  if (!isString(display_name)) fail("display-name is not string")
+async function audit_display_name(pkg: Package) {
+  const display_name = await get_display_name(pkg.project);
 
-  for await (const entry of usePantry().ls()) {
-    if (entry.project == pkg.project) continue
-    if (await get_display_name(entry.project) == display_name) {
-      fail(`error: display-name is not unique, (see: ${entry.project})`)
+  await audit_display_name_is_unique();
+  await audit_display_name_is_not_project_name();
+
+  function audit_display_name_is_not_project_name() {
+    if (pkg.project == display_name) {
+      fail(`error: display-name is the same as project name. There’s nothing inherently wrong with this, but it’s redundant and we don’t want it.`);
+    }
+  }
+
+  async function audit_display_name_is_unique() {
+
+    if (!display_name) return
+    if (!isString(display_name)) fail("display-name is not string")
+
+    for await (const entry of usePantry().ls()) {
+      if (entry.project == pkg.project) continue
+      if (await get_display_name(entry.project) == display_name) {
+        fail(`error: display-name is not unique, (see: ${entry.project})`)
+      }
     }
   }
 
