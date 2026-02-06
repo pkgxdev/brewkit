@@ -161,47 +161,86 @@ if (ghout) {
 
 ///////////////////////////////////////////////////////////////////
 function make_toolchain() {
-  const deps = new Set(config.deps.dry.build.concat(config.deps.dry.runtime).map(x => x.project))
-
-  if (deps.has('llvm.org') || deps.has('gnu.org/gcc')) {
+  if (yml?.build?.skip === 'shims' || yml?.build?.skip?.includes?.('shims')) {
     return
   }
 
   if (host().platform != "darwin") {
+    const deps = new Set(config.deps.dry.build.concat(config.deps.dry.runtime).map(x => x.project))
+    const has_gcc = deps.has('gnu.org/gcc')
+    const has_llvm = deps.has('llvm.org')
+    const has_binutils = deps.has('gnu.org/binutils')
+
     // rm ∵ // https://github.com/pkgxdev/brewkit/issues/303
     const d = config.path.home.join('toolchain').rm({ recursive: true }).mkdir('p')
+    const prefix = useConfig().prefix
 
-    const symlink = (names: string[], {to}: {to: string}) => {
+    const llvm = (bin: string) => prefix.join('llvm.org/v*/bin', bin)
+    const gcc = (bin: string) => prefix.join('gnu.org/gcc/v*/bin', bin)
+    const binutils = (bin: string) => prefix.join('gnu.org/binutils/v*/bin', bin)
+
+    const symlink = (names: string[], target: Path) => {
       for (const name of names) {
         const path = d.join(name)
         if (path.exists()) continue
-        const target = useConfig().prefix.join('llvm.org/v*/bin', to)
         path.ln('s', { target })
       }
     }
 
-    symlink(["cc", "gcc", "clang"], {to: "clang"})
-    symlink(["c++", "g++", "clang++"], {to: "clang++"})
-    symlink(["cpp"], {to: "clang-cpp"})
-
-    if (host().platform == "linux") {
-      symlink(["ld"], {to: "ld.lld"})
-    } else if (host().platform == "windows") {
-      symlink(["ld"], {to: "lld-link"})
+    // compilers
+    if (has_gcc && has_llvm) {
+      symlink(["cc", "gcc"], gcc("gcc"))
+      symlink(["c++", "g++"], gcc("g++"))
+      symlink(["clang"], llvm("clang"))
+      symlink(["clang++"], llvm("clang++"))
+      symlink(["cpp"], gcc("cpp"))
+    } else if (has_gcc) {
+      symlink(["cc", "gcc"], gcc("gcc"))
+      symlink(["c++", "g++"], gcc("g++"))
+      symlink(["cpp"], gcc("cpp"))
+    } else {
+      // llvm is default; build-script.ts adds +llvm.org to env if not already a dep
+      symlink(["cc", "gcc", "clang"], llvm("clang"))
+      symlink(["c++", "g++", "clang++"], llvm("clang++"))
+      symlink(["cpp"], llvm("clang-cpp"))
     }
 
-    symlink(["ld.lld"], {to: "ld.lld"})
-    symlink(["lld-link"], {to: "lld-link"})
+    // linker
+    if (has_binutils) {
+      symlink(["ld"], binutils("ld"))
+    } else if (host().platform == "linux") {
+      symlink(["ld"], llvm("ld.lld"))
+    } else if (host().platform == "windows") {
+      symlink(["ld"], llvm("lld-link"))
+    }
 
-    symlink(["ar"], {to: "llvm-ar"})
-    symlink(["as"], {to: "llvm-as"})
-    symlink(["nm"], {to: "llvm-nm"})
-    symlink(["objcopy"], {to: "llvm-objcopy"})
-    symlink(["ranlib"], {to: "llvm-ranlib"})
-    symlink(["readelf"], {to: "llvm-readelf"})
-    symlink(["strings"], {to: "llvm-strings"})
-    symlink(["strip"], {to: "llvm-strip"})
+    if (has_llvm || !has_gcc) {
+      symlink(["ld.lld"], llvm("ld.lld"))
+      symlink(["lld-link"], llvm("lld-link"))
+    }
+
+    // utilities
+    if (has_binutils) {
+      symlink(["ar"], binutils("ar"))
+      symlink(["as"], binutils("as"))
+      symlink(["nm"], binutils("nm"))
+      symlink(["objcopy"], binutils("objcopy"))
+      symlink(["ranlib"], binutils("ranlib"))
+      symlink(["readelf"], binutils("readelf"))
+      symlink(["strings"], binutils("strings"))
+      symlink(["strip"], binutils("strip"))
+    } else {
+      symlink(["ar"], llvm("llvm-ar"))
+      symlink(["as"], llvm("llvm-as"))
+      symlink(["nm"], llvm("llvm-nm"))
+      symlink(["objcopy"], llvm("llvm-objcopy"))
+      symlink(["ranlib"], llvm("llvm-ranlib"))
+      symlink(["readelf"], llvm("llvm-readelf"))
+      symlink(["strings"], llvm("llvm-strings"))
+      symlink(["strip"], llvm("llvm-strip"))
+    }
   }
 
+  // always return shim path — on Darwin the shim handles -Werror filtering and rpath injection via ruby
   return new Path(new URL(import.meta.url).pathname).join("../../share/toolchain/bin")
 }

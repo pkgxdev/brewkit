@@ -3,32 +3,18 @@
 tool=$(basename "$0")
 
 if [ "$(uname)" != Darwin ]; then
-  if [ -x /usr/local/bin/pkgx ]; then
-    # removed from PATH deliberately
-    #TODO like, probs we should set PKGX or something before removing it from PATH
-    pkgx=/usr/local/bin/pkgx
-  else
-    # if not the above probs this is running in pkgx CI/CD
-    pkgx="${PKGX_DIR:-$HOME/.pkgx}/pkgx.sh/v*/bin/pkgx"
-  fi
-  # prevent fork bombs (shouldn't be possible but who knows)
-  export PATH="/usr/bin:/bin:/usr/sbin:/sbin"
-
-  # NOTE this slows down configure scripts a shit tonne
-  # 1. a fix is speeding up pkgx resolution by caching the pantry
-  # 2. or do this once and store the env to a file that we can then source
-  set -a
-  eval "$("$pkgx" +llvm.org)"
+  # ensure $HOME/toolchain (real binaries) is found before shim dir to prevent recursion
+  export PATH="$HOME/toolchain:$PATH"
 
   if printf "%s\n" "$@" | grep -qxF -- '-shared'; then
-      has_shared=1
+    has_shared=1
   fi
 
   filtered_args=()
   for arg in "$@"; do
     # -shared and -pie conflict. libs aren't executables, so accept the -shared
     if [ "$arg" = "-pie" ] && [ "$has_shared" = "1" ]; then
-        continue
+      continue
     fi
 
     if [ "$arg" != -Werror ]; then
