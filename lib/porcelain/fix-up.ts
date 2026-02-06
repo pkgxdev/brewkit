@@ -124,7 +124,7 @@ async function consolidate_lib64(pkg_prefix: Path) {
   if (!lib64.isDirectory()) return
 
   const lib = pkg_prefix.join("lib")
-  lib.mkpath()
+  Deno.mkdirSync(lib.string, { recursive: true })
 
   for await (const [path, { isFile, isSymlink }] of lib64.ls()) {
     const dest = lib.join(path.basename())
