@@ -9,6 +9,7 @@ export default async function finish(config: Config) {
   await fix_pc_files(prefix, config.path.build_install)
   await fix_cmake_files(prefix, config.path.build_install)
   await remove_la_files(prefix)
+  await flatten_headers(prefix)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -111,5 +112,34 @@ async function remove_la_files(pkg_prefix: Path) {
       console.log({ removing: path })
       Deno.removeSync(path.string)
     }
+  }
+}
+
+async function flatten_headers(pkg_prefix: Path) {
+  // if include/ contains exactly one subdirectory and no loose files, flatten it
+  // eg. include/foo/*.h → include/*.h with include/foo → symlink to .
+  const include = pkg_prefix.join("include").isDirectory()
+  if (!include) return
+
+  const entries: Path[] = []
+  const subdirs: Path[] = []
+
+  for await (const [path, { isDirectory }] of include.ls()) {
+    entries.push(path)
+    if (isDirectory) subdirs.push(path)
+  }
+
+  if (subdirs.length == 1 && entries.length == 1) {
+    const subdir = subdirs[0]
+    const name = subdir.basename()
+
+    // move all contents up
+    for await (const [path] of subdir.ls()) {
+      Deno.renameSync(path.string, include.join(path.basename()).string)
+    }
+
+    Deno.removeSync(subdir.string, { recursive: true })
+    Deno.symlinkSync(".", include.join(name).string)
+    console.log({ flattened_headers: name })
   }
 }
