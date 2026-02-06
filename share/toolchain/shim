@@ -20,8 +20,17 @@ if [ "$(uname)" != Darwin ]; then
   set -a
   eval "$("$pkgx" +llvm.org)"
 
+  if printf "%s\n" "$@" | grep -qxF -- '-shared'; then
+      has_shared=1
+  fi
+
   filtered_args=()
   for arg in "$@"; do
+    # -shared and -pie conflict. libs aren't executables, so accept the -shared
+    if [ "$arg" = "-pie" ] && [ "$has_shared" = "1" ]; then
+        continue
+    fi
+
     if [ "$arg" != -Werror ]; then
       filtered_args+=("$arg")
     fi
