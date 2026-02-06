@@ -51,10 +51,10 @@ export default async function(config: Config, PATH?: Path): Promise<string> {
 
     ${gum} format "## env"
       export PKGX_HOME="$HOME"
-      export PATH="${brewkit_PATHs}:$PATH"
       set -a
       ${env_plus ? `eval "$(CLICOLOR_FORCE=1 ${pkgx} ${env_plus})"` : ''}
       set +a
+      export PATH="${brewkit_PATHs}:$PATH"
 
       export PKGX="${pkgx}"
       export HOME=${config.path.home.string}
