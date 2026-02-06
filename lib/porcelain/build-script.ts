@@ -60,6 +60,7 @@ export default async function(config: Config, PATH?: Path): Promise<string> {
       ${env_plus ? `eval "$(CLICOLOR_FORCE=1 ${pkgx} ${env_plus})"` : ''}
       set +a
       export PATH="${brewkit_PATHs}:$PATH"
+      ${PATH ? `export CMAKE_PREFIX_PATH="${PATH.parent()}\${CMAKE_PREFIX_PATH:+:\$CMAKE_PREFIX_PATH}"` : ''}
 
       export PKGX="${pkgx}"
       export HOME=${config.path.home.string}

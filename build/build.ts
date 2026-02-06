@@ -83,6 +83,19 @@ await rsync(config.path.yaml.parent(), config.path.build.join("props"))
 /// create toolchain if necessary
 const toolchain_PATH = make_toolchain()
 
+if (toolchain_PATH) {
+  await gum('toolchain')
+  const d = config.path.home.join('toolchain')
+  if (d.isDirectory()) {
+    for await (const [path, { isSymlink }] of d.ls()) {
+      if (isSymlink) {
+        const target = Deno.readLinkSync(path.string)
+        console.log(`  ${path.basename()} → ${target}`)
+      }
+    }
+  }
+}
+
 /// write script
 const script_content = await make_build_script(config, toolchain_PATH)
 const script = new Path(`${config.path.build}.sh`)
