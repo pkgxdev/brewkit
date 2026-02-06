@@ -166,7 +166,8 @@ function make_toolchain() {
   }
 
   if (host().platform != "darwin") {
-    const deps = new Set(config.deps.dry.build.concat(config.deps.dry.runtime).map(x => x.project))
+    // use gas (resolved) deps so we see transitive deps like gcc via cmake
+    const deps = new Set(config.deps.gas.map(x => x.pkg.project))
     const has_gcc = deps.has('gnu.org/gcc')
     const has_llvm = deps.has('llvm.org')
     const has_binutils = deps.has('gnu.org/binutils')
