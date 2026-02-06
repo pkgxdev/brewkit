@@ -72,6 +72,10 @@ class Fixer
 
     signing_id = ENV['APPLE_IDENTITY'] || "-"
 
+    # capture entitlements before we touch anything
+    entitlements_xml, _, _ = Open3.capture3("codesign", "-d", "--entitlements", ":-", filename)
+    has_entitlements = !entitlements_xml.strip.empty?
+
     _, stderr_str, status = Open3.capture3("codesign", "--sign", signing_id, "--force",
                                   "--preserve-metadata=entitlements,requirements,flags,runtime",
                                   filename)
@@ -81,7 +85,27 @@ class Fixer
     # https://github.com/denoland/deno/issues/575
     # codesign "fails" after correctly signing these binaries with the below error,
     # but the binaries still work.
-    raise MachO::CodeSigningError, "#{filename}: signing failed!" unless
+    return if status.success? or stderr_str.include?("main executable failed strict validation")
+
+    # some binaries end up in a state where --preserve-metadata fails
+    # strip the signature entirely and re-sign from scratch
+    puts "fix-macho: re-signing #{filename} (preserve-metadata failed)"
+    Open3.capture3("codesign", "--remove-signature", filename)
+
+    if has_entitlements
+      # write entitlements to a tmpfile and re-sign with them
+      require 'tempfile'
+      tmp = Tempfile.new(['entitlements', '.xml'])
+      tmp.write(entitlements_xml)
+      tmp.close
+      _, stderr_str, status = Open3.capture3("codesign", "--sign", signing_id, "--force",
+                                    "--entitlements", tmp.path, filename)
+      tmp.unlink
+    else
+      _, stderr_str, status = Open3.capture3("codesign", "--sign", signing_id, "--force", filename)
+    end
+
+    raise MachO::CodeSigningError, "#{filename}: signing failed! #{stderr_str}" unless
       status.success? or
       stderr_str.include?("main executable failed strict validation")
   end
