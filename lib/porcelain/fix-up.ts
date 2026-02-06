@@ -9,6 +9,9 @@ export default async function finish(config: Config) {
   await fix_pc_files(prefix, config.path.build_install)
   await fix_cmake_files(prefix, config.path.build_install)
   await remove_la_files(prefix)
+  if (host().platform == 'linux') {
+    await consolidate_lib64(prefix)
+  }
   await flatten_headers(prefix)
 }
 
@@ -113,6 +116,25 @@ async function remove_la_files(pkg_prefix: Path) {
       Deno.removeSync(path.string)
     }
   }
+}
+
+async function consolidate_lib64(pkg_prefix: Path) {
+  // some build systems install to lib64 on x86-64 Linux; we standardize on lib
+  const lib64 = pkg_prefix.join("lib64")
+  if (!lib64.isDirectory()) return
+
+  const lib = pkg_prefix.join("lib")
+  lib.mkpath()
+
+  for await (const [path, { isFile, isSymlink }] of lib64.ls()) {
+    const dest = lib.join(path.basename())
+    if (isFile || isSymlink) {
+      Deno.renameSync(path.string, dest.string)
+    }
+  }
+
+  Deno.removeSync(lib64.string, { recursive: true })
+  Deno.symlinkSync("lib", lib64.string)
 }
 
 async function flatten_headers(pkg_prefix: Path) {
