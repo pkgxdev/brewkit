@@ -8,6 +8,7 @@ export default async function finish(config: Config) {
   await fix_rpaths(prefix, config.pkg, config.path.cache, config.deps.gas)
   await fix_pc_files(prefix, config.path.build_install)
   await fix_cmake_files(prefix, config.path.build_install)
+  await remove_la_files(prefix)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +98,18 @@ async function fix_cmake_files(pkg_prefix: Path, build_prefix: Path) {
           path.write({text, force: true})
         }
       }
+    }
+  }
+}
+
+async function remove_la_files(pkg_prefix: Path) {
+  // libtool .la files contain hardcoded paths and cause more problems than they solve
+  const lib = pkg_prefix.join("lib").isDirectory()
+  if (!lib) return
+  for await (const [path, { isFile }] of lib.walk()) {
+    if (isFile && path.extname() == ".la") {
+      console.log({ removing: path })
+      Deno.removeSync(path.string)
     }
   }
 }
