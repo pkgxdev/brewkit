@@ -90,7 +90,7 @@ if (toolchain_PATH) {
     for await (const [path, { isSymlink }] of d.ls()) {
       if (isSymlink) {
         const target = Deno.readLinkSync(path.string)
-        console.log(`  ${path.basename()} → ${target}`)
+        console.log(`${path.basename()} → ${target}`)
       }
     }
   }
