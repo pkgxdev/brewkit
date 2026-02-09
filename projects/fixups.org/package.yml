@@ -1,0 +1,19 @@
+versions:
+  - 1.0.0
+
+build:
+  # test header flattening
+  - run: echo "// empty header" > fixups.h
+    working-directory: "{{prefix}}/include/fixups"
+  # test libtool sanitizer
+  - run: echo '# empty libtool' > fixups.la
+    working-directory: "{{prefix}}/lib"
+  # but don't clean up non-libtool .la files...
+  - run: echo '# non-libtool .la' > not-libtool.la
+    working-directory: "{{prefix}}/lib/plugins/modules"
+
+test:
+  - test -f '{{prefix}}/include/fixups.h'
+  - test -f '{{prefix}}/include/fixups/fixups.h'
+  - test ! -f '{{prefix}}/lib/fixups.la'
+  - test -f '{{prefix}}/lib/plugins/modules/not-libtool.la'

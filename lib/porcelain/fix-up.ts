@@ -5,24 +5,35 @@ const { host } = utils
 
 export default async function finish(config: Config) {
   const prefix = config.path.install
-  await fix_rpaths(prefix, config.pkg, config.path.cache, config.deps.gas)
+  const yml = await usePantry().project(config.pkg).yaml()
+  const skip = yml.build.skip ?? []
+  const skips = typeof skip === 'string' ? [skip] : skip
+
+  await fix_rpaths(prefix, config.pkg, config.path.cache, config.deps.gas, skips)
   await fix_pc_files(prefix, config.path.build_install)
   await fix_cmake_files(prefix, config.path.build_install)
-  await remove_la_files(prefix)
+  if (!skips.includes('libtool-cleanup')) {
+    await remove_la_files(prefix)
+  } else {
+    console.info(`skipping libtool cleanup for ${config.pkg.project}`)
+  }
   if (host().platform == 'linux') {
     await consolidate_lib64(prefix)
   }
-  await flatten_headers(prefix)
+  if (!skips.includes('flatten-includes')) {
+    await flatten_headers(prefix)
+  } else {
+    console.info(`skipping header flattening for ${config.pkg.project}`)
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
-async function fix_rpaths(pkg_prefix: Path, pkg: Package, cache: Path, deps: Installation[]) {
+async function fix_rpaths(pkg_prefix: Path, pkg: Package, cache: Path, deps: Installation[], skips: string[]) {
   const bindir = new Path(new URL(import.meta.url).pathname).join("../../bin")
-  const yml = await usePantry().project(pkg).yaml()
 
   switch (host().platform) {
   case 'darwin': {
-    if (yml.build.skip === 'fix-machos' || yml.build.skip?.includes('fix-machos')) {
+    if (skips.includes('fix-machos')) {
       console.info(`skipping rpath fixes for ${pkg.project}`)
       break
     }
@@ -40,7 +51,7 @@ async function fix_rpaths(pkg_prefix: Path, pkg: Package, cache: Path, deps: Ins
   } break
 
   case 'linux': {
-    if (yml.build.skip === 'fix-patchelf' || yml.build.skip?.includes('fix-patchelf')) {
+    if (skips.includes('fix-patchelf')) {
       console.info(`skipping rpath fixes for ${pkg.project}`)
       break
     }
@@ -108,9 +119,11 @@ async function fix_cmake_files(pkg_prefix: Path, build_prefix: Path) {
 
 async function remove_la_files(pkg_prefix: Path) {
   // libtool .la files contain hardcoded paths and cause more problems than they solve
+  // only remove top-level lib/*.la — subdirectory .la files may be module descriptors
+  // needed at runtime (eg. ImageMagick codec plugins)
   const lib = pkg_prefix.join("lib").isDirectory()
   if (!lib) return
-  for await (const [path, { isFile }] of lib.walk()) {
+  for await (const [path, { isFile }] of lib.ls()) {
     if (isFile && path.extname() == ".la") {
       console.log({ removing: path })
       Deno.removeSync(path.string)
