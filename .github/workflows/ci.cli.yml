@@ -28,6 +28,7 @@ jobs:
           - pc-cmake.com
           - fix-machos.com
           - version-transformer.com
+          - fixups.org
 
     runs-on: ${{ matrix.platform.os }}
     container: ${{ matrix.platform.img }}
