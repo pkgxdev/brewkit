@@ -7,8 +7,6 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     outputs:
       pkg: ${{ steps.build.outputs.pkgjson }}
-    env:
-      PKGX_PANTRY_PATH: ${{github.workspace}}/co
     strategy:
       matrix:
         platform:
@@ -21,9 +19,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: co  # test that things working isn’t just a coincident of PWD == BREKWIT_DIR
+          path: co # test that things working isn't just a coincident of PWD == BREKWIT_DIR
 
-      - uses: pkgxdev/setup@v2
+      - uses: pkgxdev/setup@v4
+      - uses: ./co/.github/setup-pantry
+        with:
+          path: ${{github.workspace}}/co
 
       - uses: ./co/build
         id: build
@@ -49,13 +50,14 @@ jobs:
           - darwin+aarch64
           - null
     runs-on: ubuntu-latest
-    env:
-      PKGX_PANTRY_PATH: ${{github.workspace}}/co
     steps:
       - uses: actions/checkout@v4
         with:
-          path: co  # test that things working isn’t just a coincident of PWD == BREKWIT_DIR
-      - uses: pkgxdev/setup@v2
+          path: co # test that things working isn't just a coincident of PWD == BREKWIT_DIR
+      - uses: pkgxdev/setup@v4
+      - uses: ./co/.github/setup-pantry
+        with:
+          path: ${{github.workspace}}/co
       - uses: ./co/download-build-artifact
         with:
           pkg: ${{ needs.build.outputs.pkg }}
@@ -72,13 +74,14 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
-    env:
-      PKGX_PANTRY_PATH: ${{github.workspace}}/co
     steps:
       - uses: actions/checkout@v4
         with:
-          path: co  # test that things working isn’t just a coincident of PWD == BREKWIT_DIR
-      - uses: pkgxdev/setup@v2
+          path: co # test that things working isn't just a coincident of PWD == BREKWIT_DIR
+      - uses: pkgxdev/setup@v4
+      - uses: ./co/.github/setup-pantry
+        with:
+          path: ${{github.workspace}}/co
       - uses: ./co/download-build-artifact
         with:
           pkg: ${{ needs.build.outputs.pkg }}
@@ -95,14 +98,15 @@ jobs:
         platform:
           - darwin+aarch64
           - linux+x86-64
-    env:
-      PKGX_PANTRY_PATH: ${{github.workspace}}/co
     steps:
       - uses: actions/checkout@v4
         with:
-          path: co  # test that things working isn’t just a coincident of PWD == BREKWIT_DIR
+          path: co # test that things working isn't just a coincident of PWD == BREKWIT_DIR
 
-      - uses: pkgxdev/setup@v2
+      - uses: pkgxdev/setup@v4
+      - uses: ./co/.github/setup-pantry
+        with:
+          path: ${{github.workspace}}/co
 
       - uses: ./co/download-build-artifact
         id: dl
@@ -119,21 +123,20 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          path:  ${{ steps.bottle.outputs.filename }}
-          name:  ${{ steps.bottle.outputs.name }}
+          path: ${{ steps.bottle.outputs.filename }}
+          name: ${{ steps.bottle.outputs.name }}
 
   unavailable:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pkgxdev/setup@v2
+      - uses: pkgxdev/setup@v4
+      - uses: ./.github/setup-pantry
 
       - uses: ./build
         id: build
         with:
           pkg: unavailable.com
-        env:
-          PKGX_PANTRY_PATH: ${{github.workspace}}
 
       - run: echo ${{steps.build.outputs.noop}}
 
@@ -141,20 +144,17 @@ jobs:
         if: ${{steps.build.outputs.noop != 'true'}}
 
   id:
-    env:
-      PKGX_PANTRY_PATH: ${{github.workspace}}
     runs-on: ubuntu-latest
     outputs:
       pkgs: ${{ steps.id.outputs.pkgs }}
     steps:
       - uses: actions/checkout@v4
-      - uses: pkgxdev/setup@v2
+      - uses: pkgxdev/setup@v4
+      - uses: ./.github/setup-pantry
       - uses: ./id
         id: id
         with:
           pkg: stark.com/foo
-        env:
-          PKGX_PANTRY_PATH: ${{github.workspace}}
       - run: test ${{ steps.id.outputs.version }} = 2.3.4
       - run: test ${{ steps.id.outputs.version-raw }} = 2.3.4
       - run: test -z "${{ steps.id.outputs.version-tag }}"

@@ -1,7 +1,5 @@
-name:
-  pkgx/brewkit/id
-description:
-  resolve a specific version, including the raw version and tag (if available)
+name: pkgx/brewkit/id
+description: resolve a specific version, including the raw version and tag (if available)
 
 inputs:
   pkg:
@@ -28,14 +26,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: prep
-      run: |
-        if ! pkgx --sync; then
-          echo "::error::you must use: pkgxdev/setup before using this action"
-          exit 1
-        fi
-      shell: bash
-
     - name: fetch deno deps
       run: |
         echo "::group::fetch deno deps"

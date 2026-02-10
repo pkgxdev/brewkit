@@ -5,7 +5,7 @@ if [ -x /usr/local/bin/pkgx ]; then
   pkgx=/usr/local/bin/pkgx
 else
   # probs this is running in pkgx CI/CD
-  pkgx="${PKGX_DIR:-$HOME/.pkgx}/pkgx.sh/v*/bin/pkgx"
+  pkgx="$(ls -d ${PKGX_DIR:-$HOME/.pkgx}/pkgx.sh/v* | tail -1)/bin/pkgx"
 fi
 
 exec "$pkgx" +gnu.org/autoconf -- autoconf "$@"

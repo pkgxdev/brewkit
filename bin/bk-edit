@@ -3,6 +3,8 @@
 set -eo pipefail
 
 d="$(cd "$(dirname "$0")/.." && pwd)"
+# name changed in v2
+export PKGX_PANTRY_PATH="${PKGX_PANTRY_PATH:-$PKGX_PANTRY_DIR}"
 
 if [ -z "$1" ]; then
   if [ -z "$PKGX_PANTRY_PATH" ]; then

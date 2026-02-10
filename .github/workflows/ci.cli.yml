@@ -4,7 +4,6 @@ on:
 
 env:
   GITHUB_TOKEN: ${{github.token}}
-  PKGX_PANTRY_PATH: ${{github.workspace}}
 
 jobs:
   integration-tests:
@@ -33,11 +32,12 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     container: ${{ matrix.platform.img }}
     steps:
+      # we need libc6-dev headers and gcc bits
+      - run: apt-get update && apt-get install -y build-essential
+        if: matrix.platform.img != null
       - uses: actions/checkout@v4
-      - uses: pkgxdev/setup@v2
-
-      # otherwise, we're getting some weird race conditions on CI
-      - run: pkgx --sync
+      - uses: pkgxdev/setup@v4
+      - uses: ./.github/setup-pantry
 
       - run: bin/bk build ${{matrix.pkg}}
       - run: bin/bk test ${{matrix.pkg}}
@@ -47,7 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pkgxdev/setup@v2
+      - uses: pkgxdev/setup@v4
+      - uses: ./.github/setup-pantry
       - uses: ./.github/modify-pantry
       - run: test $(bin/bk status) = stark.com/foo
       - run: bin/bk build
@@ -59,9 +60,10 @@ jobs:
 
   unit-tests:
     runs-on: ubuntu-latest
-    env:
-      PKGX_PANTRY_PATH: null
     steps:
+      - run: |
+          unset PKGX_PANTRY_PATH
+          unset PKGX_PANTRY_DIR
       - uses: actions/checkout@v4
       - uses: pkgxdev/dev@v1
       - run: deno test --allow-env --allow-net --ignore=.data
@@ -71,8 +73,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pkgxdev/setup@v2
-      - run: pkgx --sync # FIXME PKGX_PANTRY_PATH causes auto sync to fail
+      - uses: pkgxdev/setup@v4
+      - uses: ./.github/setup-pantry
       - name: build
         run: |
           set +e

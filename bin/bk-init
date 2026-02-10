@@ -3,6 +3,9 @@
 
 set -eo pipefail
 
+# name changed in v2
+export PKGX_PANTRY_PATH="${PKGX_PANTRY_PATH:-$PKGX_PANTRY_DIR}"
+
 if test -z "$PKGX_PANTRY_PATH"; then
   echo "error: PKGX_PANTRY_PATH is not set" >&2
   exit 1

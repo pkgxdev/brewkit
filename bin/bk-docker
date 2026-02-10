@@ -14,6 +14,9 @@ if [ -n "$VERBOSE" ]; then
   set -x
 fi
 
+# name changed in v2
+export PKGX_PANTRY_PATH="${PKGX_PANTRY_PATH:-$PKGX_PANTRY_DIR}"
+
 if [ ! -d "$PKGX_PANTRY_PATH" ]; then
   echo "error: \`brewkit docker\` can only be run from a pantry checkout" >&2
   exit 64
