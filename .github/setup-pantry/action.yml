@@ -1,0 +1,29 @@
+name: Setup pantry overlay
+description: >
+  Checks out upstream pkgxdev/pantry and merges brewkit's test packages on top.
+  Sets PKGX_PANTRY_DIR and PKGX_PANTRY_PATH for subsequent steps.
+
+inputs:
+  path:
+    description: >
+      Path to the brewkit checkout (containing projects/).
+      Defaults to $GITHUB_WORKSPACE at runtime (safe for containers).
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: pkgxdev/pantry
+        path: .upstream-pantry
+
+    - shell: bash
+      env:
+        INPUT_PATH: ${{inputs.path}}
+      run: |
+        dir="${INPUT_PATH:-$GITHUB_WORKSPACE}"
+        cp -rn "$GITHUB_WORKSPACE/.upstream-pantry/projects/"* "$dir/projects/"
+        rm -rf "$GITHUB_WORKSPACE/.upstream-pantry"
+        echo "PKGX_PANTRY_DIR=$dir" >> "$GITHUB_ENV"
+        echo "PKGX_PANTRY_PATH=$dir" >> "$GITHUB_ENV"

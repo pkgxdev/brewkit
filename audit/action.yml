@@ -5,7 +5,7 @@ inputs:
     description: |
       * eg. pkgx.sh@1.1
       * if unset uses `$BREWKIT_PKGSPEC`
-      * if unset checks for modifications in `$PKGX_PANTRY_PATH`
+      * if unset checks for modifications in `$PKGX_PANTRY_PATH || $PKGX_PANTRY_DIR`
     required: false
   token:
     default: ${{ github.token }}
@@ -14,13 +14,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - run: |
-        if ! pkgx --sync; then
-          echo "::error::you must use: pkgxdev/setup before using this action"
-          exit 1
-        fi
-      shell: bash
-
     - name: fetch deno deps
       shell: bash
       run: |

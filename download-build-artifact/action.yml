@@ -41,13 +41,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - run: |
-        if ! pkgx --sync; then
-          echo "::error::you must use: pkgxdev/setup before using this action"
-          exit 1
-        fi
-      shell: bash
-
     - name: fetch deno deps
       shell: bash
       run: |

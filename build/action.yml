@@ -36,14 +36,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: prep
-      run: |
-        if ! pkgx --sync; then
-          echo "::error::you must use: pkgxdev/setup before using this action"
-          exit 1
-        fi
-      shell: bash
-
     - name: fetch deno deps
       shell: bash
       run: |
@@ -54,8 +46,9 @@ runs:
 
     - name: build
       run: |
-        if [ -d projects -a -z "$PKGX_PANTRY_PATH" ]; then
+        if [ -d projects -a -z "$PKGX_PANTRY_PATH" -a -z "$PKGX_PANTRY_DIR" ]; then
           export PKGX_PANTRY_PATH="$PWD/projects"
+          export PKGX_PANTRY_DIR="$PWD/projects"
         fi
 
         set +e

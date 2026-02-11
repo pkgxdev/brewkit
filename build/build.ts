@@ -81,7 +81,7 @@ await rsync(config.path.yaml.parent(), config.path.build.join("props"))
 // }), force: true })
 
 /// create toolchain if necessary
-const toolchain_PATH = make_toolchain()
+const toolchain_PATH = await make_toolchain()
 
 if (toolchain_PATH) {
   await gum('toolchain')
@@ -118,6 +118,7 @@ const env: Record<string, string> = {
 for (const key of [
   'HOME',
   'PKGX_PANTRY_PATH', // otherwise we cannot build against the user’s pantry
+  'PKGX_PANTRY_DIR', // otherwise we cannot build against the user’s pantry - v2
   'GITHUB_TOKEN',     // pass through for `gh` and that sort of thing
   'LANG', 'LOGNAME', 'USER', 'TERM'  // prevent POSIX tools from breaking
 ]) {
@@ -173,7 +174,7 @@ if (ghout) {
 }
 
 ///////////////////////////////////////////////////////////////////
-function make_toolchain() {
+async function make_toolchain() {
   if (yml?.build?.skip === 'shims' || yml?.build?.skip?.includes?.('shims')) {
     return
   }
@@ -185,13 +186,33 @@ function make_toolchain() {
     const has_llvm = deps.has('llvm.org')
     const has_binutils = deps.has('gnu.org/binutils')
 
+    // ensure default compiler is installed before creating toolchain symlinks
+    if (!has_gcc && !has_llvm) {
+      const rv = await new Deno.Command('pkgx', { args: ['+llvm.org', '--', 'true'] }).output()
+      if (!rv.success) throw new Error('failed to install default llvm')
+    }
+
     // rm ∵ // https://github.com/pkgxdev/brewkit/issues/303
     const d = config.path.home.join('toolchain').rm({ recursive: true }).mkdir('p')
     const prefix = useConfig().prefix
 
-    const llvm = (bin: string) => prefix.join('llvm.org/v*/bin', bin)
-    const gcc = (bin: string) => prefix.join('gnu.org/gcc/v*/bin', bin)
-    const binutils = (bin: string) => prefix.join('gnu.org/binutils/v*/bin', bin)
+    const dep_bin = (project: string, bin: string): Path => {
+      const dep = config.deps.gas.find(x => x.pkg.project === project)
+      if (dep) return dep.path.join('bin', bin)
+      // fallback: resolve from installed versions
+      const dir = prefix.join(project)
+      if (dir.isDirectory()) {
+        const versions = [...Deno.readDirSync(dir.string)]
+          .filter(e => e.isDirectory && e.name.startsWith('v'))
+          .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+        if (versions.length) return dir.join(versions.at(-1)!.name, 'bin', bin)
+      }
+      throw new Error(`cannot find ${project} installation`)
+    }
+
+    const llvm = (bin: string) => dep_bin('llvm.org', bin)
+    const gcc = (bin: string) => dep_bin('gnu.org/gcc', bin)
+    const binutils = (bin: string) => dep_bin('gnu.org/binutils', bin)
 
     const symlink = (names: string[], target: Path) => {
       for (const name of names) {

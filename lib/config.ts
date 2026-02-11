@@ -47,8 +47,9 @@ export default async function config(arg?: string): Promise<Config> {
     pantry = pantry.parent()
   }
 
-  if (Deno.env.get("PKGX_PANTRY_PATH")) {
-    const checkout = new Path(Deno.env.get("PKGX_PANTRY_PATH")!)
+  // env key changed in pkgx-v2
+  if (Deno.env.get("PKGX_PANTRY_DIR") || Deno.env.get("PKGX_PANTRY_PATH")) {
+    const checkout = new Path((Deno.env.get("PKGX_PANTRY_DIR") || Deno.env.get("PKGX_PANTRY_PATH"))!)
     const slug = pkg.project.replace(/\//g, "__")  //FIXME use real folders probs
     const pkgspec = `${slug}-${pkg.version}`
     return await construct_config({

@@ -6,7 +6,7 @@ versions:
   github: pkgxdev/brewkit
 
 dependencies:
-  pkgx.sh: ^1
+  pkgx.sh: ^2
 
 build:
   - working-directory: ${{prefix}}/bin
@@ -18,5 +18,4 @@ build:
 provides:
   - bin/stark
 
-test:
-  test $(stark) = not_much_u
+test: test $(stark) = not_much_u

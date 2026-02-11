@@ -1,6 +1,9 @@
 #!/usr/bin/env -S pkgx +git +column bash -eo pipefail
 # shellcheck shell=bash
 
+# name changed in v2
+export PKGX_PANTRY_PATH="${PKGX_PANTRY_PATH:-$PKGX_PANTRY_DIR}"
+
 GIT_DIR="$PKGX_PANTRY_PATH"
 
 if ! d="$(git rev-parse --show-toplevel 2>/dev/null)"; then

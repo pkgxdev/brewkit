@@ -1,9 +1,10 @@
 runs:
   using: composite
   steps:
-    - run: pkgx --sync  #FIXME bug where shebangs don’t cause an auto-sync
-      shell: bash
     - uses: fregante/setup-git-user@v2
+    - run: git add projects/ && git commit -m "pantry overlay" --no-verify
+      working-directory: ${{ github.workspace }}
+      shell: bash
     - run: git update-ref refs/remotes/origin/main HEAD
       working-directory: ${{ github.workspace }}
       shell: bash
