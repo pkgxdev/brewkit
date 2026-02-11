@@ -1,0 +1,14 @@
+#!/bin/sh
+# shared pkgx resolution for libexec wrappers
+
+if [ -n "$PKGX" ] && [ -x "$PKGX" ]; then
+  pkgx="$PKGX"
+elif [ -x /usr/local/bin/pkgx ]; then
+  pkgx=/usr/local/bin/pkgx
+elif [ -x "${PKGX_DIR:-$HOME/.pkgx}/bin/pkgx" ]; then
+  pkgx="${PKGX_DIR:-$HOME/.pkgx}/bin/pkgx"
+elif command -v pkgx >/dev/null 2>&1; then
+  pkgx="$(command -v pkgx)"
+else
+  pkgx="$(ls -d ${PKGX_DIR:-$HOME/.pkgx}/pkgx.sh/v* 2>/dev/null | tail -1)/bin/pkgx"
+fi
