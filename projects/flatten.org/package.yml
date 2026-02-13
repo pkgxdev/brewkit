@@ -1,0 +1,11 @@
+versions:
+  - 1.0.0
+
+build:
+  # test header flattening exclusions
+  - run: echo "// empty header" > String.h
+    working-directory: "{{prefix}}/include/flatten"
+
+test:
+  - test ! -f '{{prefix}}/include/String.h'
+  - test -f '{{prefix}}/include/flatten/String.h'

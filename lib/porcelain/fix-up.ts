@@ -150,6 +150,64 @@ async function consolidate_lib64(pkg_prefix: Path) {
   Deno.symlinkSync("lib", lib64.string)
 }
 
+// headers that must not be flattened into include/ as they would shadow
+// system/libc headers (compared case-insensitively for macOS HFS+/APFS)
+const SYSTEM_HEADERS = new Set([
+  "assert.h",
+  "complex.h",
+  "ctype.h",
+  "errno.h",
+  "fenv.h",
+  "float.h",
+  "inttypes.h",
+  "iso646.h",
+  "limits.h",
+  "locale.h",
+  "math.h",
+  "setjmp.h",
+  "signal.h",
+  "stdalign.h",
+  "stdarg.h",
+  "stdatomic.h",
+  "stdbool.h",
+  "stddef.h",
+  "stdint.h",
+  "stdio.h",
+  "stdlib.h",
+  "stdnoreturn.h",
+  "string.h",
+  "tgmath.h",
+  "threads.h",
+  "time.h",
+  "uchar.h",
+  "wchar.h",
+  "wctype.h",
+  // POSIX
+  "dirent.h",
+  "fcntl.h",
+  "glob.h",
+  "grp.h",
+  "netdb.h",
+  "poll.h",
+  "pthread.h",
+  "pwd.h",
+  "regex.h",
+  "sched.h",
+  "search.h",
+  "semaphore.h",
+  "spawn.h",
+  "strings.h",
+  "syslog.h",
+  "termios.h",
+  "unistd.h",
+  "utime.h",
+  "wordexp.h",
+  // common C++ / platform headers that cause trouble
+  "memory.h",
+  "version.h",
+  "module.h",
+])
+
 async function flatten_headers(pkg_prefix: Path) {
   // if include/ contains exactly one subdirectory and no loose files, flatten it
   // eg. include/foo/*.h → include/*.h with include/foo → symlink to .
@@ -167,6 +225,19 @@ async function flatten_headers(pkg_prefix: Path) {
   if (subdirs.length == 1 && entries.length == 1) {
     const subdir = subdirs[0]
     const name = subdir.basename()
+
+    // check for headers that would shadow system headers (case-insensitive for macOS)
+    const dominated: string[] = []
+    for await (const [path] of subdir.ls()) {
+      const lower = path.basename().toLowerCase()
+      if (SYSTEM_HEADERS.has(lower)) {
+        dominated.push(path.basename())
+      }
+    }
+    if (dominated.length > 0) {
+      console.log({ skipping_flatten: name, would_shadow: dominated })
+      return
+    }
 
     // move all contents up
     for await (const [path] of subdir.ls()) {
