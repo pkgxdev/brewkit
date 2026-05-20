@@ -24,7 +24,47 @@ export default async function fix_rpaths(installation: Installation, pkgs: strin
   console.info("doing SLOW rpath fixes…")
   for await (const [exename] of exefiles(installation.path)) {
     await set_rpaths(exename, pkgs, installation)
+    await fix_interpreter(exename)
   }
+}
+
+/// Strip the `+brewing` build-prefix suffix from PT_INTERP if present.
+///
+/// brewkit installs into ${prefix}+brewing/ then renames to ${prefix}/.
+/// The build's `ld --dynamic-linker=...+brewing/.../ld-linux*.so` flag
+/// bakes the +brewing path into PT_INTERP of every linked binary.
+/// fix-elf has historically only patched RPATH; without also patching
+/// PT_INTERP, packages whose own bin/ tools have a PT_INTERP that points
+/// back into their own bottle (currently rare — glibc is the obvious
+/// example) become broken after the rename: the kernel tries to load
+/// the .../+brewing/.../ld-linux*.so path which no longer exists.
+///
+/// No-op on binaries whose PT_INTERP doesn't contain `+brewing`, which
+/// is the case for every existing pantry bottle (they consume the host
+/// runner's ld-linux at PT_INTERP=/lib(64)?/ld-linux-*.so).
+async function fix_interpreter(exename: Path) {
+  let cur: string
+  try {
+    cur = (await backticks({
+      cmd: ["patchelf", "--print-interpreter", exename],
+    })).chuzzle() ?? ""
+  } catch {
+    return // not a dynamic ELF, or statically linked, or no PT_INTERP
+  }
+  if (!cur.includes("+brewing")) return
+
+  const fixed = cur.replace(/\+brewing/g, "")
+  // Sanity check: only rewrite to a path that actually exists, otherwise
+  // we'd silently produce a binary that can't be exec'd at all.
+  if (!new Path(fixed).exists()) {
+    console.warn(`fix-elf: PT_INTERP target ${fixed} doesn't exist; skipping rewrite for ${exename}`)
+    return
+  }
+  const proc = new Deno.Command("patchelf", {
+    args: ["--set-interpreter", fixed, exename.string]
+  }).spawn()
+  const { success } = await proc.status
+  if (!success) console.warn(`fix-elf: patchelf --set-interpreter failed for ${exename}`)
 }
 
 
