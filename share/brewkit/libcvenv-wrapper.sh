@@ -1,5 +1,7 @@
 #!/bin/sh
-# Template for bklibcvenv-generated wrappers.
+# Template for bklibcvenv-generated wrappers. Pure POSIX sh — no
+# `--` end-of-options markers (POSIX doesn't specify them for `cd`
+# or `command -v`; some old /bin/sh implementations reject them).
 #
 # Replaced by `bklibcvenv seal`:
 #   @LDSO@      e.g. ld-linux-x86-64.so.2
@@ -9,10 +11,10 @@
 
 case "$0" in
   */*) bindir=${0%/*} ;;
-  *) bindir=$(command -v -- "$0"); bindir=${bindir%/*} ;;
+  *) bindir=$(command -v "$0"); bindir=${bindir%/*} ;;
 esac
 
-prefix=$(CDPATH= cd -- "$bindir/.." && pwd)
+prefix=$(CDPATH= cd "$bindir/.." && pwd)
 libdir="$prefix/lib/@LIBDIR@"
 
 exec "$libdir/@LDSO@" --library-path "$libdir" "$prefix/libexec/@LIBC_NAME@-@DIR@/$(basename "$0")" "$@"
