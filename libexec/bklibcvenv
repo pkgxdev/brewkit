@@ -1,0 +1,131 @@
+#!/usr/bin/env -S pkgx +nixos.org/patchelf bash
+# bklibcvenv — hermetic libc bundler for relocatable libc bottles.
+#
+# Mirror of libexec/bkpyvenv. Recipe-side helper that makes a libc
+# bottle (glibc, eventually musl etc.) ship its bin/* + sbin/* as
+# POSIX-sh wrappers that route through the bundled ld.so by relative
+# path, so the bottle is fully relocatable.
+#
+# Usage:
+#   bklibcvenv seal <prefix> <libdir-name>
+#
+# Where:
+#   <prefix>       install root (e.g. {{prefix}})
+#   <libdir-name>  subdir of <prefix>/lib/ containing libc.so.6 + ld.so
+#                  (e.g. "glibc-2.43"). The script derives:
+#                    LIBC_NAME = libdir-name up to the first '-'
+#                    (so "glibc-2.43" → "glibc")
+#                  LIBC_NAME is used as the libexec subdir prefix
+#                  (libexec/<LIBC_NAME>-bin/, libexec/<LIBC_NAME>-sbin/)
+#                  so multiple libc bottles can coexist without colliding.
+#
+# Effect: for each ELF in <prefix>/{bin,sbin}/* that has a PT_INTERP,
+#   - move it to <prefix>/libexec/<LIBC_NAME>-<dir>/
+#   - replace <prefix>/<dir>/<name> with a POSIX sh wrapper that:
+#     * resolves its own bindir (handles invocation by path or PATH)
+#     * climbs to prefix
+#     * invokes <prefix>/lib/<libdir-name>/<LDSO> --library-path …
+#       <prefix>/libexec/<LIBC_NAME>-<dir>/<name> "$@"
+#
+# LDSO is auto-detected from `uname -m`. Override via LDSO env var
+# if needed (cross-arch host, exotic loader name, etc.).
+#
+# Refs: pkgxdev/brewkit#344 (RFC), pkgxdev/pantry@5354c73f (the
+# inline-in-glibc-recipe origin of this pattern by @jhheider).
+
+set -eo pipefail
+
+if [ $# -lt 1 ]; then
+  echo "bklibcvenv: missing subcommand" >&2
+  echo "usage: $0 seal <prefix> <libdir-name>" >&2
+  exit 64
+fi
+
+CMD=$1
+shift
+
+# Optional debug tracing — opt-in via env to avoid log noise.
+[ -n "${BKLIBCVENV_DEBUG:-}" ] && set -x
+
+# sed-replacement-safe escape. Backslashes, ampersands, and the
+# `|` delimiter need to be quoted in the replacement-half of an
+# `s|…|…|g`. Without escaping a value like `foo&bar` would be
+# replaced by sed's match-back-reference; `foo\1bar` similarly
+# breaks. In practice our values are tightly controlled (LDSO,
+# LIBDIR_NAME etc. come from arch/version, never user input), so
+# this is defense in depth.
+sed_escape() {
+  printf '%s\n' "$1" | sed -e 's/[\\&|]/\\&/g'
+}
+
+case "$CMD" in
+  seal)
+    if [ $# -lt 2 ]; then
+      echo "bklibcvenv seal: missing args" >&2
+      echo "usage: $0 seal <prefix> <libdir-name>" >&2
+      exit 64
+    fi
+
+    PREFIX=$1
+    LIBDIR_NAME=$2
+
+    # Auto-detect ld.so name from arch. Override-able via LDSO env.
+    if [ -z "${LDSO:-}" ]; then
+      case "$(uname -m)" in
+        x86_64)        LDSO=ld-linux-x86-64.so.2 ;;
+        aarch64|arm64) LDSO=ld-linux-aarch64.so.1 ;;
+        armv7*|armhf)  LDSO=ld-linux-armhf.so.3 ;;
+        i686|i386)     LDSO=ld-linux.so.2 ;;
+        *) echo "bklibcvenv: unsupported arch $(uname -m); set LDSO env" >&2; exit 1 ;;
+      esac
+    fi
+
+    # libc name from libdir's first dash-separated component.
+    LIBC_NAME=${LIBDIR_NAME%%-*}
+
+    # Locate the wrapper template (share/brewkit/libcvenv-wrapper.sh).
+    SELF_DIR=$(CDPATH= cd "$(dirname "$0")" && pwd)
+    TEMPLATE="$SELF_DIR/../share/brewkit/libcvenv-wrapper.sh"
+    if [ ! -f "$TEMPLATE" ]; then
+      echo "bklibcvenv: wrapper template not found at $TEMPLATE" >&2
+      exit 2
+    fi
+
+    # Escape sed-replacement values once up-front.
+    LDSO_ESC=$(sed_escape "$LDSO")
+    LIBDIR_ESC=$(sed_escape "$LIBDIR_NAME")
+    LIBC_ESC=$(sed_escape "$LIBC_NAME")
+
+    for dir in bin sbin; do
+      [ -d "$PREFIX/$dir" ] || continue
+      mkdir -p "$PREFIX/libexec/$LIBC_NAME-$dir"
+
+      for f in "$PREFIX/$dir"/*; do
+        [ -f "$f" ] && [ ! -L "$f" ] || continue
+        # Skip non-ELF (shell scripts, etc.) — patchelf exits non-zero
+        # when the file isn't an ELF with a PT_INTERP.
+        patchelf --print-interpreter "$f" >/dev/null 2>&1 || continue
+
+        name=$(basename "$f")
+        mv "$f" "$PREFIX/libexec/$LIBC_NAME-$dir/"
+
+        DIR_ESC=$(sed_escape "$dir")
+        sed \
+          -e "s|@LDSO@|$LDSO_ESC|g" \
+          -e "s|@LIBDIR@|$LIBDIR_ESC|g" \
+          -e "s|@LIBC_NAME@|$LIBC_ESC|g" \
+          -e "s|@DIR@|$DIR_ESC|g" \
+          "$TEMPLATE" > "$f"
+        chmod 755 "$f"
+
+        echo "wrapped $f"
+      done
+    done
+    ;;
+
+  *)
+    echo "bklibcvenv: unknown subcommand '$CMD'" >&2
+    echo "usage: $0 seal <prefix> <libdir-name>" >&2
+    exit 64
+    ;;
+esac
