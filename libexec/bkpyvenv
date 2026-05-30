@@ -37,7 +37,13 @@ stage)
     poetry config virtualenvs.create true
     poetry config virtualenvs.in-project true
   else
-    python -m venv "$PREFIX"/venv
+    # --copies: copy the python binary into the venv instead of
+    # symlinking it. With the default --symlinks behavior the resulting
+    # `$PREFIX/venv/bin/python` is an absolute symlink to
+    # `/opt/python.org/v<ver>/bin/python`, which breaks any bottle
+    # installed somewhere other than /opt (eg. /usr/local/pkgs/...
+    # via pkgm). See pkgxdev/pantry#8487 for the original report.
+    python -m venv --copies "$PREFIX"/venv
   fi
   ;;
 seal)
