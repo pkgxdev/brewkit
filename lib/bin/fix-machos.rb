@@ -76,6 +76,23 @@ class Fixer
     entitlements_xml, _, _ = Open3.capture3("codesign", "-d", "--entitlements", ":-", filename)
     has_entitlements = !entitlements_xml.strip.empty?
 
+    # `--preserve-metadata=flags` does NOT preserve the adhoc flag (0x2)
+    # when re-signing — codesign treats the adhoc bit as identity-derived
+    # rather than a preservable flag. The result is a signed-but-not-adhoc
+    # binary (flags=0x0) which macOS Virtualization.framework rejects when
+    # the binary needs `com.apple.security.virtualization` entitlement
+    # (eg. lima's limactl). See pkgxdev/pantry#7853.
+    #
+    # Fix: when signing ad-hoc (signing_id == "-") and the binary has
+    # entitlements we care about, take the remove+re-sign path directly.
+    # That path uses `--entitlements <file>` instead of --preserve-metadata,
+    # which produces a clean signature with flags=0x2(adhoc) — matching
+    # what `codesign -s -` from the binary's own Makefile would produce.
+    if signing_id == "-" and has_entitlements
+      resign_with_entitlements!(filename, signing_id, entitlements_xml)
+      return
+    end
+
     _, stderr_str, status = Open3.capture3("codesign", "--sign", signing_id, "--force",
                                   "--preserve-metadata=entitlements,requirements,flags,runtime",
                                   filename)
@@ -90,9 +107,13 @@ class Fixer
     # some binaries end up in a state where --preserve-metadata fails
     # strip the signature entirely and re-sign from scratch
     puts "fix-macho: re-signing #{filename} (preserve-metadata failed)"
+    resign_with_entitlements!(filename, signing_id, has_entitlements ? entitlements_xml : nil)
+  end
+
+  def resign_with_entitlements!(filename, signing_id, entitlements_xml)
     Open3.capture3("codesign", "--remove-signature", filename)
 
-    if has_entitlements
+    if entitlements_xml and !entitlements_xml.strip.empty?
       # write entitlements to a tmpfile and re-sign with them
       require 'tempfile'
       tmp = Tempfile.new(['entitlements', '.xml'])
