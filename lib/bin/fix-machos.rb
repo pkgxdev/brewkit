@@ -76,6 +76,25 @@ class Fixer
     entitlements_xml, _, _ = Open3.capture3("codesign", "-d", "--entitlements", ":-", filename)
     has_entitlements = !entitlements_xml.strip.empty?
 
+    # Some entitlements (notably `com.apple.security.virtualization` and
+    # `com.apple.security.hypervisor`) require either adhoc signing or a
+    # Developer ID with a matching provisioning profile. When pantry CI
+    # has imported a Developer ID via `apple-actions/import-codesign-certs`,
+    # `signing_id` is that Developer ID — but it generally has no matching
+    # provisioning, so macOS Virtualization.framework / hypervisor.framework
+    # refuse the entitlement at runtime (the binary launches but vz / hv
+    # calls fail). Homebrew sidesteps this by always adhoc-signing these
+    # binaries. Mirror that: force adhoc when these entitlements are present.
+    # See pkgxdev/pantry#7853.
+    privileged_entitlements = %w[
+      com.apple.security.virtualization
+      com.apple.security.hypervisor
+    ]
+    if has_entitlements and privileged_entitlements.any? { |k| entitlements_xml.include?(k) }
+      resign_with_entitlements!(filename, "-", entitlements_xml)
+      return
+    end
+
     # `--preserve-metadata=flags` does NOT preserve the adhoc flag (0x2)
     # when re-signing — codesign treats the adhoc bit as identity-derived
     # rather than a preservable flag. The result is a signed-but-not-adhoc
