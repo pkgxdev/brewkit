@@ -1,37 +1,69 @@
-#!/usr/bin/env -S pkgx +nixos.org/patchelf bash
+#!/usr/bin/env -S pkgx +nixos.org/patchelf +ziglang.org=0.15.2 bash
 # bklibcvenv — hermetic libc bundler for relocatable libc bottles.
 #
-# Mirror of libexec/bkpyvenv. Recipe-side helper that makes a libc
-# bottle (glibc, eventually musl etc.) ship its bin/* + sbin/* as
-# POSIX-sh wrappers that route through the bundled ld.so by relative
-# path, so the bottle is fully relocatable.
+# Sibling of libexec/bkpyvenv. Recipe-side helper that lets a bottle bundle
+# its own libc (glibc, eventually musl etc.) and run on hosts whose system
+# libc is older, while staying fully relocatable.
 #
 # Usage:
 #   bklibcvenv seal <prefix> <libdir-name>
 #
 # Where:
 #   <prefix>       install root (e.g. {{prefix}})
-#   <libdir-name>  subdir of <prefix>/lib/ containing libc.so.6 + ld.so
-#                  (e.g. "glibc-2.43"). The script derives:
-#                    LIBC_NAME = libdir-name up to the first '-'
-#                    (so "glibc-2.43" → "glibc")
-#                  LIBC_NAME is used as the libexec subdir prefix
-#                  (libexec/<LIBC_NAME>-bin/, libexec/<LIBC_NAME>-sbin/)
-#                  so multiple libc bottles can coexist without colliding.
+#   <libdir-name>  subdir of <prefix>/lib/ holding libc.so.6 + ld.so
+#                  (e.g. "glibc-2.43").
 #
-# Effect: for each ELF in <prefix>/{bin,sbin}/* that has a PT_INTERP,
-#   - move it to <prefix>/libexec/<LIBC_NAME>-<dir>/
-#   - replace <prefix>/<dir>/<name> with a POSIX sh wrapper that:
-#     * resolves its own bindir (handles invocation by path or PATH)
-#     * climbs to prefix
-#     * invokes <prefix>/lib/<libdir-name>/<LDSO> --library-path …
-#       <prefix>/libexec/<LIBC_NAME>-<dir>/<name> "$@"
+# How it works
+# ------------
+# The naive way to run a binary against a bundled libc is to invoke the loader
+# explicitly: `ld.so --library-path … ./prog`. That works for ordinary tools but
+# breaks any program that locates itself via /proc/self/exe (clang re-execing as
+# `clang -cc1`, etc.), because the kernel exec's the *loader*, so /proc/self/exe
+# points at ld.so, not the program. (This is the wall that sank the explicit-
+# wrapper approach: pkgxdev/brewkit#346.)
 #
-# LDSO is auto-detected from `uname -m`. Override via LDSO env var
-# if needed (cross-arch host, exotic loader name, etc.).
+# Instead we patch each binary's PT_INTERP to point at the bundled ld.so by
+# *absolute* path, so the kernel exec's the program directly and /proc/self/exe
+# is correct. PT_INTERP can't be relative or use $ORIGIN (the kernel reads it
+# before ld.so exists and never expands $ORIGIN), so the absolute path can't be
+# baked at build time — the install prefix isn't known yet, and a bottle can be
+# moved after install (pkgm relocation).
 #
-# Refs: pkgxdev/brewkit#344 (RFC), pkgxdev/pantry@5354c73f (the
-# inline-in-glibc-recipe origin of this pattern by @jhheider).
+# So we fix it up at *load time*, mirroring bkpyvenv: a tiny static stub
+# (bkinterp, built from share/brewkit/bkinterp.zig) sits in front of each
+# binary. On every invocation it locates itself via /proc/self/exe, computes the
+# current prefix, and — only if the stored PT_INTERP is stale — re-pokes it in
+# place to <prefix>/lib/<libdir-name>/<ldso>, then exec's the real binary. The
+# check is a ~6µs read; the poke fires once per install (or after a move). The
+# stub is statically linked against musl so it has no PT_INTERP or libc
+# dependency of its own — it's the one thing guaranteed to run before any libc
+# fixup happens.
+#
+# To make the in-place poke possible without shipping patchelf into the runtime,
+# seal reserves a PATH_MAX-sized PT_INTERP slot at build time (patchelf is a
+# build-only dep); the stub overwrites the reserved bytes with a plain pwrite.
+#
+# Layout after seal (real binaries in libexec/, a *direct child* of prefix, same
+# depth as bin/ and sbin/):
+#
+#   bin/clang       -> ../libexec/bkinterp   (was: real ELF or alias symlink)
+#   bin/clang-22    -> ../libexec/bkinterp
+#   libexec/clang   -> clang-22              (alias preserved for argv[0] lookup)
+#   libexec/clang-22                         (real ELF: padded PT_INTERP +
+#                                             $ORIGIN/../lib/<libc> prepended rpath)
+#   libexec/bkinterp                         (the static fixup stub)
+#
+# Keeping the real binaries at libexec/ (not libexec/<libc>-<dir>/) is
+# deliberate: bin/foo and libexec/foo both resolve $ORIGIN/.. to <prefix>, so a
+# moved binary's $ORIGIN-relative RPATH/RUNPATH — including cross-package
+# $ORIGIN/../../../../other-pkg paths — stays valid. The old extra directory
+# level silently broke every such RPATH.
+#
+# LDSO and the zig target triple are auto-detected from `uname -m`; override via
+# the LDSO / ZTARGET env vars for exotic hosts.
+#
+# Refs: pkgxdev/brewkit#344 (RFC), #346 (the /proc/self/exe wall),
+# pkgxdev/pantry@5354c73f (the inline-in-glibc-recipe origin by @jhheider).
 
 set -eo pipefail
 
@@ -47,17 +79,6 @@ shift
 # Optional debug tracing — opt-in via env to avoid log noise.
 [ -n "${BKLIBCVENV_DEBUG:-}" ] && set -x
 
-# sed-replacement-safe escape. Backslashes, ampersands, and the
-# `|` delimiter need to be quoted in the replacement-half of an
-# `s|…|…|g`. Without escaping a value like `foo&bar` would be
-# replaced by sed's match-back-reference; `foo\1bar` similarly
-# breaks. In practice our values are tightly controlled (LDSO,
-# LIBDIR_NAME etc. come from arch/version, never user input), so
-# this is defense in depth.
-sed_escape() {
-  printf '%s\n' "$1" | sed -e 's/[\\&|]/\\&/g'
-}
-
 case "$CMD" in
   seal)
     if [ $# -lt 2 ]; then
@@ -69,56 +90,120 @@ case "$CMD" in
     PREFIX=$1
     LIBDIR_NAME=$2
 
-    # Auto-detect ld.so name from arch. Override-able via LDSO env.
-    if [ -z "${LDSO:-}" ]; then
-      case "$(uname -m)" in
-        x86_64)        LDSO=ld-linux-x86-64.so.2 ;;
-        aarch64|arm64) LDSO=ld-linux-aarch64.so.1 ;;
-        armv7*|armhf)  LDSO=ld-linux-armhf.so.3 ;;
-        i686|i386)     LDSO=ld-linux.so.2 ;;
-        *) echo "bklibcvenv: unsupported arch $(uname -m); set LDSO env" >&2; exit 1 ;;
-      esac
-    fi
+    # Auto-detect ld.so name + zig target from arch. Both override-able via env.
+    case "$(uname -m)" in
+      x86_64)        : "${LDSO:=ld-linux-x86-64.so.2}";  : "${ZTARGET:=x86_64-linux-musl}" ;;
+      aarch64|arm64) : "${LDSO:=ld-linux-aarch64.so.1}"; : "${ZTARGET:=aarch64-linux-musl}" ;;
+      armv7*|armhf)  : "${LDSO:=ld-linux-armhf.so.3}";   : "${ZTARGET:=arm-linux-musleabihf}" ;;
+      i686|i386)     : "${LDSO:=ld-linux.so.2}";         : "${ZTARGET:=x86-linux-musl}" ;;
+      *) echo "bklibcvenv: unsupported arch $(uname -m); set LDSO and ZTARGET env" >&2; exit 1 ;;
+    esac
 
-    # libc name from libdir's first dash-separated component.
-    LIBC_NAME=${LIBDIR_NAME%%-*}
-
-    # Locate the wrapper template (share/brewkit/libcvenv-wrapper.sh).
+    # Locate the stub source (share/brewkit/bkinterp.zig), next to this script.
     SELF_DIR=$(CDPATH= cd "$(dirname "$0")" && pwd)
-    TEMPLATE="$SELF_DIR/../share/brewkit/libcvenv-wrapper.sh"
-    if [ ! -f "$TEMPLATE" ]; then
-      echo "bklibcvenv: wrapper template not found at $TEMPLATE" >&2
+    STUB_SRC="$SELF_DIR/../share/brewkit/bkinterp.zig"
+    if [ ! -f "$STUB_SRC" ]; then
+      echo "bklibcvenv: stub source not found at $STUB_SRC" >&2
       exit 2
     fi
 
-    # Escape sed-replacement values once up-front.
-    LDSO_ESC=$(sed_escape "$LDSO")
-    LIBDIR_ESC=$(sed_escape "$LIBDIR_NAME")
-    LIBC_ESC=$(sed_escape "$LIBC_NAME")
+    LIBEXEC="$PREFIX/libexec"
+    mkdir -p "$LIBEXEC"
 
+    # Build the load-time fixup stub: one static-musl binary per bottle,
+    # symlinked per command. Zig is pinned because the source tracks a specific
+    # stdlib API; bump zig in the shebang and the source together. zig bundles its own musl
+    # sysroot, so this needs nothing on the host but the zig package.
+    zig build-exe "$STUB_SRC" \
+      -target "$ZTARGET" -OReleaseSmall -fstrip \
+      -femit-bin="$LIBEXEC/bkinterp"
+    # zig drops a .o next to the output; don't ship it.
+    rm -f "$LIBEXEC/bkinterp.o"
+
+    # Reserve a PT_INTERP slot sized to exactly PATH_MAX, which the stub
+    # overwrites in place at load time. Two hard kernel constraints fix the size:
+    #   * the kernel rejects (ENOEXEC) any binary whose PT_INTERP p_filesz
+    #     exceeds PATH_MAX (4096), so the slot must be <= PATH_MAX;
+    #   * a runtime install path can't itself exceed PATH_MAX (the kernel
+    #     couldn't open a longer interp), so a PATH_MAX slot always fits.
+    # The placeholder must END with the real loader basename: the stub recovers
+    # the loader name via basename(current-interp) to glob lib/*/<ldso> — which
+    # also makes it arch-correct per binary (x86-64 ld-linux-x86-64.so.2,
+    # aarch64 ld-linux-aarch64.so.1, …). p_filesz = strlen + 1 (NUL); we target
+    # p_filesz == PATH_MAX, so strlen == PATH_MAX-1 and PAD = PATH_MAX-1 - 2 (the
+    # two '/' separators) - strlen(LDSO).
+    PATH_MAX=4096
+    PAD_N=$(( PATH_MAX - 1 - 2 - ${#LDSO} ))
+    PAD=$(printf "%0.sA" $(seq 1 "$PAD_N"))
+    PLACEHOLDER="/$PAD/$LDSO"
+
+    # Leave a note so the relocated binaries aren't mystifying.
+    cat > "$LIBEXEC/README.md" <<EOF
+# bklibcvenv
+
+The executables here are the *real* programs from this bottle's \`bin/\` (and
+\`sbin/\`). \`bklibcvenv seal\` moved them here and pointed each \`bin/\` entry at
+\`bkinterp\`, a tiny static stub that — on each run — fixes the real binary's ELF
+interpreter to this bottle's bundled \`lib/$LIBDIR_NAME/$LDSO\` loader, then
+exec's it. That makes the bottle run against its own libc, stay relocatable, and
+keep \`/proc/self/exe\` pointing at the real program (so self-locating tools like
+clang work). Invoke programs via \`bin/\`, not directly.
+EOF
+
+    # Pass 1: move + seal real ELF executables; point bin/ entry at the stub.
     for dir in bin sbin; do
       [ -d "$PREFIX/$dir" ] || continue
-      mkdir -p "$PREFIX/libexec/$LIBC_NAME-$dir"
 
       for f in "$PREFIX/$dir"/*; do
         [ -f "$f" ] && [ ! -L "$f" ] || continue
-        # Skip non-ELF (shell scripts, etc.) — patchelf exits non-zero
-        # when the file isn't an ELF with a PT_INTERP.
+        # Skip non-ELF / no-PT_INTERP (shell scripts, .cfg, static bins, etc.).
         patchelf --print-interpreter "$f" >/dev/null 2>&1 || continue
 
         name=$(basename "$f")
-        mv "$f" "$PREFIX/libexec/$LIBC_NAME-$dir/"
+        if [ -e "$LIBEXEC/$name" ]; then
+          echo "bklibcvenv: $LIBEXEC/$name already exists; skipping $f" >&2
+          continue
+        fi
+        mv "$f" "$LIBEXEC/$name"
 
-        DIR_ESC=$(sed_escape "$dir")
-        sed \
-          -e "s|@LDSO@|$LDSO_ESC|g" \
-          -e "s|@LIBDIR@|$LIBDIR_ESC|g" \
-          -e "s|@LIBC_NAME@|$LIBC_ESC|g" \
-          -e "s|@DIR@|$DIR_ESC|g" \
-          "$TEMPLATE" > "$f"
-        chmod 755 "$f"
+        # Prepend the bundled libc dir to the existing rpath. Existing
+        # $ORIGIN-relative entries (incl. cross-package ../../../..) stay valid
+        # because libexec/ is the same depth as bin/.
+        #
+        # --force-rpath makes this DT_RPATH, not DT_RUNPATH. This is essential
+        # for a libc bundle: DT_RUNPATH applies only to a binary's *direct*
+        # NEEDED libs, so a transitively-loaded lib (e.g. libcurl pulling
+        # libpthread.so.0) would never search the bundled glibc and would fall
+        # back to the host's. DT_RPATH applies transitively to the whole process
+        # and is searched before LD_LIBRARY_PATH, so the bundled libc serves
+        # every lib and the host can't inject an older one.
+        old=$(patchelf --print-rpath "$LIBEXEC/$name" 2>/dev/null || true)
+        patchelf --force-rpath --set-rpath "\$ORIGIN/../lib/$LIBDIR_NAME${old:+:$old}" "$LIBEXEC/$name"
+        # Reserve the PT_INTERP slot the stub will poke at load time.
+        patchelf --set-interpreter "$PLACEHOLDER" "$LIBEXEC/$name"
 
-        echo "wrapped $f"
+        ln -s "../libexec/bkinterp" "$f"
+        echo "sealed $f"
+      done
+    done
+
+    # Pass 2: for bin/sbin symlinks whose target we just sealed (e.g.
+    # `clang -> clang-22`), mirror the alias inside libexec/ so the stub's
+    # `basename "$argv[0]"` lookup resolves, and leave the bin/ symlink alone —
+    # it transitively resolves through the now-stubbed target.
+    for dir in bin sbin; do
+      [ -d "$PREFIX/$dir" ] || continue
+
+      for f in "$PREFIX/$dir"/*; do
+        [ -L "$f" ] || continue
+        # skip the stub symlinks we just created
+        [ "$(readlink "$f")" = "../libexec/bkinterp" ] && continue
+        tgt=$(basename "$(readlink "$f")")
+        [ -e "$LIBEXEC/$tgt" ] || continue   # target wasn't sealed (e.g. a script)
+        alias=$(basename "$f")
+        [ -e "$LIBEXEC/$alias" ] && continue
+        ln -s "$tgt" "$LIBEXEC/$alias"
+        echo "aliased $LIBEXEC/$alias -> $tgt"
       done
     done
     ;;
