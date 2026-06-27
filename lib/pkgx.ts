@@ -34,9 +34,9 @@ export enum Verbosity {
   trace = 3
 }
 
-(() => {
-  const verbosity = getVerbosity(Deno.env.toObject())
+export const verbosity = getVerbosity(Deno.env.toObject())
 
+;(() => {
   function noop() {}
   if (verbosity < Verbosity.debug) console.debug = noop
   if (verbosity < Verbosity.normal) {
