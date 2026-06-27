@@ -6,7 +6,7 @@ import fix_up from "brewkit/porcelain/fix-up.ts"
 import { Command } from "cliffy/command/mod.ts"
 import fetch from "brewkit/porcelain/fetch.ts"
 import get_config, { platform_cache } from "brewkit/config.ts"
-import { Path, hooks, utils } from "pkgx"
+import { Path, hooks, utils, Verbosity, verbosity } from "pkgx"
 import * as YAML from "deno/yaml/mod.ts"
 const { useConfig } = hooks
 const { host } = utils
@@ -134,7 +134,23 @@ platform_cache(() => config.path.home).mkdir('p')  // we’ve indeed found thing
 
 const proc = new Deno.Command(script.string, {clearEnv: true, env}).spawn()
 const rv = await proc.status
-if (!rv.success) throw new Error(`UR BUILD FAILED WITH CODE ${rv.code} & SIGNAL ${rv.signal}`)
+if (!rv.success) {
+  // If verbosity is debug (DEBUG=1, or GITHUB_ACTIONS=true with RUNNER_DEBUG=1), print config logs to aid diagnosis
+  if (verbosity >= Verbosity.debug) {
+    const wanted = new Set(['config.log', 'CMakeError.log', 'CMakeOutput.log', 'meson-log.txt'])
+    try {
+      console.debug("\n==== CONFIG LOGS ====")
+      for await (const [path, { isFile }] of config.path.build.walk()) {
+        if (isFile && wanted.has(path.basename())) {
+          console.debug(`==== START ${path} ====`)
+          console.debug(await path.read())
+          console.debug(`==== END ${path} ====`)
+        }
+      }
+    } catch (err) { console.warn("failed to read config logs:", err) }
+  }
+  throw new Error(`UR BUILD FAILED WITH CODE ${rv.code} & SIGNAL ${rv.signal}`)
+}
 
 /// move installation products to destination
 await gum(`rsync install to final path`)
