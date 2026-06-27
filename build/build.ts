@@ -135,7 +135,7 @@ platform_cache(() => config.path.home).mkdir('p')  // we’ve indeed found thing
 const proc = new Deno.Command(script.string, {clearEnv: true, env}).spawn()
 const rv = await proc.status
 if (!rv.success) {
-  // if DEBUG=1 or RUNNER_DEBUG=1, we’ll see the config tool output in the logs
+  // If verbosity is debug (DEBUG=1, or GITHUB_ACTIONS=true with RUNNER_DEBUG=1), print config logs to aid diagnosis
   if (verbosity >= Verbosity.debug) {
     const wanted = new Set(['config.log', 'CMakeError.log', 'CMakeOutput.log', 'meson-log.txt'])
     try {
@@ -147,7 +147,7 @@ if (!rv.success) {
           console.debug(`==== END ${path} ====`)
         }
       }
-    } catch { console.warn("failed to read config logs") }
+    } catch (err) { console.warn("failed to read config logs:", err) }
   }
   throw new Error(`UR BUILD FAILED WITH CODE ${rv.code} & SIGNAL ${rv.signal}`)
 }
