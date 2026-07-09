@@ -46,9 +46,19 @@ async function audit_provides(pkg: Package) {
 
   for (const provide of await pantry.project(pkg).provides()) {
     const name = moustaches.apply(provide, versionMap)
-    const bin = path.join('bin', name)
-    const sbin = path.join('sbin', name)
-    if (!bin.isExecutableFile() && !sbin.isExecutableFile()) {
+    // Windows targets ship binaries with `.exe` suffix. Recipes can
+    // keep `provides: - bin/foo` without enumerating both — we look
+    // for the unsuffixed name first (Linux/macOS), then fall back to
+    // `foo.exe` (windows/*). Cost: one extra stat per provide on
+    // non-Windows; zero false positives since `.exe` files are
+    // unconventional on POSIX.
+    const candidates = [
+      path.join('bin', name),
+      path.join('sbin', name),
+      path.join('bin', name + '.exe'),
+      path.join('sbin', name + '.exe'),
+    ]
+    if (!candidates.some(p => p.isExecutableFile())) {
       missing.push([pkg.project, name])
     }
   }
