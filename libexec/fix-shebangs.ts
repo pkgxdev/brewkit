@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pkgx deno^1 run -A
+#!/usr/bin/env -S pkgx deno^2 run --unstable-fs --unstable-ffi -A
 
 import { Path } from "pkgx";
 import undent from "outdent";

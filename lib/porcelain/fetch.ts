@@ -82,7 +82,7 @@ async function download(url: URL, dstdir: Path, pkg: Package) {
       const src = useOffLicense('s3').url(stowage)
       return await curl({ dst: tarball, src })
     } catch (err2) {
-      err.cause = err2
+      if (err instanceof Error) err.cause = err2
       throw err
     }
   }

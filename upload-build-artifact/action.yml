@@ -17,7 +17,7 @@ runs:
       shell: bash
       run: |
         echo "::group::fetch deno deps"
-        pkgx deno^1 cache ${GITHUB_ACTION_PATH}/../lib/actions/*.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
+        pkgx deno^2 cache ${GITHUB_ACTION_PATH}/../lib/actions/*.ts --config=${GITHUB_ACTION_PATH}/../deno.jsonc
         echo "::endgroup::"
 
     # we must tar because the upload action loses file permissions 😕

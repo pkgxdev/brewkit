@@ -41,7 +41,7 @@ runs:
       run: |
         echo "::group::fetch deno deps"
         cd $GITHUB_ACTION_PATH
-        pkgx deno^1 cache ./build.ts
+        pkgx deno^2 cache ./build.ts
         echo "::endgroup::"
 
     - name: build
