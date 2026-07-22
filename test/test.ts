@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pkgx +bash +gum +gh +rsync deno^1 run --ext=ts --allow-env --allow-read --allow-write --allow-net --allow-run
+#!/usr/bin/env -S pkgx +bash +gum +gh +rsync deno^2 run --unstable-fs --unstable-ffi --ext=ts --allow-env --allow-read --allow-write --allow-net --allow-run
 
 //TODO net required because we go to github for version info, but really we should require
 // a built product that is then recorded for us to use
@@ -6,7 +6,7 @@
 import { Package, PackageRequirement, Path, hooks, utils } from "pkgx"
 import { gum, find_pkgx, rsync, find_in_PATH } from "brewkit/utils.ts"
 import get_config, { platform_cache } from "brewkit/config.ts"
-import * as YAML from "deno/yaml/mod.ts"
+import * as YAML from "@std/yaml"
 import undent from "outdent"
 import useConfig from "libpkgx/hooks/useConfig.ts";
 const { usePantry } = hooks

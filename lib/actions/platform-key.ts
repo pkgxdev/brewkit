@@ -1,6 +1,6 @@
-#!/usr/bin/env -S pkgx deno^1 run --allow-env --allow-read
+#!/usr/bin/env -S pkgx deno^2 run --unstable-fs --unstable-ffi --allow-env --allow-read
 
-import { Command } from "cliffy/command/mod.ts"
+import { Command } from "@cliffy/command"
 import get_config from '../resolve-pkg.ts'
 import { utils } from 'pkgx'
 

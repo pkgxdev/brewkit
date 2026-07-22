@@ -1,5 +1,6 @@
 import { isArray } from "is-what"
-import { Path } from "pkgx"
+import { Path, utils } from "pkgx"
+const { compact } = utils
 
 export async function backticks({ cmd }: { cmd: Path | (string | Path)[]}): Promise<string> {
   const args = isArray(cmd) ? cmd.map(x => `${x}`) : [cmd.string]
@@ -17,7 +18,7 @@ declare global {
 
 Array.prototype.uniq = function<T>(): Array<T> {
   const set = new Set<T>()
-  return this.compact(x => {
+  return compact(this, x => {
     const s = x.toString()
     if (set.has(s)) return
     set.add(s)

@@ -4,7 +4,7 @@ import { Config } from "brewkit/config.ts"
 import undent from "outdent"
 
 const { usePantry, useConfig } = hooks
-const { host } = utils
+const { host, compact } = utils
 
 export default async function(config: Config, PATH?: Path): Promise<string> {
   const depset = new Set(config.deps.gas.map(x => x.pkg.project))
@@ -22,10 +22,10 @@ export default async function(config: Config, PATH?: Path): Promise<string> {
   const gum = find_in_PATH('gum')
 
   const brewkitd = new Path(new URL(import.meta.url).pathname).parent().parent().parent()
-  const brewkit_PATHs = [
-    brewkitd.join("libexec"),
-    PATH
-  ].compact(x => x?.string).join(':')
+  const brewkit_PATHs = compact(
+    [brewkitd.join("libexec"), PATH],
+    x => x?.string,
+  ).join(':')
 
   const FLAGS = flags()
   if (host().platform == 'darwin') {

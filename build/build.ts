@@ -1,13 +1,13 @@
-#!/usr/bin/env -S pkgx +rsync +git +bash +gum +gh +curl +bzip2 +xz +unzip +lzip +column deno^1 run --ext=ts --allow-env --allow-read --allow-write --allow-run --allow-net
+#!/usr/bin/env -S pkgx +rsync +git +bash +gum +gh +curl +bzip2 +xz +unzip +lzip +column deno^2 run --unstable-fs --unstable-ffi --ext=ts --allow-env --allow-read --allow-write --allow-run --allow-net
 
 import make_build_script from "brewkit/porcelain/build-script.ts"
 import { gum, rsync } from "brewkit/utils.ts"
 import fix_up from "brewkit/porcelain/fix-up.ts"
-import { Command } from "cliffy/command/mod.ts"
+import { Command } from "@cliffy/command"
 import fetch from "brewkit/porcelain/fetch.ts"
 import get_config, { platform_cache } from "brewkit/config.ts"
 import { Path, hooks, utils, Verbosity, verbosity } from "pkgx"
-import * as YAML from "deno/yaml/mod.ts"
+import * as YAML from "@std/yaml"
 const { useConfig } = hooks
 const { host } = utils
 
@@ -170,7 +170,7 @@ if (ghout) {
     version: {
       value: config.pkg.version.toString(),
       raw: config.pkg.version.raw,
-      tag: config.pkg.version.tag
+      tag: (config.pkg.version as unknown as { tag?: string }).tag
     }
   })
 

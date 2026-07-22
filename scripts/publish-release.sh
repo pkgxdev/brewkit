@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pkgx +git +gh +jq +gum +npx +deno^1 bash
+#!/usr/bin/env -S pkgx +git +gh +jq +gum +npx +deno^2 bash
 
 set -eo pipefail
 

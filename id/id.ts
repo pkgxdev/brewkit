@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pkgx +git +gh deno^1 run --allow-env --allow-net --allow-write --allow-run=gh,pkgx --allow-read
+#!/usr/bin/env -S pkgx +git +gh deno^2 run --unstable-fs --unstable-ffi --allow-env --allow-net --allow-write --allow-run=gh,pkgx --allow-read
 
 import resolve_pkg from "brewkit/resolve-pkg.ts"
 
@@ -10,8 +10,9 @@ Deno.writeTextFileSync(ghout!, `value=${pkg.version.toString()}\n`, {append: tru
 if (pkg.version.raw) {
   Deno.writeTextFileSync(ghout!, `raw=${pkg.version.raw}\n`, {append: true})
 }
-if (pkg.version.tag) {
-  Deno.writeTextFileSync(ghout!, `tag=${pkg.version.tag}\n`, {append: true})
+const tag = (pkg.version as unknown as { tag?: string }).tag
+if (tag) {
+  Deno.writeTextFileSync(ghout!, `tag=${tag}\n`, {append: true})
 }
 
 const json = {
@@ -19,7 +20,7 @@ const json = {
   version: {
     value: pkg.version.toString(),
     raw: pkg.version.raw,
-    tag: pkg.version.tag
+    tag
   }
 }
 
