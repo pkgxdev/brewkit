@@ -1,4 +1,4 @@
-import { assertEquals, assert } from "deno/testing/asserts.ts"
+import { assertEquals, assert } from "@std/assert"
 import { _parse } from "./usePantry.getVersions.ts"
 import { SemVer } from "libpkgx"
 

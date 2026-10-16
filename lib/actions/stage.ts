@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pkgx deno^1 run --allow-read --allow-env --allow-write
+#!/usr/bin/env -S pkgx deno^2 run --unstable-fs --unstable-ffi --allow-read --allow-env --allow-write
 
 import { hooks, Path } from "pkgx"
 import get_config from '../resolve-pkg.ts'

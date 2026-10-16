@@ -30,7 +30,7 @@ runs:
       run: |
         echo "::group::fetch deno deps"
         cd ${GITHUB_ACTION_PATH}
-        pkgx deno^1 cache ./id.ts
+        pkgx deno^2 cache ./id.ts
         echo "::endgroup::"
       shell: bash
 

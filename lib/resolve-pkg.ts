@@ -1,5 +1,5 @@
 import { Path, utils, hooks, SemVer, semver } from "pkgx"
-const { usePantry } = hooks
+const { usePantry, useConfig } = hooks
 
 export default async function(arg?: string) {
   if (!arg) {
@@ -19,18 +19,40 @@ export default async function(arg?: string) {
       return {
         pkg: {project, version},
         constraint: new semver.Range(`=${version}`),
-        path: found.path
+        path: package_yml_path(found.project, (found as { path?: Path }).path)
       }
     } else {
       const { constraint, project } = utils.pkg.parse(arg.trim())
       const [found, ...rest] = await usePantry().find(project)
       if (rest.length) throw new Error("ambiguous pkg spec")
       const pkg = await usePantry().resolve({project: found.project, constraint})
-      return { constraint, path: found.path, pkg }
+      return {
+        constraint,
+        path: package_yml_path(found.project, (found as { path?: Path }).path),
+        pkg
+      }
     }
   })(arg)
 
   return {pkg, path, constraint}
+}
+
+/// libpkgx≥0.23 `find()` often omits `path` when the project hits the
+/// local pantry cache by directory. Reconstruct package.yml location.
+function package_yml_path(project: string, found?: Path): Path {
+  if (found) return found
+
+  const cfg = useConfig()
+  const prefixes = [
+    ...cfg.pantries,
+    cfg.data.join("pantry/projects"),
+  ]
+  for (const prefix of prefixes) {
+    const p = prefix.join(project, "package.yml")
+    if (p.exists()) return p
+  }
+  // last resort — matches libpkgx default layout
+  return cfg.data.join("pantry/projects", project, "package.yml")
 }
 
 async function get_pantry_status() {
