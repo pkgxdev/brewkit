@@ -1,0 +1,144 @@
+#!/usr/bin/env -S pkgx +llvm-readobj +install bash
+#
+# bkwinvenv — hermetic Windows-binary bundler (analog of bkpyvenv).
+#
+# Sister of libexec/bkpyvenv, addressing the same need on Windows
+# targets: a recipe-side helper that turns a freshly-installed
+# bin/*.exe + dependent DLLs into a relocatable, hermetic bundle
+# whose binaries always use the bottle's bundled DLLs regardless
+# of the host's DLL search order.
+#
+# Phases:
+#
+#   bkwinvenv stage <prefix>
+#     Currently a no-op (placeholder for future hooks). Reserved for
+#     future CC/CXX/LD/LIB wiring if we end up needing per-recipe
+#     toolchain setup (analog of bkpyvenv's "create venv" phase).
+#
+#   bkwinvenv seal <prefix>
+#     For each ELF/PE executable in $prefix/bin/*.exe:
+#       1. walk its PE import table (llvm-readobj --coff-imports)
+#       2. for each transitive DLL dep that's NOT Windows-shipped
+#          (i.e. not kernel32, ntdll, ucrtbase, vcruntime140, etc.):
+#          - locate it in the brewkit env's lib paths
+#          - copy it into $prefix/libexec/
+#       3. move the exe to $prefix/libexec/$(basename $exe)
+#       4. write $prefix/bin/$(basename $exe .exe).cmd:
+#            @echo off
+#            "%~dp0\..\libexec\<exe>" %*
+#
+# Why this works without explicit LoadLibrary calls:
+#   Windows' DLL search order checks the directory of the exe first.
+#   Co-locating bundled DLLs with the inner exe in libexec/ gets them
+#   resolved automatically — analogous to a Linux bottle using
+#   $ORIGIN-relative RPATH.
+#
+# Comparison vs bkpyvenv:
+#   bkpyvenv      bkwinvenv
+#   ─────────     ─────────────
+#   .venv/lib/    libexec/
+#   Python stub   .cmd wrapper
+#   pip install   PE-import walk
+#
+# Refs: pkgxdev/brewkit#346 (Windows RFC),
+#       pkgxdev/brewkit#344 (bklibcvenv — same shape for Linux glibc).
+
+set -eo pipefail
+
+CMD=$1
+shift
+
+PREFIX=$1
+shift
+
+# Windows-resident DLLs we never bundle (kernel + standard runtime).
+# Conservative list — expandable, basename-only match (case-insensitive
+# since Windows filesystems usually are).
+SYSTEM_DLLS=(
+  kernel32.dll ntdll.dll user32.dll gdi32.dll advapi32.dll
+  msvcrt.dll ucrtbase.dll vcruntime140.dll vcruntime140_1.dll
+  msvcp140.dll concrt140.dll
+  ws2_32.dll crypt32.dll bcrypt.dll secur32.dll
+  shell32.dll ole32.dll oleaut32.dll comctl32.dll
+  iphlpapi.dll dbghelp.dll psapi.dll version.dll
+  api-ms-win-crt-*  # UCRT API-set forwarders
+)
+
+is_system_dll() {
+  local name lc
+  name=$(basename "$1")
+  lc=$(echo "$name" | tr '[:upper:]' '[:lower:]')
+  for sys in "${SYSTEM_DLLS[@]}"; do
+    case "$lc" in $sys) return 0 ;; esac
+  done
+  return 1
+}
+
+# Walk PE imports recursively. Outputs unique DLL basenames (lowercased).
+walk_imports() {
+  local exe=$1 seen=$2
+  llvm-readobj --coff-imports "$exe" 2>/dev/null | \
+    awk '/^  Name:/ { print tolower($2) }' | \
+    while read dll; do
+      [ -z "$dll" ] && continue
+      grep -qFx "$dll" "$seen" 2>/dev/null && continue
+      echo "$dll" >> "$seen"
+      echo "$dll"
+      # Recurse: find DLL on host, walk its imports too.
+      for d in "$PREFIX/libexec" "$PREFIX/bin" $LD_LIBRARY_PATH; do
+        [ -f "$d/$dll" ] && walk_imports "$d/$dll" "$seen" && break
+      done
+    done
+}
+
+set -x
+
+case $CMD in
+  stage)
+    # Placeholder. Future: wire CC/CXX/LD via the Windows SDK directive.
+    echo "bkwinvenv stage: no-op (reserved for future toolchain wiring)"
+    ;;
+
+  seal)
+    mkdir -p "$PREFIX/libexec"
+    SEEN=$(mktemp)
+    trap "rm -f $SEEN" EXIT
+
+    for exe in "$PREFIX/bin/"*.exe; do
+      [ -f "$exe" ] || continue
+      name=$(basename "$exe")
+      stem=${name%.exe}
+
+      echo "::group::sealing $name"
+
+      # 1. walk imports, copy non-system DLLs into libexec/
+      walk_imports "$exe" "$SEEN" | while read dll; do
+        is_system_dll "$dll" && continue
+        # Find dll on host
+        for d in "$PREFIX/lib" "$PREFIX/bin" $LD_LIBRARY_PATH; do
+          if [ -f "$d/$dll" ]; then
+            cp -n "$d/$dll" "$PREFIX/libexec/$dll"
+            echo "  bundled: $dll"
+            break
+          fi
+        done
+      done
+
+      # 2. move the exe itself into libexec/
+      mv "$exe" "$PREFIX/libexec/$name"
+
+      # 3. write the .cmd wrapper
+      cat > "$PREFIX/bin/$stem.cmd" <<EOF
+@echo off
+"%~dp0\\..\\libexec\\$name" %*
+EOF
+
+      echo "::endgroup::"
+    done
+    ;;
+
+  *)
+    echo "bkwinvenv: unknown command '$CMD' (expected stage|seal)" >&2
+    exit 64
+    ;;
+esac
