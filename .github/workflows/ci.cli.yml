@@ -33,7 +33,10 @@ jobs:
     container: ${{ matrix.platform.img }}
     steps:
       # we need libc6-dev headers and gcc bits
-      - run: apt-get update && apt-get install -y build-essential
+      # bullseye is EOL: its security pool is gone from deb.debian.org
+      - run: |
+          sed -i 's/deb\.debian/archive\.debian/g' /etc/apt/sources.list
+          apt-get update && apt-get install -y build-essential
         if: matrix.platform.img != null
       - uses: actions/checkout@v4
       - uses: pkgxdev/setup@v4
@@ -66,7 +69,7 @@ jobs:
           unset PKGX_PANTRY_DIR
       - uses: actions/checkout@v4
       - uses: pkgxdev/dev@v1
-      - run: deno test --allow-env --allow-net --ignore=.data
+      - run: deno test --allow-env --allow-net --allow-run --allow-read --allow-write --ignore=.data
         working-directory: lib
 
   unavailable:
