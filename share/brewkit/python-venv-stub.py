@@ -24,80 +24,82 @@ expected_cfg = (
 new_first_line = b"#!" + python_symlink.encode('utf-8') + b"\n"
 
 
+def cfg_values(text):
+    return dict(l.split(' = ', 1) for l in text.splitlines() if ' = ' in l)
+
+
+def same_path(a, b):
+    return os.path.realpath(a) == os.path.realpath(b)
+
+
+# a relocated pkg keeps its interpreter, but its shebangs name the old venv path
+def stale_shebang(filepath):
+    if not os.path.isfile(filepath) or os.path.islink(filepath):
+        return False
+    with open(filepath, 'rb') as f:
+        if f.read(2) != b'#!':
+            return False
+        first_line = b'#!' + f.readline()
+    return first_line.strip().endswith(b"python") and first_line != new_first_line
+
+
+def bin_files():
+    return glob.glob(os.path.join(virtual_env, 'bin', '*'))
+
+
+# compare resolved paths so v3 vs v3.12.1 spellings of one interpreter don't churn
 def venv_is_current():
     try:
         with open(pyvenv_cfg_path, 'r') as f:
-            cfg = f.read()
-    except OSError:
+            cfg = cfg_values(f.read())
+        return (
+            same_path(cfg['home'], python_home)
+            and same_path(cfg['executable'], python_path)
+            and cfg.get('include-system-site-packages') == 'false'
+            and same_path(python_symlink, python_path)
+            and not any(stale_shebang(x) for x in bin_files())
+        )
+    except (OSError, KeyError):
         return False
-    if cfg != expected_cfg:
-        return False
-    try:
-        return os.readlink(python_symlink) == python_path
-    except OSError:
-        return False
 
 
-def replace_bytes(path, data, mode=None):
-    tmp = path + ".new"
-    try:
-        with open(tmp, 'wb') as f:
-            f.write(data)
-        if mode is not None:
-            os.chmod(tmp, mode)
-        os.replace(tmp, path)
-    finally:
-        if os.path.lexists(tmp):
-            os.remove(tmp)
-
-
+# Nothing is ever created beyond what a venv already holds, so everything is
+# rewritten in place. That is safe because rewrites hold the lock and the
+# symlink is removed first and recreated last: until it is back, every
+# unlocked caller sees "not current" and waits on the lock.
 def rewrite_shebang(filepath):
-    if not os.path.isfile(filepath) or os.path.islink(filepath):
+    if not stale_shebang(filepath):
         return
-    with open(filepath, 'rb') as f:
-        first_two_chars = f.read(2)
-        if first_two_chars != b'#!':
-            return
-        old_first_line = first_two_chars + f.readline()
-        if not (old_first_line.strip().endswith(b"python") and old_first_line != new_first_line):
-            return
+    with open(filepath, 'rb+') as f:
+        f.readline()
         rest_of_file = f.read()
-    replace_bytes(filepath, new_first_line + rest_of_file, os.stat(filepath).st_mode)
+        f.seek(0)
+        f.write(new_first_line + rest_of_file)
+        f.truncate()
 
 
 def rewrite_venv():
-    tmp_cfg = pyvenv_cfg_path + ".new"
-    try:
-        with open(tmp_cfg, 'w') as f:
-            f.write(expected_cfg)
-        os.replace(tmp_cfg, pyvenv_cfg_path)
-    finally:
-        if os.path.lexists(tmp_cfg):
-            os.remove(tmp_cfg)
+    if os.path.lexists(python_symlink):
+        os.remove(python_symlink)
 
-    for filepath in glob.glob(os.path.join(virtual_env, 'bin', '*')):
+    with open(pyvenv_cfg_path, 'w') as f:
+        f.write(expected_cfg)
+
+    for filepath in bin_files():
         rewrite_shebang(filepath)
 
-    tmp_link = python_symlink + ".new"
-    try:
-        if os.path.lexists(tmp_link):
-            os.remove(tmp_link)
-        os.symlink(python_path, tmp_link)
-        os.replace(tmp_link, python_symlink)
-    finally:
-        if os.path.lexists(tmp_link):
-            os.remove(tmp_link)
+    os.symlink(python_path, python_symlink)
 
 
 if not venv_is_current():
-    lock_path = os.path.join(virtual_env, '.pkgx-stub.lock')
-    with open(lock_path, 'a+') as lockf:
-        fcntl.flock(lockf, fcntl.LOCK_EX)
-        try:
-            if not venv_is_current():
-                rewrite_venv()
-        finally:
-            fcntl.flock(lockf, fcntl.LOCK_UN)
+    # lock the existing bin/ dir rather than a file: nothing is added to the tree
+    fd = os.open(os.path.join(virtual_env, 'bin'), os.O_RDONLY)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        if not venv_is_current():
+            rewrite_venv()
+    finally:
+        os.close(fd)
 
 # Execute the corresponding script in the virtual environment
 arg0 = os.path.join(virtual_env, 'bin', arg0)
