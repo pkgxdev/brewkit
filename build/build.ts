@@ -111,7 +111,10 @@ await gum('build')
 
 const env: Record<string, string> = {
   PATH: '/usr/bin:/bin:/usr/sbin:/sbin',
-  PKGX_DIR: useConfig().prefix.string
+  PKGX_DIR: useConfig().prefix.string,
+  // proxy.golang.org drops downloads mid-stream (`stream error … INTERNAL_ERROR`);
+  // `|` falls back to fetching from source on any error, `,` only on 404/410
+  GOPROXY: 'https://proxy.golang.org|direct'
 }
 
 // compute sanitized `env` the script will run within
@@ -120,6 +123,7 @@ for (const key of [
   'PKGX_PANTRY_PATH', // otherwise we cannot build against the user’s pantry
   'PKGX_PANTRY_DIR', // otherwise we cannot build against the user’s pantry - v2
   'GITHUB_TOKEN',     // pass through for `gh` and that sort of thing
+  'GOPROXY',          // the caller’s choice wins over the default above
   'LANG', 'LOGNAME', 'USER', 'TERM'  // prevent POSIX tools from breaking
 ]) {
   const value = Deno.env.get(key)
