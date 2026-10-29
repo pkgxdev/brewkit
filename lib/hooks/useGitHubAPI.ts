@@ -23,13 +23,12 @@ export default function useGitHubAPI() {
 }
 
 async function gh() {
-  const proc = new Deno.Command("gh", {
+  const { success, stdout } = await new Deno.Command("gh", {
     args: ["auth", "token"],
     stdout: "piped",
-  })
-  const { success } = await proc.spawn().status
+  }).output()
   if (!success) throw new Error("Either set GITHUB_TOKEN or run `gh auth login`")
-  return new TextDecoder().decode((await proc.output()).stdout).trim()
+  return new TextDecoder().decode(stdout).trim()
 }
 
 async function GET2<T>(url: URL | string, headers?: Headers): Promise<[T, Response]> {

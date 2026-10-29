@@ -29,7 +29,7 @@ export class TarballUnarchiver extends Unarchiver {
     this.stripComponents = opts.stripComponents
   }
 
-  args(): (string | Path)[] {
+  override args(): (string | Path)[] {
     const args = [
       "tar", "xf", this.opts.zipfile,
       "-C", this.opts.dstdir
@@ -63,7 +63,7 @@ export class ZipUnarchiver extends Unarchiver {
     this.force = opts.force ?? false
   }
 
-  args(): (string | Path)[] {
+  override args(): (string | Path)[] {
     const args = ["unzip"]
     // if (this.opts.verbose) args.push("-v") seems to break it
     if (this.force) args.push("-of")

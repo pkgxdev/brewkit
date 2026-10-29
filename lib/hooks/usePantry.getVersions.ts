@@ -8,7 +8,7 @@ import {
 import { hooks, SemVer, semver, utils } from "libpkgx";
 import useGitLabAPI from "./useGitLabAPI.ts";
 import useGitHubAPI from "./useGitHubAPI.ts";
-const { validate } = utils;
+const { validate, compact, chuzzle } = utils;
 
 /// returns sorted versions
 export default async function getVersions(
@@ -64,7 +64,7 @@ function escapeRegExp(string: string) {
 
 function handleGitHubVersions(versions: PlainObject): Promise<SemVer[]> {
   const [user, repo, ...types] = validate.str(versions.github).split("/");
-  const type = types?.join("/").chuzzle() ?? "releases/tags";
+  const type = chuzzle(types?.join("/") ?? "") ?? "releases/tags";
 
   const ignore = parseIgnore(versions.ignore);
   const transform = (x => isString(x) ? x : undefined)(versions.transform);
@@ -304,29 +304,37 @@ async function handleTransformer(transform: string, versions: string[]): Promise
   /// sadly deno built binaries cannot `eval` so we have to run a whole script 😕
   //FIXME `eval` is available now!
 
-  const cmd = new Deno.Command("pkgx", {
-    args: ["deno", "run", "-"],
-    stdin: "piped",
-    stdout: "piped",
-  }).spawn()
-
   const vv = versions.map(x => `"${x}"`).join(',')
-
-  const writer = cmd.stdin!.getWriter()
-  await writer.write(new TextEncoder().encode(undent`
+  const script = undent`
     const transform = ${transform}
     for (const v of [${vv}]) {
       const rv = transform(v)
       if (rv) console.log(rv, v)
     }
-    `));
-  await writer.close()
+    `
 
-  const { stdout: out, success: ok } = await cmd.output()
+  const child = new Deno.Command("pkgx", {
+    args: ["deno", "run", "-"],
+    stdin: "piped",
+    stdout: "piped",
+    stderr: "piped",
+  }).spawn()
 
-  if (!ok) throw new Error("failed to run version transformer")
+  // write+close stdin, then drain stdout/stderr and wait — avoids Deno 2 resource leaks
+  {
+    const w = child.stdin.getWriter()
+    await w.write(new TextEncoder().encode(script))
+    await w.close()
+  }
+  const [out, , status] = await Promise.all([
+    new Response(child.stdout).arrayBuffer(),
+    new Response(child.stderr).arrayBuffer(),
+    child.status,
+  ])
 
-  return new TextDecoder().decode(out).split('\n').compact(x => {
+  if (!status.success) throw new Error("failed to run version transformer")
+
+  return compact(new TextDecoder().decode(out).split('\n'), x => {
     const [transformed, original] = x.split(' ')
     const v = semver.parse(transformed)
     if (v) {

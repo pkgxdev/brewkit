@@ -1,7 +1,7 @@
 import { hooks, utils, Path, Package, Installation } from "pkgx"
 import { Config } from "brewkit/config.ts"
 const { usePantry } = hooks
-const { host } = utils
+const { host, compact } = utils
 
 export default async function finish(config: Config) {
   const prefix = config.path.install
@@ -40,7 +40,7 @@ async function fix_rpaths(pkg_prefix: Path, pkg: Package, cache: Path, deps: Ins
     const proc = new Deno.Command(bindir.join('fix-machos.rb').string, {
       args: [
         pkg_prefix.string,
-        ...['bin', 'sbin', 'tbin', 'lib', 'libexec'].compact(x => pkg_prefix.join(x).isDirectory()?.string)
+        ...compact(['bin', 'sbin', 'tbin', 'lib', 'libexec'], x => pkg_prefix.join(x).isDirectory()?.string)
       ],
       env: {
         GEM_HOME: cache.join('brewkit/gem').string

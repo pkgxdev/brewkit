@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pkgx +nixos.org/patchelf=0.17.2 +darwinsys.com/file^5 deno^1 run -A
+#!/usr/bin/env -S pkgx +nixos.org/patchelf=0.17.2 +darwinsys.com/file^5 deno^2 run --unstable-fs --unstable-ffi -A
 
 // FIXME ^^ patchelf 0.18.0 has a regression that breaks libraries
 //       https://github.com/NixOS/patchelf/issues/492#issuecomment-1561912775
@@ -6,7 +6,7 @@
 import { utils, Installation, hooks, Path } from "pkgx"
 import { backticks } from "../../lib/utils.ts"
 const { useCellar } = hooks
-const { host } = utils
+const { host, compact, chuzzle } = utils
 
 if (import.meta.main) {
   const cellar = useCellar()
@@ -38,12 +38,11 @@ async function set_rpaths(exename: Path, our_rpaths: string[], installation: Ins
   const args = await (async () => {
     //FIXME we need this for perl
     // however really we should just have an escape hatch *just* for stuff that sets its own rpaths
-    const their_rpaths = (await backticks({
-        cmd: ["patchelf", "--print-rpath", exename],
-      }))
-      .split(":")
-      .compact(x => x.chuzzle())
-      //^^ split has ridiculous empty string behavior
+    // split has ridiculous empty string behavior
+    const their_rpaths = compact(
+      (await backticks({ cmd: ["patchelf", "--print-rpath", exename] })).split(":"),
+      x => chuzzle(x),
+    )
 
     const rpaths = [...their_rpaths, ...our_rpaths]
       .map(x => {

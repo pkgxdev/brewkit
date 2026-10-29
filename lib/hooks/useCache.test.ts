@@ -1,4 +1,4 @@
-import { assertEquals } from "deno/testing/asserts.ts"
+import { assertEquals } from "@std/assert"
 import { hooks, Path, SemVer } from "pkgx"
 const { useCache } = hooks
 
