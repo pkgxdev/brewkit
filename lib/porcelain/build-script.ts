@@ -17,6 +17,15 @@ export default async function(config: Config, PATH?: Path): Promise<string> {
   }
   const user_script = await usePantry().getScript(config.pkg, 'build', config.deps.gas, config)
 
+  // Linux sysroot routing — opt-in via `linux-sysroot:` in package.yml.
+  // When set, redirects the compiler at a specific glibc / kernel-headers
+  // bottle (instead of the build host's libc). Lines emitted into the
+  // generated script export CC / CXX / CPP / SYSROOT before the user
+  // script runs, so recipes don't need to know the paths themselves.
+  // Empty string when the yaml has no `linux-sysroot:` key OR on non-
+  // linux hosts — no behaviour change for existing recipes.
+  const sysroot_env = await linux_sysroot_block(config)
+
   const pkgx = find_in_PATH('pkgx')
   const bash = find_in_PATH('bash')
   const gum = find_in_PATH('gum')
@@ -71,6 +80,7 @@ export default async function(config: Config, PATH?: Path): Promise<string> {
       fi
       mkdir -p $HOME
       ${FLAGS.join('\n  ')}
+      ${sysroot_env}
 
       env -u GH_TOKEN -u GITHUB_TOKEN
 
@@ -80,6 +90,77 @@ export default async function(config: Config, PATH?: Path): Promise<string> {
 
     ${user_script}
     `
+}
+
+/// Emit `export CC=… CXX=… CPP=… SYSROOT=…` if the package.yml has a
+/// `linux-sysroot:` key. Resolves the libc bottle from the package's
+/// installed deps so the recipe doesn't need to know the absolute path.
+///
+/// YAML schema (top-level key, scalar form):
+///
+///   linux-sysroot: gnu.org/glibc=~2.28
+///   build:
+///     dependencies:
+///       gnu.org/glibc: ~2.28               # MUST also be a build dep
+///       kernel.org/linux-headers: ^7       # auto-picked-up if present
+///
+/// `linux-sysroot:` points at the libc you want the compiler routed to.
+/// kernel-headers are auto-detected from `build.dependencies` (if
+/// `kernel.org/linux-headers` is among them, its include dir is
+/// prepended to -isystem; if not, only the libc's headers are wired).
+///
+/// The libc package MUST already be a `build.dependencies` entry (so
+/// it's installed and resolved); this directive routes existing deps,
+/// it doesn't add them.
+///
+/// No-op on non-linux hosts and on recipes without a `linux-sysroot:`
+/// key — no behaviour change for existing recipes.
+///
+/// Naming rationale (@jhheider review feedback on pkgxdev/brewkit#343):
+/// top-level + `linux-`-prefixed makes the platform context explicit at
+/// read-time. Alternate name `build.sysroot.libc:` (nested) was
+/// rejected because it didn't surface the linux-only scope.
+async function linux_sysroot_block(config: Config): Promise<string> {
+  if (host().platform !== 'linux') return ''
+
+  const yml = await usePantry().project(config.pkg).yaml() as Record<string, unknown>
+  const want_libc = yml['linux-sysroot'] as string | undefined
+  if (!want_libc) return ''
+
+  const libc_project = want_libc.split(/[=<>~^]/)[0]
+  const libc_install = config.deps.gas.find(i => i.pkg.project === libc_project)
+  if (!libc_install) {
+    throw new Error(`linux-sysroot='${want_libc}' but ${libc_project} is not in the resolved deps — declare it as a build.dependencies entry`)
+  }
+
+  // Auto-detect kernel-headers from build.dependencies if present.
+  // (No separate directive needed — if you declared the kernel-headers
+  // bottle as a build dep, you want it on the sysroot's -isystem path.)
+  const khdr_install = config.deps.gas.find(i => i.pkg.project === 'kernel.org/linux-headers')
+  const khdr_path = khdr_install?.path.string
+
+  const ldso = (() => {
+    switch (host().arch) {
+      case 'x86-64':  return 'ld-linux-x86-64.so.2'
+      case 'aarch64': return 'ld-linux-aarch64.so.1'
+      default: throw new Error(`linux-sysroot unsupported on ${host().arch}`)
+    }
+  })()
+
+  const libc = libc_install.path.string
+  const isystems = [
+    `-isystem ${libc}/include`,
+    khdr_path ? `-isystem ${khdr_path}/include` : null,
+  ].filter(Boolean).join(' ')
+  const wrap = `-nostdinc ${isystems} -B ${libc}/lib -Wl,--enable-new-dtags,--dynamic-linker=${libc}/lib/${ldso},--rpath=${libc}/lib`
+
+  return undent`
+      # sysroot routing (linux-sysroot in package.yml)
+      export SYSROOT=${libc}
+      export CC="\${CC:-gcc} ${wrap}"
+      export CXX="\${CXX:-g++} ${wrap} -nostdinc++"
+      export CPP="\${CPP:-gcc} ${wrap} -E"
+  `
 }
 
 function flags(): string[] {
